@@ -1,0 +1,4 @@
+{% load i18n %}
+{% for player in players %}
+    <p class="swat-yellow">{% blocktrans with name=player.name context "gamedetail" %}{{ name }} dropped from the server.{% endblocktrans %}</p>
+{% endfor %}

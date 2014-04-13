@@ -1,0 +1,7 @@
+{% load tracker %}
+<a href="{% profile_url profile %}">
+    <div class="swat-profile-picture-outer">
+        <div>{% show_player_picture profile %}</div>
+        {% if not noflag %}<div class="swat-profile-picture-country">{% show_country profile.country %}</div>{% endif %}
+    </div>
+</a>

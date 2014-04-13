@@ -1,0 +1,55 @@
+{% extends "tracker/layout/chapter_fixed.html" %}
+{% load static tracker humanize i18n %}
+
+{% block title %}{{ block.super }}{% trans "Servers" %}{% endblock %}
+
+{% block swat_frame_background_url %}{% static "images/game/maps/background/servers.png" %}{% endblock %}
+
+{% block swat_chapter_title %}{% trans "Servers" %}{% endblock %}
+
+{% block swat_bottom_right %}
+    <a href="#" class="swat-sound-trigger swat-button">{% trans "Filters" %}</a>
+    <a href="#" class="swat-sound-trigger swat-button-arrow-right swat-button-inactive">{% trans "Join" %}</a>
+{% endblock %}
+
+{% block swat_chapter_content %}
+<div class="swat-server-table-outer">
+    <div class="swat-server-table">
+        <div class="table-header">
+            <div>{% trans "Server Name" %}</div>
+            <div>{% trans "Players" %}</div>
+            <div>{% trans "Game Type" %}</div>
+            <div>{% trans "Map Name" %}</div>
+            <div>{% trans "IP Address" %}</div>
+            <div>{% trans "Mod" %}</div>
+            <div>{% trans "Ver" %}</div>
+        </div>
+        {% for server in object_list %}
+
+        <div class="table-row swat-player-row" onclick="window.location='{% server_url server.server %}';">
+            <div style="width: 25%;"><a href="{% server_url server.server %}">{{ server.hostname }}</a></div>
+            <div style="width: 5%;">{{ server.player_num }}/{{ server.player_max }}</div>
+
+            <div style="width: 15%;">{{ server.gametype|gametype }}</div>
+            <div style="width: 25%;">{{ server.mapname|mapname }}</div>
+
+            <div style="width: 15%;">{{ server.server.ip }}:{{ server.server.port }}</div>
+            <div style="width: 10%;">{{ server.gamename }}</div>
+            <div style="width: 5%;">{{ server.gamever }}</div>
+        </div>
+        {% endfor %}
+        <div class="table-row-empty">
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+            <div>&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+    foo
+
+{% endblock %}

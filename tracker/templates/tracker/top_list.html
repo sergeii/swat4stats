@@ -1,0 +1,71 @@
+{% extends "tracker/layout/chapter.html" %}
+{% load static tracker humanize i18n %}
+
+{% block swat_bottom_right %}
+    <a href="{% url 'tracker:board_list' %}" class="swat-sound-trigger swat-button-arrow-right">Leaderboard</a>
+{% endblock %}
+
+{% block title %}{{ block.super}}{% trans "TOP 20" context "nav" %}{% endblock %}
+{% block swat_chapter_title %}{% trans "TOP 20" context "nav" %}{% endblock %}
+
+{% block swat_chapter_content %}
+
+<div class="width100">
+<div class="swat-tab-block-right">
+    {% for available_year in years %}
+        {% ifequal available_year year %}
+            <div class="swat-sound-trigger swat-tab-button-active">{{ available_year }}</div> 
+        {% else %}
+            <a class="swat-sound-trigger swat-tab-button" href="{% url 'tracker:top_list' year=available_year %}">{{ available_year }}</a> 
+        {% endifequal %}
+    {% endfor %}
+</div>
+
+<div class="table swat-box-content width100 swat-text-box-content border-box">
+{% for board, name, items in boards %}
+
+{% ifequal board "score" %}
+    {% static "images/css/rank_score.png" as board_icon %}
+{% endifequal %}
+{% ifequal board "time" %}
+    {% static "images/css/rank_time.png" as board_icon %}
+{% endifequal %}
+{% ifequal board "spm" %}
+    {% static "images/css/rank_spm.png" as board_icon %}
+{% endifequal %}
+{% ifequal board "kills" %}
+    {% static "images/css/rank_spr.png" as board_icon %}
+{% endifequal %}
+{% ifequal board "coop_score" %}
+    {% static "images/css/rank_score.png" as board_icon %}
+{% endifequal %}
+
+<div class="table-row nowrap swat-top-row">
+    <div class="swat-top-board-outer">
+        <div class="swat-top-board-title">{{ name }}</div>
+        <div class="swat-top-board-icon"><img src="{{ board_icon }}" /></div>
+    </div>
+    {% for rank in items %}
+        <div class="{% if not forloop.parentloop.first %}swat-top-profile-outer-delimited{% else %}swat-top-profile-outer{% endif %}">
+            <div class="swat-top-profile-picture">{% show_profile_picture rank.profile %}</div>
+            <div class="swat-top-profile-details">
+                <div>
+                    <span class="gray">{{ forloop.counter }}</span> <a href="{% profile_url rank.profile %}">{{ rank.profile.name }}</a>
+                </div>
+                <div class="swat-green">
+                    {% ifequal board "score" %}{{ rank.points|floatformat:0|intcomma }}{% endifequal %}
+                    {% ifequal board "coop_score" %}{{ rank.points|floatformat:0|intcomma }}{% endifequal %}
+                    {% ifequal board "time" %}{{ rank.points|humanhours }}{% endifequal %}
+                    {% ifequal board "kills" %}{{ rank.points|floatformat:0|intcomma }}{% endifequal %}
+                    {% ifequal board "spm" %}{{ rank.points|floatformat:2 }}{% endifequal %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+</div>
+</div>
+
+{% endblock %}

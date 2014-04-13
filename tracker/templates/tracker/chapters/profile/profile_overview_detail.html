@@ -1,0 +1,309 @@
+{% extends "tracker/layout/profile.html" %}
+{% load static tracker humanize i18n %}
+
+{% block head_inner %}
+{{ block.super }}
+<script type="text/javascript" src="{% static "js/raphael.2.1.0.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/justgage.1.0.1.min.js" %}"></script>
+{% endblock %}
+
+{% block head_script %}
+{{ block.super }}
+$(document).ready(function(){
+    (new JustGage({
+        id: "jg-accuracy", 
+        value: {{ stats.ammo_accuracy|accuracy }}, 
+        min: 0,
+        max: 30,
+        title: "{% trans "Accuracy, %" %}",
+        label: '',
+        titleFontColor: 'gray',
+        valueFontColor: '#fff',
+    })); 
+    (new JustGage({
+        id: "jg-kdr", 
+        value: {{ stats.kdr|floatformat:2 }}, 
+        min: 0,
+        max: {{ ratio_max.kdr|default:0|floatformat:"0" }},
+        title: "{% trans "K/D Ratio" %}",
+        label: '',
+        titleFontColor: 'gray',
+        valueFontColor: '#fff',
+    }));
+    (new JustGage({
+        id: "jg-spm", 
+        value: {{ stats.spm|floatformat:2 }}, 
+        min: 0,
+        max: {{ ratio_max.spm|default:0|floatformat:"0" }},
+        title: "{% trans "SPM Ratio" %}",
+        label: '',
+        titleFontColor: 'gray',
+        valueFontColor: '#fff',
+    }));
+});
+{% endblock %}
+
+{% block profile_content %}
+
+<div style="position: relative;">
+
+    <div class="table width100">
+
+        <div class="table-row">
+
+            <div id="profile-content-picture-outer">
+
+                <div id="profile-content-picture">{% show_profile_picture profile "noflag" %}</div>
+
+                <div id="profile-content-picture-info">
+                    {% if extreme.last_seen %}
+                        <p>
+                            <span class="gray">Last Played:</span> <a href="{% game_url extreme.last_seen %}">{{ extreme.last_seen.date_finished|naturaltime }}</a>
+                        </p>
+                    {% endif %}
+                    {% if extreme.first_seen %}
+                        <p>
+                            <span class="gray">Registered:</span> <a href="{% game_url extreme.first_seen %}">{{ extreme.first_seen.date_finished|naturaltime }}</a>
+                        </p>
+                    {% endif %}
+                    <p>
+                        <span class="gray">Country:</span> {% show_country profile.country %} <a href="#">{{ profile.country|country }}</a>
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <div class="clearfix floatfix">
+                    <div class="profile-score-block">
+                        <div>
+                            <div class="gray">{% trans "Score Earned" %}</div>
+                            <div class="swat-heading">{{ stats.score|floatformat:0 }}</div>
+                        </div>
+                        <div>
+                            <div class="gray">{% trans "Games Played" %}</div>
+                            <div class="swat-heading">{{ stats.games|floatformat:0 }}</div>
+                        </div>
+                        <div>
+                            <div class="gray">{% trans "Games Won" %}</div>
+                            <div class="swat-heading">{{ stats.wins|floatformat:0 }}</div>
+                        </div>
+                    </div>
+
+                    <div class="profile-record-block">
+                        {% if best.weapon %}
+                        <div class="profile-record-weapon">
+                            <div class="gray center title-undecorated">{% trans "Top Weapon" %}</div>
+                            <div class="picture">
+                                 <a href="{% profile_url profile 'tracker:profile_equipment_list' year=year %}#{{ best.weapon.name }}">{% show_weapon_picture best.weapon.name %}</a>
+                            </div>
+                            <div class="score">
+                            {% spaceless %}
+                                {% blocktrans count kills=best.weapon.kills %}{{ kills }} kill {% plural %}{{ kills }} kills{% endblocktrans %}, 
+                                {% with accuracy=best.weapon.accuracy|accuracy %}
+                                    {% blocktrans with percent=accuracy %}{{ percent }}% hits{% endblocktrans %}
+                                {% endwith %}
+                            {% endspaceless %}
+                        </div>
+                        </div>
+                        {% endif %}
+                        {% if best.score %}
+                        <div class="profile-record-game">
+                            <div class="gray center title-undecorated">{% trans "Top Game" %}</div>
+                            <div class="picture">
+                                 {% show_game_light best.score.game %}
+                            </div>
+                            <div class="score">{{ best.score.score|floatformat:0 }} points</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <div id="jg-accuracy" class="profile-jg-container"></div>
+                    <div id="jg-kdr" class="profile-jg-container"></div>
+                    <div id="jg-spm" class="profile-jg-container"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="swat-content-delimiter"></div>
+
+    {% if maps %}
+    
+    <div class="profile-map-table">
+        <div class="table-header">
+            <div class="left">{% trans "Map" %}</div>
+            <div class="center">{% trans "Score" %}</div>
+            <div class="center">{% trans "Time Played" %}</div>
+            <div class="center">{% trans "Wins" %}</div>
+            <div class="center">{% trans "Losses" %}</div>
+            <div class="center">{% trans "Kills" %}</div>
+            <div class="center">{% trans "Deaths" %}</div>
+            <div class="center">{% trans "Top Score" %}</div>
+        </div>
+        {% for map in maps|dictsort:"mapname" %}
+        <div class="table-row-middle {% cycle 'swat-player-row-odd' '' %}">
+            <div class="left map-picture" style="background-image: url('{% get_static_prefix %}images/game/maps/preview/{{ map.mapname }}.jpg');">
+                <div class="map-title">{{ map.mapname|mapname }}</div>
+            </div>
+            <div class="profile-table-cell {% zerohero map.score maps_best.score 'swat-green' 'dark-gray' %}">{{ map.score|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.time maps_best.time 'swat-green' 'dark-gray' %}">{{ map.time|default:0|humantime }}</div>
+            <div class="profile-table-cell {% zerohero map.wins maps_best.wins 'swat-green' 'dark-gray' %}">{{ map.wins|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.losses maps_best.losses 'swat-green' 'dark-gray' %}">{{ map.losses|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.kills maps_best.kills 'swat-green' 'dark-gray' %}">{{ map.kills|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.deaths maps_best.deaths 'swat-green' 'dark-gray' %}">{{ map.deaths|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.top_score maps_best.top_score 'swat-green' 'dark-gray' %}">{{ map.top_score|default:0 }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="swat-content-delimiter"></div>
+
+    {% endif %}
+
+    <div class="clearfix floatfix width100">
+        <div class="profile-stats-block first">
+            <div class="left table width100">
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Score" %}</div>
+                    <div class="right">{{ stats.score|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Highest Score" %}</div>
+                    <div class="right">{{ stats.top_score|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Time Played" %}</div>
+                    <div class="right">{{ stats.time|humantime }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Rounds Played" %}</div>
+                    <div class="right">{{ stats.games|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Score/Minute" %}</div>
+                    <div class="right">{{ stats.spm|floatformat:2 }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Score/Round" %}</div>
+                    <div class="right">{{ stats.spr|floatformat:2 }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Wins" %}</div>
+                    <div class="right">{{ stats.wins|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Losses" %}</div>
+                    <div class="right">{{ stats.losses|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Draws" %}</div>
+                    <div class="right">{{ stats.draws|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="profile-stats-block">
+            <div class="left table width100">
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Kills" %}</div>
+                    <div class="right">{{ stats.kills|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Deaths" %}</div>
+                    <div class="right">{{ stats.deaths|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "K/D Ratio" %}</div>
+                    <div class="right">{{ stats.kdr|floatformat:2 }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Arrests" %}</div>
+                    <div class="right">{{ stats.arrests|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Times Arrested" %}</div>
+                    <div class="right">{{ stats.arrested|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Team Kills" %}</div>
+                    <div class="right">{{ stats.teamkills|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Highest Kill Streak" %}</div>
+                    <div class="right">{{ stats.kill_streak|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Highest Arrest Streak" %}</div>
+                    <div class="right">{{ stats.arrest_streak|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Highest Death Streak" %}</div>
+                    <div class="right">{{ stats.death_streak|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-stats-block">
+            <div class="left table width100">
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "VIP Escapes" %}</div>
+                    <div class="right">{{ stats.vip_escapes|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "VIP Captures" %}</div>
+                    <div class="right">{{ stats.vip_captures|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "VIP Rescues" %}</div>
+                    <div class="right">{{ stats.vip_rescues|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "VIP Kills" %}</div>
+                    <div class="right">{{ stats.vip_kills_valid|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Accident VIP Kills" %}</div>
+                    <div class="right">{{ stats.vip_kills_invalid|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Bombs Disarmed" %}</div>
+                    <div class="right">{{ stats.rd_bombs_defused|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Case Carrier Kills" %}</div>
+                    <div class="right">{{ stats.sg_kills|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Case Escapes" %}</div>
+                    <div class="right">{{ stats.sg_escapes|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-stats-block">
+            <div class="left table width100">
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Ammo Fired" %}</div>
+                    <div class="right">{{ stats.ammo_fired|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Enemy Hits" %}</div>
+                    <div class="right">{{ stats.ammo_hits|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Accuracy" %}</div>
+                    <div class="right">{{ stats.ammo_accuracy|accuracy }}%</div>
+                </div>
+                <div class="table-row-spaceful">
+                    <div class="left gray">{% trans "Longest Kill" %}</div>
+                    <div class="right">{{ stats.kill_distance|floatformat:0|intcomma }}m</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

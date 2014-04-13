@@ -1,0 +1,107 @@
+{% extends "tracker/layout/game.html" %}
+{% load static tracker humanize i18n %}
+
+{% block swat_footer %}
+{{ block.super }}
+<div id="swat-game-timer"><div class="swat-timer">{{ game.time|swattime }}</div></div>
+{% endblock %}
+
+{% block swat_frame %}
+
+<div class="swat-game-score-outer">
+    <div class="swat-game-score-inner">
+        <div class="swat-game-score-upper">
+            <div class="scroll height100 swat-text-box-content">
+                {% include "tracker/includes/dropped_list.html" with players=players_dropped only %}
+                <div>{% with outcome_upper=game.outcome_translated|upper %}{% trans outcome_upper %}{% endwith %}</div>
+            </div>
+        </div>
+        <div class="swat-game-team-outer">
+            <ul class="title-undecorated swat-game-team-status">
+                <li>{% blocktrans with team=_("SWAT") score=game.score_swat %} {{ team }}: {{ score }}{% endblocktrans %}</li>
+                <li>{% blocktrans with number=game.vict_swat %} Rounds won: {{ number }}{% endblocktrans %}</li>
+            </ul>
+            <div class="swat-game-team-inner">
+                {% include "tracker/includes/team_table.html" with team=0 game=game players=players_blue only %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="swat-game-score-outer">
+    <div class="swat-game-score-inner">
+        <div class="swat-game-score-upper">
+            <div class="swat-text-box-title">
+                <div class="swat-game-map-header">
+                    <p class="swat-game-map-info">{{ game.mapname|mapname }}</p>
+                    <p class="swat-game-mode-info">{% blocktrans with mode=game.gametype|gametype context "gamedetail" %}Mode: {{ mode }}{% endblocktrans %}</p>
+                </div>
+            </div>
+            <div class="height100 swat-text-box-content">
+
+                <div id="swat-game-stats">
+                    <div id="swat-game-best-player">
+                        {% if player_best %}
+                        <div class="title-undecorated gray">{% trans "Player of the Round" %}</div>
+                        <div class="swat-game-best-player-inner">
+                            <div class="swat-game-best-player-picture">{% show_player_picture player_best %}</div>
+                            <div class="swat-game-best-player-details">{% show_player player_best %}</div>
+                            <div class="swat-game-best-player-stats table">
+                                <div class="table-row">
+                                    <div class="gray left">{% trans "Score" %}</div>
+                                    <div class="right">{{ player_best.score }}</div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="gray left">{% trans "Kills" %}</div>
+                                    <div class="right">{{ player_best.kills }}</div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="gray left">{% trans "Kill Streak" %}</div>
+                                    <div class="right">{{ player_best.kill_streak }}</div>
+                                </div>
+                                <div class="table-row">
+                                    <div class="gray left">{% trans "Accuracy" %}</div>
+                                    <div class="right">{{ player_best.accuracy }}%</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        &nbsp;
+                        {% endif %}
+                    </div>
+
+                    <div id="swat-game-ranked-players">
+                        {% for item in players_highest %}
+                        <div class="swat-game-ranked-player-outer">
+                            <div class="title-undecorated gray">{{ item.category_translated }}</div>
+                            <div class="swat-game-ranked-player-inner">
+                                <div class="swat-player-picture-outer">{% show_player_picture item.player %}</div>
+                                <div class="swat-game-ranked-player-details">
+                                    <div>{% show_player item.player %}</div>
+                                    <div>{{ item.points_translated }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="swat-game-team-outer">
+            <ul class="title-undecorated swat-game-team-status">
+                <li>{% blocktrans with team=_("Suspects") score=game.score_sus %} {{ team }}: {{ score }}{% endblocktrans %}</li>
+                <li>{% blocktrans with number=game.vict_sus %} Rounds won: {{ number }}{% endblocktrans %}</li>
+            </ul>
+            <div class="swat-game-team-inner">
+                {% include "tracker/includes/team_table.html" with team=1 game=game players=players_red only %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="game-next-buttons">
+    {% if games_close.previous %}<a class="swat-button-white" href="{% game_url games_close.previous %}">{% trans "Previous Game" %}</a>{% endif %}
+    {% if games_close.next %}<a class="swat-button-white" href="{% game_url games_close.next %}">{% trans "Next Game" %}</a>{% endif %}
+</div>
+
+{% endblock %}

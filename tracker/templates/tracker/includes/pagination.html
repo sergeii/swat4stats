@@ -1,0 +1,7 @@
+{% if page_obj.paginator.num_pages > 1 %}
+    <div class="swat-page-range">
+        {% if page_obj.has_previous %}<a class="swat-page-previous" href="?{{ filters.urlencode }}&page={{ page_obj.previous_page_number }}">&nbsp;</a>{% endif %}
+        {{ page_obj.end_index }}/{{ page_obj.paginator.count }}
+        {% if page_obj.has_next %}<a class="swat-page-next" href="?{{ filters.urlencode }}&page={{ page_obj.next_page_number }}">&nbsp;</a>{% endif %}
+    </div>
+{% endif %}

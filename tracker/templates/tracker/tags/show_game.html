@@ -1,0 +1,11 @@
+{% load static tracker i18n %}
+<a class="swat-sound-trigger swat-game-frame" href="{% game_url game %}">
+    <div class="swat-game-frame-inner">
+        <p class="swat-game-frame-image"><img src="{% get_static_prefix %}images/game/maps/preview/{{ game.mapname }}.jpg" /></p>
+        {% if not simple %}
+        <p class="swat-game-frame-ileft">{{ score_readable }}</p>
+        <p class="swat-game-frame-iright">{{ game.gametype|gametype_short }}</p>
+        {% endif %}
+    </div>
+    {% if desc %}<div class="swat-game-frame-desc">{{ desc }}</div>{% endif %}
+</a>

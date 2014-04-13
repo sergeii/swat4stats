@@ -1,0 +1,61 @@
+@font-face {
+    font-family: 'Airborne';
+    src: url('../fonts/airborne-webfont.eot');
+    src: url('../fonts/airborne-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/airborne-webfont.woff') format('woff'),
+         url('../fonts/airborne-webfont.ttf') format('truetype'),
+         url('../fonts/airborne-webfont.svg#airborneregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Nok Regular Expanded';
+    src: url('../fonts/nok_regular_expanded-webfont.eot');
+    src: url('../fonts/nok_regular_expanded-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/nok_regular_expanded-webfont.woff') format('woff'),
+         url('../fonts/nok_regular_expanded-webfont.ttf') format('truetype'),
+         url('../fonts/nok_regular_expanded-webfont.svg#nokregular_expanded') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Nok Bold Expanded';
+    src: url('../fonts/nok_bold_expanded-webfont.eot');
+    src: url('../fonts/nok_bold_expanded-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/nok_bold_expanded-webfont.woff') format('woff'),
+         url('../fonts/nok_bold_expanded-webfont.ttf') format('truetype'),
+         url('../fonts/nok_bold_expanded-webfont.svg#nokbold_expanded') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Bank Gothic Bold';
+    src: url('../fonts/bank_gothic_bold-webfont.eot');
+    src: url('../fonts/bank_gothic_bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/bank_gothic_bold-webfont.woff') format('woff'),
+         url('../fonts/bank_gothic_bold-webfont.ttf') format('truetype'),
+         url('../fonts/bank_gothic_bold-webfont.svg#bankgothicbold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Teuton Mager';
+    src: url('../fonts/teuton_mager.otf') format("truetype");
+}
+
+@font-face {
+    font-family: "Microgramma Bold Extended D";
+    src: url('../fonts/microgramma_bold_extended_d.ttf') format("truetype");
+}
+
+@font-face {
+    font-family: "NCC1701A";
+    src: url('../fonts/ncc1701a.ttf') format("truetype");
+}
+
+@font-face {
+    font-family: 'DS-Digital';
+    src: url('../fonts/DS-DIGIT.TTF') format("truetype");
+}
+

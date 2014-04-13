@@ -1,0 +1,135 @@
+{% load staticfiles static tracker %}<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+{% block head %}
+
+{% block head_inner %}
+<meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<!--<link rel="shortcut icon" href="favicon.ico">-->
+<title>{% block title %}SWAT4 Stats Tracker - {% endblock %}</title>
+<link rel="stylesheet" type="text/css" href="{% static "css/reset.css" %}">
+{% if not debug %}<link rel="stylesheet" type="text/css" href="{% static "css/base.css" %}">{% endif %}
+<link rel="stylesheet" type="text/css" href="{% static "css/fonts.css" %}">
+<script type="text/javascript" src="{% static "js/jquery-1.9.1.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/common.js" %}"></script>
+
+{% if debug %}
+<link rel="stylesheet/less" type="text/css" href="{% static "less/base.less" %}" />
+<script type="text/javascript" src="{% static "js/less-1.7.0.min.js" %}"></script>
+{% endif %}
+
+{% endblock %}
+
+<script type="text/javascript">
+{% block head_script %}
+$(window).resize(function(){
+    document.scale();
+});
+
+$(document).ready(function(){
+    document.playback.enabled = true;
+    // scale the window
+    document.scale();
+    $('#toggle-sound').bind('click', function(e){
+        if (document.playback.enabled){
+           $('audio').each(function(){
+                this.pause();
+            });
+        }
+        else {
+            $('audio').each(function(){
+                if (typeof this.loop != 'undefined' && this.loop){
+                    this.play();
+                }
+                //this.currentTime = 0;
+            });
+        }
+        document.playback.enabled = !document.playback.enabled;
+        console.log('playback.enabled is now ' + document.playback.enabled);
+    });
+    $('.swat-sound-trigger').bind('click', function(){
+        var src;
+        var self = $(this);
+        var href = self.attr('href');
+        var form = self.closest('form');
+
+        if (self.hasClass('swat-menu-heading')){
+            src = '{% static "sounds/gui/ui_MainButton1.ogg" %}';
+        }
+        else if (self.hasClass('swat-button-back')){
+            src = '{% static "sounds/gui/ui_BackButton1.ogg" %}';
+        }
+        else {
+            src = '{% static "sounds/gui/ui_BasicButton1.ogg" %}';
+        }
+        document.playback(src, {volume: '0.5'}, function(){
+            if (href){
+                window.location.href = href;
+            }
+            else if (form){
+                form.submit();
+            }
+        });
+        return false;
+    });
+
+    $('.js-toggle-display').bind('click', function(){
+        $($(this).attr('data-target')).toggle();
+    });
+});
+{% endblock %}
+</script>
+
+{% endblock %}
+</head>
+
+<body>
+{% block body %}
+
+<div id="swat-header">
+{% block swat_header %}
+    <div id="swat-header-upper">{% block swat_header_upper %}{% endblock %}</div>
+    <div id="swat-header-lower">{% block swat_header_lower %}{% endblock %}</div>
+{% endblock %}
+</div>
+
+<div id="swat-frame" style="background: url('{% block swat_frame_background_url %}{% static "images/game/maps/background/intro.png" %}{% endblock %}') no-repeat; background-size: cover;">
+    {% block swat_frame_outer %}<div id="swat-frame-outer">{% block swat_frame_inner %}<div id="swat-frame-inner">{% block swat_frame %}{% endblock %}</div>{% endblock %}</div>{% endblock %}
+</div>
+
+<div id="swat-footer">
+    <div class="inner-block">
+    {% block swat_footer %}
+        <div id="swat-bottom-left-area">
+            {% block swat_bottom_left %}
+                <div class="swat-status">{% block swat_status %}{% endblock %}</div>
+            {% endblock %}
+        </div>
+        <div id="swat-bottom-right-area">
+            {% block swat_bottom_right %}{% endblock %}
+        </div>
+        <!--
+        <div id="powered-by">
+            <p>
+                <a href="http://www.python.org/"><img src="{% static "img/pp.png" %}" alt="Powered by Python" title="Powered by Python" /></a>
+            </p>
+            <p>
+                <a href="http://www.djangoproject.com/"><img src="{% static "images/other/powered_django.png" %}" alt="Powered by Django" title="Powered by Django" /></a>
+            </p>
+            <p>
+                <a href="http://udn.epicgames.com/Two/WebHome.html" alt="Powered by UnrealEngine 2" title="Powered by UnrealEngine" ><img src="img/pu.png" /></a>
+            </p>
+        </div>
+        -->
+        <div id="copyright">
+            <p>&copy; 2013-2014 <a href="mailto:kh.sergei@gmail.com">Serge</a></p>
+        </div>
+    {% endblock %}
+    </div>
+</div>
+
+{% endblock %}
+</body>
+
+</html>

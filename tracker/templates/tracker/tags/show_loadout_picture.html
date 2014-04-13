@@ -1,0 +1,7 @@
+{% load static tracker i18n %}
+<div class="swat-loadout-picture">
+    <div>
+        <img title="{{ item|weapon }}" alt="{{ item|weapon }}" src="{% get_static_prefix %}images/game/weapons/item{{ item }}.png" />
+    </div>
+    {% if not nocaption %}<div class="swat-weapon-caption">{{ item|weapon }}</div>{% endif %}
+</div>

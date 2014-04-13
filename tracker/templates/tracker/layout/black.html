@@ -1,0 +1,13 @@
+{% extends "tracker/layout/base.html" %}
+{% load tracker static i18n %}
+
+{% block body %}
+    <div id="swat-black-window">
+        <div id="swat-black-window-inner">
+            <div id="swat-black-window-message">{% block message %}{% endblock %}</div>
+            <div id="swat-black-window-button">
+                {% block button %}<a href="{% block button_url %}{% url 'tracker:main' %}{% endblock %}" class="swat-sound-trigger swat-button-white-bigger">{% trans "OK" %}</a>{% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

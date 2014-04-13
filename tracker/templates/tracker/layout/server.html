@@ -1,0 +1,34 @@
+{% extends "tracker/layout/nonmain.html" %}
+{% load static tracker humanize i18n %}
+
+{% block title %}{{ block.super }} {{ game.hostname }}{% endblock %}
+
+{% block swat_header_upper %}
+{{ block.super }}
+<div id="swat-server-name" class="strong">{{ game.hostname }}</div>
+{% endblock %}
+
+{% block swat_header_lower %}
+{{ block.super }}
+<div id="swat-server-round-info" class="swat-status-text">{% blocktrans with round_num=game.round_num round_max=game.round_max %}Round: {{ round_num }}/{{ round_max }} {% endblocktrans %}</div>
+{% endblock %}
+
+{% block swat_frame_background_url %}{% get_static_prefix %}images/game/maps/background/{{ game.mapname }}.png{% endblock %}
+
+{% block swat_frame_outer %}<div id="swat-frame-outer-fixed">{% block swat_frame_inner %}<div id="swat-frame-inner">{% block swat_frame %}{% endblock %}</div>{% endblock %}</div>{% endblock %}
+
+{% block swat_bottom_right %}
+    <span class="swat-sound-trigger swat-button-active">{% trans "Scores" %}</span>
+    <a href="{% url 'tracker:game_history_list' %}?server={{ server.pk }}" class="swat-sound-trigger swat-button">{% trans "History" %}</a>
+    <a href="xfire:join?game=swat4{% ifequal server.status.gamename_translated 'SWAT 4X' %}tss{% endifequal %}&amp;server={{ server.ip }}:{{ server.port }}" class="swat-sound-trigger swat-button-arrow-right">{% trans "Join" %}</a>
+{% endblock %}
+
+{% block swat_footer %}
+{{ block.super }}
+{% if server.status.time_remaining > 0 %}
+<div id="swat-game-timer">
+    <div class="swat-status-text">{% trans "Round time remaining" %}:</div>
+    <div class="swat-timer">{{ server.status.time_remaining|swattime }}</div>
+</div>
+{% endif %}
+{% endblock %}

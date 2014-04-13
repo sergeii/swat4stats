@@ -1,0 +1,76 @@
+{% extends "tracker/layout/game.html" %}
+{% load tracker humanize i18n %}
+
+{% block swat_footer %}{{ block.super }}<div id="swat-game-timer"><div class="swat-timer">{{ game.time|swattime }}</div></div>{% endblock %}
+
+{% block swat_frame %}
+
+<div class="swat-game-score-outer">
+    <div class="swat-game-score-inner">
+        <div class="swat-game-coop-score-upper">
+            <div class="height100 swat-text-box-content">
+                {% include "tracker/includes/dropped_list.html" with players=players_dropped only %}
+                <p>
+                    {% autoescape off %}
+                    {% with outcome_upper=game.outcome_translated|upper %}{% trans outcome_upper %}{% endwith %}
+                    {% endautoescape %}
+                </p>
+            </div>
+        </div>
+        <div class="swat-text-box-content-heading swat-game-coop-objectives-outer">
+            <div class="swat-heading">{% filter upper %}{% trans "Objectives" %}{% endfilter %}</div>
+            <div class="table width100">
+                {% for objective in objectives %}
+                    <div class="table-row">
+                        <div class="left">{{ objective.name|objective }}</div>
+                        <div class="swat-game-coop-table-status-cell left objective-{{objective.status_translated }}">{{ objective.status|objective_status }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="swat-text-box-content-heading swat-game-coop-team-outer">
+            <div class="swat-heading">{% filter upper %}{% trans "Team Status" %}{% endfilter %}</div>
+            <div class="table width100">
+                {% for player in players_online %}
+                <div class="table-row swat-player-row" onclick="window.location.href='{% profile_url player.profile %}';">
+                    <div class="table-cell-small space-right">{% show_country player.country %}</div>
+                    <div class="{% ifequal player.team 0 %}swat-blue{% else %}swat-red{% endifequal %} left"><a href="{% profile_url player.profile %}">{{ player.name }}</a></div>
+                    <div class="swat-game-coop-table-status-cell left status-{{ player.coop_status_translated }}">{{ player.coop_status|coop_status }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="swat-game-score-outer">
+    <div class="swat-game-score-inner">
+        <div>
+            <div class="swat-text-box-title">{% filter upper %}{% trans "Bonuses" %}{% endfilter %}</div>
+            <div class="height100 swat-text-box-content">
+                <div class="table width100">
+                    {% include "tracker/includes/procedure_list.html" with score=procedures.bonus.score procedures=procedures.bonus.list only %}
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="swat-text-box-title">{% filter upper %}{% trans "Penalties" %}{% endfilter %}</div>
+            <div class="height100 swat-text-box-content">
+                <div class="table width100">{% include "tracker/includes/procedure_list.html" with score=procedures.penalty.score procedures=procedures.penalty.list only %}</div>
+            </div>
+        </div>
+
+        <div class="swat-coop-score">
+            <p class="swat-heading">{% trans "Total:" %} <span class="{% if game.coop_score_normal >= 100 %}swat-green{% else %}swat-red{% endif %}">{{ game.coop_score_normal }}</span>/100</p>
+            <!-- <p class="swat-heading" style="font-size: 2.1em;">{% trans "Ranking:" %} {{ coop_rank }}</p> -->
+        </div>
+    </div>
+</div>
+
+<div id="coop-game-next-buttons">
+    {% if games_close.previous %}<a class="swat-button-white" href="{% game_url games_close.previous %}">{% trans "Previous Mission" %}</a>{% endif %}
+    {% if games_close.next %}<a class="swat-button-white" href="{% game_url games_close.next %}">{% trans "Next Mission" %}</a>{% endif %}
+</div>
+
+{% endblock %}

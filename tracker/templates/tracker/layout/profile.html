@@ -1,0 +1,85 @@
+{% extends "tracker/layout/chapter.html" %}
+{% load tracker humanize i18n %}
+
+{% block title %}{{ block.super }}{{ profile.name }}{% endblock %}
+
+{% block swat_chapter_header %}
+
+<div id="profile-title-outer">
+
+    <div id="profile-title-avatar">{% show_profile_picture profile %}</div>
+    <div id="profile-title-name-outer">
+        <span id="profile-title-name">{{ profile.name }}</span>
+    </div>
+
+    {% comment %}
+    <div class="swat-green" style="margin-left: 0.8em; position: absolute; bottom: 0; left: 5em;">
+        <span class="gray">{{ profile.name }} was last seen on <a href="#">-==MYT Team Svr==-</a> 4 years ago.</span><br>
+        <span>{{ profile.name }} is playing on <a href="#">-==MYT CO-OP Svr==-</a> right now.</span>
+    </div>
+    {% endcomment %}
+
+</div>
+
+{% endblock %}
+
+{% block swat_chapter_content %}
+
+<div id="profile-tab-bar">
+
+    <div class="swat-tab-block-left">
+        <a class="swat-sound-trigger {% ifequal view 'tracker:profile_detail' %}swat-tab-button-active{% else %}swat-tab-button{% endifequal %}" href="{% profile_url profile 'tracker:profile_detail' year=year %}">{% trans "Overview" %}</a> 
+
+        <a class="swat-sound-trigger {% ifequal view 'tracker:profile_equipment_list' %}swat-tab-button-active{% else %}swat-tab-button{% endifequal %}" href="{% profile_url profile 'tracker:profile_equipment_list' year=year %}">{% trans "Equipment" %}</a>
+
+        <a class="swat-sound-trigger {% ifequal view 'tracker:profile_coop_detail' %}swat-tab-button-active{% else %}swat-tab-button{% endifequal %}" href="{% profile_url profile 'tracker:profile_coop_detail' year=year %}">{% trans "COOP" %}</a>
+
+        <a class="swat-sound-trigger {% ifequal view 'tracker:profile_history_list' %}swat-tab-button-active{% else %}swat-tab-button{% endifequal %}" href="{% profile_url profile 'tracker:profile_history_list' year=year %}">{% trans "History" %}</a>
+    </div>
+
+    {% if years|length > 1 or year != year_now %}
+    <div class="year-range-right">
+        <div class="year-range-inner">
+            {% if year_previous %}<a class="swat-page-previous" href="{% profile_url profile view year=year_previous %}">&nbsp;</a>{% endif %}
+            <span class="{% ifnotequal year year_now %}gray{% endifnotequal %}">{{ year }}</span>
+            {% if year_next %}<a class="swat-page-next" href="{% profile_url profile view year=year_next %}">&nbsp;</a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<div class="width100 height100 table">
+
+        <div id="profile-pane-content" class="table-cell left">
+            <div class="border-box swat-box-content width100">
+                <div class="swat-box-content-inner">{% block profile_content %}{% endblock %}</div>
+            </div>
+        </div>
+
+        <div id="profile-pane-activity" class="table-cell left">
+            <div id="profile-pane-activity-inner">
+                <div class="swat-text-box-title">{% trans "Recent Activity" %}</div>
+                <div class="swat-text-box-content">
+                    <div class="width100">
+                        {% spaceless %}
+                        {% for game in recent %}
+                            {% ifchanged game.gametype game.mapname %}
+                                </div>
+                                <div class="profile-recent-game-title">
+                                    <p>{{ game.mapname|mapname }}, {{ game.gametype|gametype }}</p>
+                                    <p class="gray">{{ game.date_finished|naturaltime }}</p>
+                                </div>
+                                <div class="profile-recent-game-list">
+                            {% endifchanged %}
+                                {% show_game_light game %}
+                        {% endfor %}
+                        {% endspaceless %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

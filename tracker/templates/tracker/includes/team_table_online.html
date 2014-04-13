@@ -1,0 +1,36 @@
+{% load tracker i18n %}
+
+<div class="swat-team-table">
+    <div class="table-header">
+        <div class="swat-name-cell">{% ifequal team 0 %}{% trans "Officer" %}{% else %}{% trans "Suspect" %}{% endifequal %}</div>
+        <div class="pict-score"></div>
+        <div class="pict-arrests"></div>
+        <div class="pict-arrested"></div>
+        <div class="pict-kills"></div>
+        <div class="pict-deaths"></div>
+        <div class="pict-objectives"></div>
+        <div class="pict-ping"></div>
+    </div>
+    {% for player in players %}
+    <div class="table-row swat-player-row">
+        <div class="swat-name-cell"><a class="{% if player.vip %} swat-green{% endif %}">{{ player.player }}{% if player.vip %} ({% trans "VIP" %}){% endif %}</a></div>
+        <div>{{ player.score }}</div>
+        <div>{{ player.arrests|default:0 }}</div>
+        <div>{{ player.arrested|default:0 }}</div>
+        <div>{{ player.kills|default:0 }}</div>
+        <div>{{ player.deaths|default:0 }}</div>
+        <div>{{ player.special|default:0 }}</div>
+        <div>{{ player.ping|default:0 }}</div>
+    </div>
+    {% endfor %}
+    <div class="table-row-empty">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+</div>

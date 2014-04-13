@@ -1,0 +1,9 @@
+{% extends "tracker/layout/base.html" %}
+{% load staticfiles static tracker i18n %}
+
+{% block swat_header_lower %}
+{{ block.super }}
+<div id="header-button-to-main">
+    <a class="swat-sound-trigger swat-button-back swat-button-arrow-left" href="{% url 'tracker:main' %}">{% trans "Main" context "navigation" %}</a>
+</div>
+{% endblock %}

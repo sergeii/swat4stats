@@ -1,0 +1,914 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-04-07 21:43+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: decorators.py:51
+#, python-format
+msgid "Failed to parse request data (%(message)s)."
+msgstr ""
+
+#: decorators.py:86
+msgid "The server is disabled."
+msgstr ""
+
+#: decorators.py:101
+msgid "Failed to authenticate the server."
+msgstr ""
+
+#: decorators.py:108
+msgid "The server is not registered."
+msgstr ""
+
+#: decorators.py:138
+msgid "Received duplicate request."
+msgstr ""
+
+#: forms.py:20
+#, fuzzy, python-format
+msgid "MODE_%s"
+msgstr "Barricaded Suspects"
+
+#: forms.py:24
+msgctxt "gamefilter"
+msgid "All game types"
+msgstr ""
+
+#: forms.py:32
+msgctxt "gamefilter"
+msgid "All maps"
+msgstr ""
+
+#: forms.py:37
+#, python-format
+msgid "OUTCOME_%s"
+msgstr ""
+
+#: forms.py:41
+msgctxt "gamefilter"
+msgid "All results"
+msgstr ""
+
+#: forms.py:44
+#, python-format
+msgctxt "gamefilter"
+msgid "%(min)s+ minutes"
+msgstr ""
+
+#: forms.py:48
+msgctxt "gamefilter"
+msgid "Server"
+msgstr ""
+
+#: forms.py:51
+msgid "All servers"
+msgstr ""
+
+#: forms.py:54
+msgctxt "gamefilter"
+msgid "Game Type"
+msgstr ""
+
+#: forms.py:59
+msgctxt "gamefilter"
+msgid "Map"
+msgstr ""
+
+#: forms.py:64
+msgctxt "gamefilter"
+msgid "Game Result"
+msgstr ""
+
+#: forms.py:69
+msgctxt "gamefilter"
+msgid "Game Time"
+msgstr ""
+
+#: forms.py:76
+msgctxt "gamefilter"
+msgid "Participated Players"
+msgstr ""
+
+#: forms.py:86
+msgid "Too many names specified."
+msgstr ""
+
+#: views.py:170
+msgid "Top score"
+msgstr ""
+
+#: views.py:171
+msgid "Time played"
+msgstr ""
+
+#: views.py:172 views.py:213 views.py:214
+#: templates/tracker/chapters/game/game_detail.html:54
+#: templates/tracker/chapters/profile/profile_weapon_list.html:16
+msgid "Kills"
+msgstr ""
+
+#: views.py:173
+msgid "Score per minute"
+msgstr ""
+
+#: views.py:204 views.py:205
+#: templates/tracker/chapters/game/game_detail.html:53
+msgid "Score"
+msgstr ""
+
+#: views.py:206
+msgid "Highest Score"
+msgstr ""
+
+#: views.py:207 views.py:235
+msgid "Time Played"
+msgstr ""
+
+#: views.py:208
+msgid "Rounds Played"
+msgstr ""
+
+#: views.py:209
+msgid "Wins"
+msgstr ""
+
+#: views.py:210
+msgid "Score/Minute"
+msgstr ""
+
+#: views.py:211
+msgid "Score/Round"
+msgstr ""
+
+#: views.py:215
+msgid "K/D Ratio"
+msgstr ""
+
+#: views.py:216
+msgid "Arrests"
+msgstr ""
+
+#: views.py:217
+msgid "Highest Kill Streak"
+msgstr ""
+
+#: views.py:218
+msgid "Highest Arrest Streak"
+msgstr ""
+
+#: views.py:222
+msgid "VIP Escapes"
+msgstr ""
+
+#: views.py:223
+msgid "VIP Captures"
+msgstr ""
+
+#: views.py:224
+msgid "VIP Rescues"
+msgstr ""
+
+#: views.py:225
+msgid "VIP Kills"
+msgstr ""
+
+#: views.py:228
+msgid "Bombs Disarmed"
+msgstr ""
+
+#: views.py:231
+msgid "Case Escapes"
+msgstr ""
+
+#: views.py:232
+msgid "Case Carrier Kills"
+msgstr ""
+
+#: views.py:236
+msgid "Missions Attempted"
+msgstr ""
+
+#: views.py:237
+msgid "Missions Completed"
+msgstr ""
+
+#: views.py:238
+msgid "Suspects Arrested"
+msgstr ""
+
+#: views.py:239
+msgid "Suspects Killed"
+msgstr ""
+
+#: views.py:240
+msgid "Civilians Arrested"
+msgstr ""
+
+#: views.py:241
+msgid "Characters Reported to TOC"
+msgstr ""
+
+#: views.py:355
+msgid "Highest score"
+msgstr ""
+
+#: views.py:355
+#, python-format
+msgid "%d point"
+msgid_plural "%d points"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:356
+msgid "Most kills"
+msgstr ""
+
+#: views.py:356 views.py:358
+#, python-format
+msgid "%d kill"
+msgid_plural "%d kills"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:357
+msgid "Highest accuracy"
+msgstr ""
+
+#: views.py:357
+#, python-format
+msgid "%d%%"
+msgstr ""
+
+#: views.py:358
+msgid "Highest kill streak"
+msgstr ""
+
+#: views.py:487
+msgid "Chief Inspector"
+msgstr ""
+
+#: views.py:489
+msgid "Inspector"
+msgstr ""
+
+#: views.py:491
+msgid "Captain"
+msgstr ""
+
+#: views.py:493
+msgid "Lieutenant"
+msgstr ""
+
+#: views.py:495
+msgid "Sergeant"
+msgstr ""
+
+#: views.py:497
+msgid "Patrol Officer"
+msgstr ""
+
+#: views.py:499
+msgid "Reserve Officer"
+msgstr ""
+
+#: views.py:501
+msgid "Non-sworn Officer"
+msgstr ""
+
+#: views.py:503
+msgid "Recruit"
+msgstr ""
+
+#: views.py:505
+msgid "Washout"
+msgstr ""
+
+#: views.py:507
+msgid "Vigilante"
+msgstr ""
+
+#: views.py:509
+msgid "Menace"
+msgstr ""
+
+#: views.py:510
+msgid "Cheater"
+msgstr ""
+
+#: templates/tracker/board_list.html:4 templates/tracker/board_list.html:5
+msgctxt "nav"
+msgid "Leaderboard"
+msgstr ""
+
+#: templates/tracker/board_list.html:71
+msgctxt "rank"
+msgid "No data available."
+msgstr ""
+
+#: templates/tracker/main.html:4
+msgctxt "chapters"
+msgid "Main"
+msgstr ""
+
+#: templates/tracker/main.html:32 templates/tracker/top_list.html:8
+#: templates/tracker/top_list.html.py:9
+msgctxt "nav"
+msgid "TOP 20"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_coop_detail.html:21
+msgid "Objectives"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_coop_detail.html:32
+msgid "Team Status"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_coop_detail.html:49
+msgid "Bonuses"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_coop_detail.html:58
+msgid "Penalties"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_coop_detail.html:65
+msgid "Total:"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_coop_detail.html:66
+msgid "Ranking:"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_coop_detail.html:72
+msgid "Previous Mission"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_coop_detail.html:73
+msgid "Next Mission"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:12
+msgctxt "swat"
+msgid "SWAT"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:13
+msgctxt "swat"
+msgid "Suspects"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:24
+#: templates/tracker/chapters/game/game_detail.html:83
+#, python-format
+msgctxt "gamedetail"
+msgid " %(team)s: %(score)s"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:25
+#: templates/tracker/chapters/game/game_detail.html:84
+#, python-format
+msgctxt "gamedetail"
+msgid " Rounds won: %(number)s"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:40
+#, python-format
+msgctxt "gamedetail"
+msgid "Mode: %(mode)s"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:48
+msgid "Player of the Round"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:55
+msgid "Kill Streak"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:56
+#: templates/tracker/chapters/profile/profile_weapon_list.html:19
+#: templates/tracker/chapters/profile/profile_weapon_list.html:54
+msgid "Accuracy"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:94
+msgid "Previous Game"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_detail.html:95
+msgid "Next Game"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_list.html:4
+#: templates/tracker/chapters/game/game_list.html:5
+msgctxt "nav"
+msgid "Games"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_list.html:9
+#, python-format
+msgid "Games found: %(count)s"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_list.html:11
+#: templates/tracker/chapters/game/game_list.html:83
+msgid "No games found"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_list.html:20
+msgctxt "gamefilter"
+msgid "Filters"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_list.html:56
+msgctxt "gamefilter"
+msgid "Search Games"
+msgstr ""
+
+#: templates/tracker/chapters/game/game_list.html:60
+msgctxt "gamefilter"
+msgid "Please correct the errors below"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_cap.html:4
+msgid "The player profile is not available."
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:8
+#: templates/tracker/layout/profile.html:29
+msgid "Weapons"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:14
+msgid "Weapon"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:17
+msgid "Shots"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:18
+#: templates/tracker/chapters/profile/profile_weapon_list.html:53
+msgid "Hits"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:20
+msgid "Team Kills"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:21
+#: templates/tracker/chapters/profile/profile_weapon_list.html:55
+msgid "Team Hits"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:22
+msgid "Longest Kill"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:44
+msgid "Tactical Equipment"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:50
+msgid "Item"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:52
+msgid "Deployed"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:56
+msgid "Time Held"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:76
+msgid "Loadout"
+msgstr ""
+
+#: templates/tracker/chapters/profile/profile_weapon_list.html:125
+#, python-format
+msgid "%(name)s has never equipped anything. "
+msgstr ""
+
+#: templates/tracker/includes/dropped_list.html:3
+#, python-format
+msgctxt "gamedetail"
+msgid "%(name)s dropped from the server."
+msgstr ""
+
+#: templates/tracker/includes/pagination_buttons.html:4
+msgid "Previous Page"
+msgstr ""
+
+#: templates/tracker/includes/pagination_buttons.html:6
+msgid "Next Page"
+msgstr ""
+
+#: templates/tracker/includes/procedure_list.html:10
+msgctxt "gamedetail"
+msgid "No Penalties Deducted!"
+msgstr ""
+
+#: templates/tracker/includes/procedure_list.html:17
+msgctxt "gamedetail"
+msgid "Total"
+msgstr ""
+
+#: templates/tracker/includes/team_table.html:5
+msgctxt "swat"
+msgid "Officer"
+msgstr ""
+
+#: templates/tracker/includes/team_table.html:5
+msgctxt "swat"
+msgid "Suspect"
+msgstr ""
+
+#: templates/tracker/layout/black.html:9
+msgid "OK"
+msgstr ""
+
+#: templates/tracker/layout/game.html:11
+msgctxt "nav"
+msgid "Scores"
+msgstr ""
+
+#: templates/tracker/layout/game.html:12
+msgctxt "nav"
+msgid "Server"
+msgstr ""
+
+#: templates/tracker/layout/nonmain.html:7
+msgctxt "navigation"
+msgid "Main"
+msgstr ""
+
+#: templates/tracker/layout/profile.html:27
+msgid "Overview"
+msgstr ""
+
+#: templates/tracker/layout/profile.html:31
+msgid "COOP"
+msgstr ""
+
+#: templates/tracker/layout/profile.html:33
+msgid "History"
+msgstr ""
+
+#: templates/tracker/layout/profile.html:58
+msgid "Recent Activity"
+msgstr ""
+
+#: templatetags/tracker.py:106
+#, fuzzy, python-format
+msgid "MODE_%d"
+msgstr "Barricaded Suspects"
+
+#: templatetags/tracker.py:111
+#, fuzzy, python-format
+msgid "MODE_SHORT_%d"
+msgstr "BS"
+
+#: templatetags/tracker.py:126
+#, fuzzy, python-format
+msgid "PROCEDURE_%d"
+msgstr "Suspects incapacitated"
+
+#: templatetags/tracker.py:131
+#, fuzzy, python-format
+msgid "OBJECTIVE_%d"
+msgstr "Rendezvous with Jennings"
+
+#: templatetags/tracker.py:136
+#, fuzzy, python-format
+msgid "OBJECTIVE_STATUS_%d"
+msgstr "In Progress"
+
+#: templatetags/tracker.py:141
+#, fuzzy, python-format
+msgid "COOP_STATUS_%d"
+msgstr "Not Ready"
+
+#: templatetags/tracker.py:147
+msgid "n/a"
+msgstr ""
+
+#: templatetags/tracker.py:177
+#, python-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+
+msgid "MODE_0"
+msgstr "Barricaded Suspects"
+
+#: views.py:220
+msgid "MODE_1"
+msgstr "VIP Escort"
+
+#: views.py:227
+msgid "MODE_2"
+msgstr "Rapid Deployment"
+
+#: views.py:234
+msgid "MODE_3"
+msgstr "COOP"
+
+#: views.py:230
+msgid "MODE_4"
+msgstr "Smash & Grab"
+
+msgid "MODE_5"
+msgstr "COOP QM"
+
+msgid "MODE_SHORT_0"
+msgstr "BS"
+
+msgid "MODE_SHORT_1"
+msgstr "VIP"
+
+msgid "MODE_SHORT_2"
+msgstr "RD"
+
+msgid "MODE_SHORT_3"
+msgstr "COOP"
+
+msgid "MODE_SHORT_4"
+msgstr "SG"
+
+msgid "MODE_SHORT_5"
+msgstr "COOPQM"
+
+
+msgid "SWAT_BS"
+msgstr "SWAT has won the round!"
+
+msgid "SUS_BS"
+msgstr "The Suspects have won the round!"
+
+msgid "SWAT_VIP_ESCAPE"
+msgstr "The VIP has escaped!"
+
+msgid "SWAT_VIP_BAD_KILL"
+msgstr "The Suspects have killed the VIP too soon!"
+
+msgid "SUS_VIP_GOOD_KILL"
+msgstr "The Suspects have killed the VIP!"
+
+msgid "SUS_VIP_BAD_KILL"
+msgstr "SWAT has accidentally killed the VIP!"
+
+msgid "SWAT_RD"
+msgstr "SWAT has disarmed all the bombs!"
+
+msgid "SUS_RD"
+msgstr "The Suspects have won the round!"
+
+msgid "SWAT_SG"
+msgstr "SWAT has defended the case!"
+
+msgid "SUS_SG"
+msgstr "The suspects have escaped with the case!"
+
+msgid "COOP_COMPLETED"
+msgstr "You have <span class='swat-green'>COMPLETED</span> the mission!"
+
+msgid "COOP_FAILED"
+msgstr "You have <span class='swat-red'>FAILED</span> the mission!"
+
+msgid "TIE"
+msgstr "The round has ended in a tie!"
+
+
+msgid "COOP_STATUS_0"
+msgstr "Not Ready"
+
+msgid "COOP_STATUS_1"
+msgstr "Ready"
+
+msgid "COOP_STATUS_2"
+msgstr "Healthy"
+
+msgid "COOP_STATUS_3"
+msgstr "Injured"
+
+msgid "COOP_STATUS_4"
+msgstr "Incapacitated"
+
+
+msgid "OBJECTIVE_0"
+msgstr "Rendezvous with Jennings"
+
+msgid "OBJECTIVE_1"
+msgstr "Avoid civilian injuries"
+
+msgid "OBJECTIVE_2"
+msgstr "Avoid officer injuries"
+
+msgid "OBJECTIVE_3"
+msgstr "Avoid officer casualties"
+
+msgid "OBJECTIVE_4"
+msgstr "Avoid suspect casualties"
+
+msgid "OBJECTIVE_5"
+msgstr "Avoid injuries to yourself"
+
+msgid "OBJECTIVE_6"
+msgstr "Debrief before the timer expires"
+
+msgid "OBJECTIVE_7"
+msgstr "Find and deactivate the bombs"
+
+msgid "OBJECTIVE_8"
+msgstr "Find and disarm the bombs!"
+
+msgid "OBJECTIVE_9"
+msgstr "Investigate the laundromat"
+
+msgid "OBJECTIVE_10"
+msgstr "Neutralize Alice Jenkins"
+
+msgid "OBJECTIVE_11"
+msgstr "Bring order to chaos"
+
+msgid "OBJECTIVE_12"
+msgstr "Neutralize Javier Arias"
+
+msgid "OBJECTIVE_13"
+msgstr "Neutralize Andrew Taronne"
+
+msgid "OBJECTIVE_14"
+msgstr "Neutralize Anton Georgiev"
+
+msgid "OBJECTIVE_15"
+msgstr "Neutralize Simon Gowan"
+
+msgid "OBJECTIVE_16"
+msgstr "Neutralize Lian Niu"
+
+msgid "OBJECTIVE_17"
+msgstr "Neutralize Alex Jimenez"
+
+msgid "OBJECTIVE_18"
+msgstr "Neutralize Lawrence Fairfax"
+
+msgid "OBJECTIVE_19"
+msgstr "Neutralize Kiril Stetchkov"
+
+msgid "OBJECTIVE_20"
+msgstr "Neutralize Hadeon Koshka"
+
+msgid "OBJECTIVE_21"
+msgstr "Neutralize Allen Kruse"
+
+msgid "OBJECTIVE_22"
+msgstr "Neutralize Andrew Norman"
+
+msgid "OBJECTIVE_23"
+msgstr "Neutralize Jean Trouffant"
+
+msgid "OBJECTIVE_24"
+msgstr "Neutralize Todor Stetchkov"
+
+msgid "OBJECTIVE_25"
+msgstr "Rescue Lawrence Adams"
+
+msgid "OBJECTIVE_26"
+msgstr "Rescue all of the civilians"
+
+msgid "OBJECTIVE_27"
+msgstr "Rescue Gary Altman"
+
+msgid "OBJECTIVE_28"
+msgstr "Arrest Louie Baccus"
+
+msgid "OBJECTIVE_29"
+msgstr "Rescue James Betincourt"
+
+msgid "OBJECTIVE_30"
+msgstr "Rescue Oscar Bogard"
+
+msgid "OBJECTIVE_31"
+msgstr "Rescue Warren Rooney"
+
+msgid "OBJECTIVE_32"
+msgstr "Rescue Hyun-Jun Park"
+
+msgid "OBJECTIVE_33"
+msgstr "Rescue Willis Fischer"
+
+msgid "OBJECTIVE_34"
+msgstr "Rescue Melinda Kline"
+
+msgid "OBJECTIVE_35"
+msgstr "Rescue Lionel Macarthur"
+
+msgid "OBJECTIVE_36"
+msgstr "Rescue Heidi Rosenstein"
+
+msgid "OBJECTIVE_37"
+msgstr "Rescue Dr. Theodore Sturgeon"
+
+msgid "OBJECTIVE_38"
+msgstr "Rescue Kim Dong Yin"
+
+msgid "OBJECTIVE_39"
+msgstr "Rescue Detective Walsh"
+
+msgid "OBJECTIVE_40"
+msgstr "Locate Officer Wilkins"
+
+msgid "OBJECTIVE_41"
+msgstr "Rescue Rita Winston"
+
+msgid "OBJECTIVE_42"
+msgstr "Secure the briefcase"
+
+msgid "OBJECTIVE_43"
+msgstr "Secure the MAC-10"
+
+
+msgid "OBJECTIVE_STATUS_0"
+msgstr "In Progress"
+
+msgid "OBJECTIVE_STATUS_1"
+msgstr "Completed"
+
+msgid "OBJECTIVE_STATUS_2"
+msgstr "Failed"
+
+
+msgid "PROCEDURE_0"
+msgstr "Suspects incapacitated"
+
+msgid "PROCEDURE_1"
+msgstr "Suspects arrested"
+
+msgid "PROCEDURE_2"
+msgstr "Mission completed"
+
+msgid "PROCEDURE_3"
+msgstr "Failed to report a downed officer"
+
+msgid "PROCEDURE_4"
+msgstr "Suspects neutralized"
+
+msgid "PROCEDURE_5"
+msgstr "No civilians injured"
+
+msgid "PROCEDURE_6"
+msgstr "Incapacitated a hostage"
+
+msgid "PROCEDURE_7"
+msgstr "Killed a hostage"
+
+msgid "PROCEDURE_8"
+msgstr "Incapacitated a fellow officer"
+
+msgid "PROCEDURE_9"
+msgstr "Injured a fellow officer"
+
+msgid "PROCEDURE_10"
+msgstr "No officers down"
+
+msgid "PROCEDURE_11"
+msgstr "No suspects neutralized"
+
+msgid "PROCEDURE_12"
+msgstr "Unauthorized use of deadly force"
+
+msgid "PROCEDURE_13"
+msgstr "Unauthorized use of force"
+
+msgid "PROCEDURE_14"
+msgstr "Player uninjured"
+
+msgid "PROCEDURE_15"
+msgstr "Failed to prevent destruction of evidence."
+
+msgid "PROCEDURE_16"
+msgstr "Failed to apprehend fleeing suspect."
+
+msgid "PROCEDURE_17"
+msgstr "Report status to TOC"
+
+msgid "PROCEDURE_18"
+msgstr "All evidence secured"

@@ -1,0 +1,116 @@
+@font-face {
+    font-family: "Bank Gothic Bold";
+    src: url('../fonts/bank_gothic_bold.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Airborne";
+    src: url('../fonts/airborne.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Airborne2";
+    src: url('../fonts/airborne2.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Teuton Mager";
+    src: url('../fonts/teuton_mager.otf') format("truetype");
+}
+@font-face {
+    font-family: "Teuton Normal Bold Italic";
+    src: url('../fonts/teuton_normal_bold_italic.otf') format("truetype");
+}
+@font-face {
+    font-family: "Microgramma Bold Extended D";
+    src: url('../fonts/microgramma_bold_extended_d.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Grammara";
+    src: url('../fonts/grammara.ttf') format("truetype");
+}
+@font-face {
+    font-family: "NCC1701A";
+    src: url('../fonts/ncc1701a.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Ubuntu";
+    src: url('../fonts/Ubuntu-R.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Teuton";
+    src: url('../fonts/TeutonMager-Bold.otf') format("truetype");
+}
+@font-face {
+    font-family: "Numans";
+    src: url('../fonts/Numans-Regular.otf') format("truetype");
+}
+@font-face {
+    font-family: "Furore";
+    src: url('../fonts/Furore.otf') format("truetype");
+}
+@font-face {
+    font-family: "Bicubik";
+    src: url('../fonts/Bicubik_Central Europe.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Sofia Pro Light";
+    src: url('../fonts/SofiaProLight.otf') format("truetype");
+}
+@font-face {
+    font-family: "BebasNeue";
+    src: url('../fonts/BebasNeue.otf') format("truetype");
+}
+@font-face {
+    font-family: "OctinCollegeRegular";
+    src: url('../fonts/octin_college_rg.otf') format("truetype");
+}
+@font-face {
+    font-family: "Jefferies";
+    src: url('../fonts/Jefferies.ttf') format("truetype");
+}
+@font-face {
+    font-family: "AmarilloUSAF";
+    src: url('../fonts/amusaf.ttf') format("truetype");
+}
+@font-face {
+    font-family: "NHL BOSTON";
+    src: url('../fonts/NHLBOSTO.TTF') format("truetype");
+}
+@font-face {
+    font-family: "Nok Regular Expanded";
+    src: url('../fonts/Nok Regular Expanded.otf') format("truetype");
+}
+@font-face {
+    font-family: "Nok Bold Expanded";
+    src: url('../fonts/Nok Bold Expanded.otf') format("truetype");
+}
+@font-face {
+    font-family: "Nok Bold";
+    src: url('../fonts/nokbold.otf') format("truetype");
+}
+@font-face {
+    font-family: "Nok Bold Condensed";
+    src: url('../fonts/Nok Bold Condensed.otf') format("truetype");
+}
+@font-face {
+    font-family: "Octin College Semibold";
+    src: url('../fonts/OctinCollegeSb.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Octin College Bold";
+    src: url('../fonts/OctinCollegeRgBold.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Octin College Regular";
+    src: url('../fonts/OctinCollegeRg.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Octin College Light";
+    src: url('../fonts/OctinCollegeLt.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Octin College Heavy";
+    src: url('../fonts/OctinCollegeHv.ttf') format("truetype");
+}
+@font-face {
+    font-family: "Octin College Book";
+    src: url('../fonts/OctinCollegeBk.ttf') format("truetype");
+}

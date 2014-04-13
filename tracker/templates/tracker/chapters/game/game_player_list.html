@@ -1,0 +1,47 @@
+{% extends "tracker/layout/game.html" %}
+{% load tracker humanize i18n %}
+
+{% block swat_frame %}
+<div class="height100" style="width: 20%;">
+    <div style="max-height: 95%; overflow: auto;" class="swat-text-box-content">
+        {% if not players.all %}
+            No players
+        {% endif %}
+        {% if players.finished %}
+        <div{% if players.dropped %} style="margin-bottom: 2em;"{% endif %}>
+            {% for player in players.finished %}
+                <div onclick="window.location.href='{% game_url game view='tracker:game_player_detail' player_id=player.pk %}';" class="swat-player-row">{% show_country player.isp.country %} {% show_player player %}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if players.dropped %}
+            <div>
+            {% for player in players.dropped %}
+                <div class="swat-player-row">{% show_country player.isp.country %} <a href="{% game_url game view='tracker:game_player_detail' player_id=player.pk %}">{% show_player player %}</a> &darr;</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="height100 width100" style="position: absolute; left: 20%; top: 0;">
+    <div style="margin: 0 0.5em;">
+        <div class="swat-text-box-content">
+            <p>Highest score: foo</p>
+            <p>Most kills: foo</p>
+            <p>Most arrests: foo</p>
+            <p>Most ammo fired: foo</p>
+
+            <p>Highest KDR: foo</p>
+            <p>Highest accuracy: foo</p>
+            <p>Best long range kill: foo</p>
+
+            <p>Highest kill streak: foo</p>
+            <p>Highest arrest streak: foo</p>
+
+            <p>Most deaths: foo</p>
+            <p>Highest death streak: foo</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

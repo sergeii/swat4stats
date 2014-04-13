@@ -1,0 +1,96 @@
+{% extends "tracker/layout/chapter.html" %}
+{% load tracker humanize i18n %}
+
+{% block title %}{{ block.super }}{% trans "Games" context "nav" %}{% endblock %}
+{% block swat_chapter_title %}{% trans "Games" context "nav" %}{% endblock %}
+
+{% block swat_status %}
+    {% if page_obj.paginator.count %}
+        {% blocktrans with count=page_obj.paginator.count %}Games found: {{ count }}{% endblocktrans %}
+    {% else %}
+        {% trans "No games found"%}
+    {% endif %}
+{% endblock %}
+
+{% block swat_chapter_content %}
+
+<div class="swat-chapter-pane-container floatfix clearfix">
+
+    <div class="swat-chapter-pane-small">
+        <div class="swat-text-box-title">{% trans "Filters" context "gamefilter" %}</div>
+        <div class="swat-chapter-pane-content-titled">
+            <form method="GET" action="{% url 'tracker:game_history_list' %}" class="swat-form">
+
+                <div class="swat-input-block">
+                    <p class="swat-input-label">{{ form.server.label }}</p>
+                    <p class="swat-input-block-select">{{ form.server }}</p>
+                </div>
+
+                <div class="swat-input-block">
+                    <p class="swat-input-label">{{ form.gametype.label }}</p>
+                    <p class="swat-input-block-select">{{ form.gametype }}</p>
+                </div>
+
+                <div class="swat-input-block">
+                    <p class="swat-input-label">{{ form.map.label }}</label>
+                    <p class="swat-input-block-select">{{ form.map }}</p>
+                </div>
+
+                <div class="swat-input-block">
+                    <p class="swat-input-label">{{ form.outcome.label }}</p>
+                    <p class="swat-input-block-select">{{ form.outcome }}</p>
+                </div>
+
+                <div class="swat-input-block">
+                    <p class="swat-input-label">{{ form.gametime.label }}</p>
+                    <p class="swat-input-block-select">{{ form.gametime }}</p>
+                </div>
+
+                <div class="swat-input-block swat-input-block-field">
+                    <p class="swat-input-label">{{ form.players.label }}</p>
+                    <p>{{ form.players }}</p>
+                    {% if form.players.errors %}<p>{{ form.players.errors }}</p>{% endif %}
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="swat-sound-trigger swat-button-arrow-right">{% trans "Search Games" context "gamefilter" %}</button>
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="swat-text-box-title">{% trans "Please correct the errors below" context "gamefilter" %}</div>
+                <div class="swat-text-box-content">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <div class="swat-chapter-pane-main">
+        <div class="swat-chapter-pane-main-inner">
+            <div class="swat-chapter-pane-content swat-game-list">
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="left swat-chapter-pane-title-top">{% include "tracker/includes/pagination.html" with page_obj=page_obj filters=filters only %}</div>
+            {% endif %}
+
+            {% for game in game_list %}
+                {% ifchanged %}<div class="left title-underlined">{{ game.date_finished|naturalday|title }}</div>{% endifchanged %}
+                {% show_game game game.date_finished|naturaltime %}
+            {% empty %}
+                {% trans "No games found"%}
+            {% endfor %}
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="left swat-chapter-pane-title-bottom">{% include "tracker/includes/pagination.html" with page_obj=page_obj filters=filters only %}</div>
+            {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
