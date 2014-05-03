@@ -4,11 +4,9 @@ from __future__ import unicode_literals, absolute_import
 import os
 import json
 
-
-DEBUG = 'DJ_DEBUG' in os.environ
-TEMPLATE_DEBUG = DEBUG
-
-if DEBUG:
+if 'DJ_LOCAL' in os.environ:
+    from . local import *
+elif 'DJ_DEBUG' in os.environ:
     from .debug import *
 else:
     from .production import *

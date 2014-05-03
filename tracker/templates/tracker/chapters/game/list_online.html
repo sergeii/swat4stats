@@ -1,0 +1,31 @@
+{% extends "tracker/chapters/game/layout/base_list.html" %}
+{% load tracker i18n %}
+
+{% block swat_game_list %}
+<div class="swat-box bordered">
+    <div class="inner">
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="left swat-chapter-pane-title-top">{% include "tracker/includes/pagination.html" with page_obj=page_obj filters=filters only %}</div>
+        {% endif %}
+
+        <div class="swat-game-list-wide">
+            {# tss comes first, then 1.1, then 1.0 #}
+            {% for status in object_list|dictsortreversed:"gamever"|dictsortreversed:"gamename" %}
+                {% ifchanged status.gamever status.gamename %}
+                    <div class="block left title underlined">{{ status.gamename|gamename }} {{ status.gamever }}</div>
+                {% endifchanged %}
+                <div>
+                    <div class="center title undecorated">{{ status.hostname_clean|truncatechars:28 }}</div>
+                    <div><a class="hoverable block" href="{% server_url status.server %}">{% spaceless %}{% show_game_picture_light status %}{% endspaceless %}</a></div>
+                    <div class="space-top float">
+                        <div class="left">{{ status.gametype|gametype }}</div>
+                        <div class="right">{{ status.player_num }}/{{ status.player_max }}</div>
+                    </div>
+                </div>
+            {% empty %}
+                {% trans "No games found." %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

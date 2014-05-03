@@ -1,7 +1,7 @@
 {% extends "tracker/layout/chapter.html" %}
 
-{% block swat_frame_outer %}
-<div id="swat-frame-outer-fixed">
-    {% block swat_frame %}{{ block.super }}{% endblock %}
+{% block swat_frame %}
+<div class="inner fixed">
+    {% block swat_frame_content %}{{ block.super }}{% endblock swat_frame_content %}
 </div>
-{% endblock %}
+{% endblock swat_frame %}

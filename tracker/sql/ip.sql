@@ -1,0 +1,1 @@
+CREATE INDEX ON tracker_ip ((range_to - range_from));

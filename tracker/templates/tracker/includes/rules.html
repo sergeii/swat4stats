@@ -2,37 +2,27 @@
 {% load i18n %}
 
 {% ifequal gametype "VIP Escort" %}
-{% blocktrans %}
-One player on the SWAT team is randomly chosen to be the VIP.  SWAT must escort the VIP to the escape point on the other side of the map.  The suspects must capture the VIP. They must then hold him hostage for 2 minutes.  SWAT players can use the toolkit to release the VIP.  After the two minutes are up, the suspects must assassinate the VIP to win the game.
+{% blocktrans %}One player on the SWAT team is randomly chosen to be the VIP.  SWAT must escort the VIP to the escape point on the other side of the map.  The suspects must capture the VIP. They must then hold him hostage for 2 minutes.  SWAT players can use the toolkit to release the VIP.  After the two minutes are up, the suspects must assassinate the VIP to win the game.
 
-SWAT wins if the VIP escapes, or if the suspects kill the VIP before capturing and holding him.
-{% endblocktrans %}
+SWAT wins if the VIP escapes, or if the suspects kill the VIP before capturing and holding him.{% endblocktrans %}
 {% endifequal %}
 
 {% ifequal gametype "Rapid Deployment" %}
-{% blocktrans %}
-Three to five bombs are randomly spawned in the map. SWAT must use the toolkit to defuse all of the bombs before the round ends.  The Suspects must defend the bombs and prevent them from being disabled. Once all of the bombs are defused SWAT wins. If the round timer expires while a bomb is still active, the Suspects win.
-{% endblocktrans %}
+{% blocktrans %}Three to five bombs are randomly spawned in the map. SWAT must use the toolkit to defuse all of the bombs before the round ends.  The Suspects must defend the bombs and prevent them from being disabled. Once all of the bombs are defused SWAT wins. If the round timer expires while a bomb is still active, the Suspects win.{% endblocktrans %}
 {% endifequal %}
 
 {% ifequal gametype "Barricaded Suspects" %}
-{% blocktrans %}
-The goal is to kill or arrest as many members of the opposite team as possible. Kills are worth 1 point, arrests are worth 5 points.
+{% blocktrans %}The goal is to kill or arrest as many members of the opposite team as possible. Kills are worth 1 point, arrests are worth 5 points.
 
-The first team to reach the score limit wins. If the time limit is reached, the team with the most points at the end of the round wins.
-{% endblocktrans %}
+The first team to reach the score limit wins. If the time limit is reached, the team with the most points at the end of the round wins.{% endblocktrans %}
 {% endifequal %}
 
 {% ifequal gametype "CO-OP" %}
-{% blocktrans %}
-Play single player missions with a group of up to five officers.
-{% endblocktrans %}
+{% blocktrans %}Play single player missions with a group of up to five officers.{% endblocktrans %}
 {% endifequal %}
 
 {% ifequal gametype "Smash And Grab" %}
-{% blocktrans %}
-The suspects must collect the briefcase and take it to the exit before the timer runs out. The officers must stop the suspects from reaching the exit with the briefcase. If a suspect is arrested, 30 seconds are deducted from the game clock. If a suspect is killed or arrested carrying the briefcase, the case stays where it is dropped. Officers cannot pickup the briefcase.
-{% endblocktrans %}
+{% blocktrans %}The suspects must collect the briefcase and take it to the exit before the timer runs out. The officers must stop the suspects from reaching the exit with the briefcase. If a suspect is arrested, 30 seconds are deducted from the game clock. If a suspect is killed or arrested carrying the briefcase, the case stays where it is dropped. Officers cannot pickup the briefcase.{% endblocktrans %}
 {% endifequal %}
 
 {% endspaceless %}

@@ -1,0 +1,1 @@
+CREATE INDEX on tracker_rank (year, category) WHERE position <= 5;

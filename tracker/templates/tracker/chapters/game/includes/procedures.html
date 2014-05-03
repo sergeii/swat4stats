@@ -1,0 +1,19 @@
+{% load i18n tracker %}
+{% for procedure in procedures %}
+    <div class="table-row spaceless">
+        <div class="left">{{ procedure.name|procedure }}</div>
+        <div class="player-cell-status">{{ procedure.status }}</div>
+        <div class="player-cell-status">{{ procedure.score }}</div>
+    </div>
+    {% empty %}
+    <div class="table-row">
+        <div class="left">{% trans "No Penalties Deducted!" %}</div>
+        <div class="player-cell-status">&nbsp;</div>
+        <div class="player-cell-status">0</div>
+    </div>
+{% endfor %}
+<div class="swat-coop-total-row table-row">
+    <div>&nbsp;</div>
+    <div>{% filter upper %}{% trans "Total" %}{% endfilter %}</div>
+    <div class="{% if score >= 0 %}swat-green{% else %}swat-red{% endif %}">{{ score }}</div>
+</div>

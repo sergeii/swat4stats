@@ -1,0 +1,81 @@
+{% extends "tracker/layout/nonmain.html" %}
+{% load static tracker humanize i18n %}
+
+{% block title %}{{ block.super }}{% trans "Search" %}{% endblock %}
+
+{% block background %}{% static "images/game/maps/background/search.jpg" %}{% endblock background %}
+
+{% block swat_frame %}
+<div class="inner{% if not form.is_bound %} fixed{% endif %}">
+    {% block swat_frame_content %}
+
+    <div id="player-search-form" class="{% if not form.is_bound %}unbound{% endif %}">
+        <form method="GET" action="{% url 'tracker:search' %}">
+            <div class="swat-input-block">
+                <div class="swat-input-field-wrapper">
+                    <input placeholder="{% trans "Name" %}" type="text" name="{{ form.player.html_name }}" value="{{ form.player.value|default_if_none:"" }}" />
+                </div>
+                <button class="swat-button-submit" type="submit"></button>
+            </div>
+            {% if not form.is_bound and term_random %}
+                <div class="space-top small">{% blocktrans with term=term_random|truncatechars:30 term_encoded=term_random|iriencode %}Looking for <a href="?player={{ term_encoded }}">{{ term }}</a>?{% endblocktrans %}</div>
+            {% endif %}
+            <div class="swat-form-status">
+                {% if form.player.errors %}
+                    {{ form.player.errors }}
+                {% else %}
+                    {% if form.is_bound and not object_list %}<div>{% trans "No players found." %}</div>{% endif %}
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div class="float">
+        {% if object_list %}
+        <div id="player-search-list" class="left">
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="right space-bottom">
+                {% include "tracker/includes/pagination.html" with page_obj=page_obj filters=filters only %}
+            </div>
+            {% endif %}
+
+            <div class="swat-box bordered width100">
+                <div class="inner">
+                    <div class="swat-table width100">
+                    <div class="table-header">
+                        <div class="left">{% trans "Player" %}</div>
+                        <div></div>
+                        <div class="right">{% trans "Last Played" %}</div>
+                    </div>
+                    {% for object in object_list %}
+                        <div onclick="window.location.href='{% profile_url object.profile %}';" class="table-row astronomic middle swat-player-row {% cycle 'odd' '' %}">
+                            <div class="cell-picture">{% show_profile_picture object.profile 100 %}</div>
+                            <div class="cell-name">
+                                <div class="profile-name">
+                                    <a href="{% profile_url object.profile %}">{{ object.profile.name|highlight:form.cleaned_data.player }}</a>
+                                </div>
+                                {% ifnotequal object.name object.profile.name %}
+                                    <div class="gray swat-status-text">{{ object.name|highlight:form.cleaned_data.player }}</div>
+                                {% endifnotequal %}
+                            </div>
+                            <div class="cell-time">{{ object.profile.last_seen|naturaltime }}</div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="right space-top">
+                {% include "tracker/includes/pagination.html" with page_obj=page_obj filters=filters only %}
+            </div>
+            {% endif %}
+            
+        </div>
+        {% endif %}
+    </div>
+
+    {% endblock swat_frame_content %}
+</div>
+{% endblock swat_frame %}

@@ -1,0 +1,26 @@
+{% load static tracker humanize i18n %}
+<div class="profile-weapon-table">
+    <div class="table-header">
+        <div class="left">{% trans "Weapon" %}</div>
+        <div>{% trans "Kills" %}</div>
+        <div class="center">{% trans "Shots" %}</div>
+        <div class="center">{% trans "Hits" %}</div>
+        <div class="center">{% trans "Accuracy" %}</div>
+        <div class="center">{% trans "Team Hits" %}</div>
+        <div class="center">{% trans "Longest Kill" %}</div>
+    </div>
+    {% for weapon in weapons %}
+    <div id="{{ weapon.name }}" class="table-row middle astronomic {% cycle 'odd' '' %}">
+        <div class="left weapon-picture" style="background-image: url('{% get_static_prefix %}images/game/weapons/64/item{{ weapon.name }}.jpg');">
+            <div class="weapon-title">{{ weapon.name|weapon }}</div>
+        </div>
+        <div class="profile-table-cell {% zerohero weapon.kills best.kills 'swat-green' 'dark-gray' %}">{{ weapon.kills|intcomma }}</div>
+        <div class="profile-table-cell {% zerohero weapon.shots best.shots 'swat-green' 'dark-gray' %}">{{ weapon.shots|intcomma }}</div>
+        <div class="profile-table-cell {% zerohero weapon.hits best.hits 'swat-green' 'dark-gray' %}">{{ weapon.hits|intcomma }}</div>
+        {# use ratio filter to display the actual accuracy ratio #}
+        <div class="profile-table-cell {% zerohero weapon.accuracy best.accuracy 'swat-green' 'dark-gray' %}">{{ weapon.hits|ratio:weapon.shots|percent }}</div>
+        <div class="profile-table-cell {% zerohero weapon.teamhits best.teamhits 'swat-green' 'dark-gray' %}">{{ weapon.teamhits|intcomma }}</div>
+        <div class="profile-table-cell {% zerohero weapon.distance best.distance 'swat-green' 'dark-gray' %}">{{ weapon.distance }}m</div>
+    </div>
+    {% endfor %}
+</div>

@@ -1,4 +1,2 @@
-{% load static tracker i18n %}
-<a class="swat-game-frame-light" href="{% game_url game %}">
-    <img src="{% get_static_prefix %}images/game/maps/preview/{{ game.mapname }}.jpg" />
-</a>
+{% load tracker %}
+<a class="hoverable inline" href="{% game_url game %}">{% show_game_picture_light game %}</a>

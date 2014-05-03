@@ -11,6 +11,9 @@ PATH_APP = PATH_PROJECT.parent
 # virtualenv dir
 PATH_VENV = PATH_APP.parent
 
+DEBUG = False
+TEMPLATE_DEBUG = False
+
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,6 +48,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.tz', 
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request', 
+
+    'tracker.context_processors.current_view', 
 )
 
 TEMPLATE_LOADERS = (
@@ -94,6 +99,15 @@ ADMINS = (
 MANAGERS = (
     ('Sergei', 'kh.sergei@gmail.com'),
 )
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+    'locmem': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+}
 
 CACHEOPS = {
     #'auth.user': ('get', 60*15),

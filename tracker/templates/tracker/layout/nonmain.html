@@ -1,9 +1,51 @@
 {% extends "tracker/layout/base.html" %}
-{% load staticfiles static tracker i18n %}
+{% load static tracker i18n %}
 
-{% block swat_header_lower %}
+{% block head_script %}
 {{ block.super }}
-<div id="header-button-to-main">
-    <a class="swat-sound-trigger swat-button-back swat-button-arrow-left" href="{% url 'tracker:main' %}">{% trans "Main" context "navigation" %}</a>
+$(document).ready(function(){
+    $('#swat-search-window').popup('.sel-search-open', function(){
+        $(this).find('input').focus();
+    });
+});
+{% endblock head_script %}
+
+{% block swat_top_left %}
+    <a class="swat-button-arrow-left" href="{% url 'tracker:main' %}">{% trans "Main" %}</a>
+{% endblock swat_top_left %}
+
+{% block swat_bottom_left %}
+<div class="sel-search-open swat-button-white large">{% trans "Search" %}</div>
+{% endblock swat_bottom_left %}
+
+{% block body %}
+{{ block.super }}
+<div id="swat-search-window" class="swat-box popup smaller">
+    <div class="inner">
+        <form id="swat-search-form" method="GET" action="{% url 'tracker:search' %}">
+        <div class="swat-form">
+            <div>
+                <div class="swat-input-block">
+                    <p class="swat-input-label">{% trans "Please Enter Player Name Here:" %}</p>
+                    <p class="swat-input-field-wrapper">
+                        <input placeholder="{% trans "Player" %}" name="player" type="text" value="" />
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="button-bar float">
+            <div class="width50 left">
+                <div class="width100 center">
+                    <button class="swat-button-submit" type="submit"></button>
+                </div>
+            </div>
+            <div class="width50 left">
+                <div class="width100 center">
+                    <div class="sel-search-open swat-button-cancel"></div>
+                </div>
+            </div>
+        </div>
+        </form>
+    </div>
 </div>
-{% endblock %}
+{% endblock body %}

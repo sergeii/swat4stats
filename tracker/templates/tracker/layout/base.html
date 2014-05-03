@@ -1,36 +1,39 @@
-{% load staticfiles static tracker %}<!DOCTYPE html>
+{% load i18n static tracker %}{% block document %}<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
+{% block html %}
 <head>
 {% block head %}
-
 {% block head_inner %}
 <meta charset="utf-8">
 <meta http-equiv="content-type" content="text/html;charset=utf-8">
-<!--<link rel="shortcut icon" href="favicon.ico">-->
-<title>{% block title %}SWAT4 Stats Tracker - {% endblock %}</title>
+<link rel="shortcut icon" href="{% static "favicon.ico" %}">
+<title>{% block title %}SWAT4 Tracker - {% endblock %}</title>
 <link rel="stylesheet" type="text/css" href="{% static "css/reset.css" %}">
 {% if not debug %}<link rel="stylesheet" type="text/css" href="{% static "css/base.css" %}">{% endif %}
 <link rel="stylesheet" type="text/css" href="{% static "css/fonts.css" %}">
 <script type="text/javascript" src="{% static "js/jquery-1.9.1.min.js" %}"></script>
-<script type="text/javascript" src="{% static "js/common.js" %}"></script>
+<script type="text/javascript" src="{% static "js/base.js" %}"></script>
 
 {% if debug %}
 <link rel="stylesheet/less" type="text/css" href="{% static "less/base.less" %}" />
 <script type="text/javascript" src="{% static "js/less-1.7.0.min.js" %}"></script>
 {% endif %}
 
-{% endblock %}
+{% endblock head_inner %}
 
 <script type="text/javascript">
 {% block head_script %}
+document.playback.enabled = false;
+
 $(window).resize(function(){
     document.scale();
 });
 
 $(document).ready(function(){
-    document.playback.enabled = true;
-    // scale the window
     document.scale();
+
+    {% comment %}
+    /*
     $('#toggle-sound').bind('click', function(e){
         if (document.playback.enabled){
            $('audio').each(function(){
@@ -48,11 +51,13 @@ $(document).ready(function(){
         document.playback.enabled = !document.playback.enabled;
         console.log('playback.enabled is now ' + document.playback.enabled);
     });
-    $('.swat-sound-trigger').bind('click', function(){
+    */
+   /*
+    $(document).on('click', '.swat-sound-trigger', function(){
         var src;
         var self = $(this);
         var href = self.attr('href');
-        var form = self.closest('form');
+        var form = self.attr('data-form') ? $('#' + self.attr('data-form')) : null;
 
         if (self.hasClass('swat-menu-heading')){
             src = '{% static "sounds/gui/ui_MainButton1.ogg" %}';
@@ -71,65 +76,66 @@ $(document).ready(function(){
                 form.submit();
             }
         });
-        return false;
+        return form || href ? false : true;
     });
-
-    $('.js-toggle-display').bind('click', function(){
+    */
+    {% endcomment %}
+    $('[placeholder]').placeholder('gray');
+    $(document).on('click', '.sel-toggle-display', function(){
         $($(this).attr('data-target')).toggle();
     });
 });
-{% endblock %}
+{% endblock head_script %}
 </script>
 
-{% endblock %}
+{% endblock head %}
 </head>
 
 <body>
-{% block body %}
+    {% block body %}
+    <div id="container" style="background: url('{% block background %}{% static "images/game/maps/background/intro.jpg" %}{% endblock background %}') no-repeat; background-size: cover;">
+    {% block container %}
 
-<div id="swat-header">
-{% block swat_header %}
-    <div id="swat-header-upper">{% block swat_header_upper %}{% endblock %}</div>
-    <div id="swat-header-lower">{% block swat_header_lower %}{% endblock %}</div>
-{% endblock %}
-</div>
+        <div id="swat-header">
+        {% block swat_header %}
+            <div class="upper">{% block swat_header_upper %}{% endblock %}</div>
+            <div class="lower">
+                {% block swat_header_lower %}
+                    <div class="left">{% block swat_top_left %}{% endblock %}</div>
+                    <div class="right">{% block swat_top_right %}{% endblock %}</div>
+                {% endblock %}
+            </div>
+        {% endblock %}
+        </div>
 
-<div id="swat-frame" style="background: url('{% block swat_frame_background_url %}{% static "images/game/maps/background/intro.png" %}{% endblock %}') no-repeat; background-size: cover;">
-    {% block swat_frame_outer %}<div id="swat-frame-outer">{% block swat_frame_inner %}<div id="swat-frame-inner">{% block swat_frame %}{% endblock %}</div>{% endblock %}</div>{% endblock %}
-</div>
+        <div id="swat-frame">
+            {% block swat_frame %}
+                <div class="inner">
+                    {% block swat_frame_content %}{% endblock swat_frame_content %}
+                </div>
+            {% endblock swat_frame %}
+        </div>
 
-<div id="swat-footer">
-    <div class="inner-block">
-    {% block swat_footer %}
-        <div id="swat-bottom-left-area">
-            {% block swat_bottom_left %}
-                <div class="swat-status">{% block swat_status %}{% endblock %}</div>
+        <div id="swat-footer">
+            <div class="inner">
+            {% block swat_footer %}
+                <div class="left">
+                    {% block swat_bottom_left %}{% endblock %}
+                </div>
+                <div class="status">{% block swat_status %}{% endblock %}</div>
+                <div class="right">{% block swat_bottom_right %}{% endblock %}</div>
+                <div id="copyright">
+                    <p>&copy; 2013-{% now "Y" %} <a href="mailto:kh.sergei@gmail.com">Serge</a></p>
+                </div>
             {% endblock %}
+            </div>
         </div>
-        <div id="swat-bottom-right-area">
-            {% block swat_bottom_right %}{% endblock %}
-        </div>
-        <!--
-        <div id="powered-by">
-            <p>
-                <a href="http://www.python.org/"><img src="{% static "img/pp.png" %}" alt="Powered by Python" title="Powered by Python" /></a>
-            </p>
-            <p>
-                <a href="http://www.djangoproject.com/"><img src="{% static "images/other/powered_django.png" %}" alt="Powered by Django" title="Powered by Django" /></a>
-            </p>
-            <p>
-                <a href="http://udn.epicgames.com/Two/WebHome.html" alt="Powered by UnrealEngine 2" title="Powered by UnrealEngine" ><img src="img/pu.png" /></a>
-            </p>
-        </div>
-        -->
-        <div id="copyright">
-            <p>&copy; 2013-2014 <a href="mailto:kh.sergei@gmail.com">Serge</a></p>
-        </div>
-    {% endblock %}
+
+    {% endblock container %}
     </div>
-</div>
 
-{% endblock %}
+{% endblock body %}
 </body>
-
+{% endblock html %}
 </html>
+{% endblock document %}

@@ -1,0 +1,71 @@
+{% extends "tracker/layout/nonmain.html" %}
+{% load static tracker i18n %}
+
+{% block head_script %}
+{{ block.super }}
+$(document).ready(function(){
+    (function fetchStatus(){
+        setTimeout(
+            function(){
+                $.ajax({
+                    url: '{% server_url object 'tracker:server_ajax' %}',
+                    success: function(data){
+                        $('#container').htmlScroll(data);
+                    },
+                    complete: function(){
+                        fetchStatus();
+                    },
+                });
+            }, 
+            {{ FETCH_INTERVAL }}*1000
+        );
+    })();
+});
+{% endblock %}
+
+{% block title %}{{ block.super }} {{ status.hostname_clean }}{% endblock %}
+
+{% block swat_status %}{{ status.gamename|gamename }} {{ status.gamever }}{% endblock %}
+
+{% block swat_header_upper %}{{ block.super }}<div id="swat-server-title">{{ status.hostname_clean }}</div>{% endblock %}
+
+{% block swat_header_lower %}
+{{ block.super }}
+<div id="swat-server-status">
+{% blocktrans with round_num=status.round_num|default:0 round_max=status.round_max|default:0 %}Round: {{ round_num }}/{{ round_max }}{% endblocktrans %}
+</div>
+{% endblock %}
+
+{% block swat_top_right %}
+    <a href="{% url 'tracker:server_list' %}" class="swat-button-cross">{% trans "Disconnect" %}</a>
+{% endblock %}
+
+{% block background %}{% get_static_prefix %}images/game/maps/background/{{ status.mapname|default:0 }}.jpg{% endblock background %}
+
+{% block swat_bottom_right %}
+{% spaceless %}
+<div class="swat-button-bar">
+    <span class="swat-button active">{% trans "Scores" %}</span>
+    {% if server.streamed %}
+    <a href="{% url 'tracker:game_list_history' %}?server={{ server.pk }}" class="swat-button">{% trans "History" %}</a>
+    {% endif %}
+    <a href="xfire:join?game=swat4{% ifequal status.gamename_translated 'SWAT 4X' %}tss{% endifequal %}&amp;server={{ server.ip }}:{{ server.port }}" class="swat-button-arrow-right">{% trans "Join" %}</a>
+</div>
+{% endspaceless %}
+{% endblock %}
+
+{% block swat_footer %}
+{{ block.super }}
+{% if status.time %}
+<div id="swat-game-timer">
+    <div class="swat-status-text">{% trans "Time remaining:" %}</div>
+    <div class="swat-timer">{{ status.time|swattime }}</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block swat_frame %}
+<div class="inner fixed">
+    {% block swat_frame_content %}{{ block.super }}{% endblock swat_frame_content %}
+</div>
+{% endblock swat_frame %}

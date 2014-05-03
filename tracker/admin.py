@@ -40,17 +40,6 @@ class IPAdmin(admin.ModelAdmin):
         return super(IPAdmin, self).get_queryset(request).select_related('isp')
 
 
-
-    # def get_search_results(self, request, queryset, search_term):
-    #     queryset, use_distinct = super(IPAdmin, self).get_search_results(request, queryset, search_term)
-    #     try:
-    #         ip_addr = utils.force_ipy(search_term)
-    #         queryset |= queryset.filter(range_from__lte=ip_addr.int(), range_to__gte=ip_addr.int())
-    #     except:
-    #         pass
-    #     return queryset, use_distinct
-
-
 class IPInline(admin.TabularInline):
     model = models.IP
     fields = ('range_from_normal', 'range_to_normal', 'length')
@@ -75,41 +64,51 @@ class ISPAdmin(admin.ModelAdmin):
 
 
 class AliasAdmin(admin.ModelAdmin):
-    list_display = ('name', 'ip', 'isp')
-    search_fields = ('name', 'ip', 'isp__name')
+    list_display = ('name', 'isp')
+    search_fields = ('name', 'isp__name')
     readonly_fields = ('isp',)
     list_per_page = 20
 
 
+class AliasInline(admin.TabularInline):
+    model = models.Alias
+    fields = ('name', 'isp')
+    readonly_fields = ('isp',)
+    extra = 0
+
+
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'country', 'earliest_name', 'latest_name', 'player_count')
-    search_fields = ('name', 'player__name', 'player__ip')
-    readonly_fields = ('loadout',)
+    list_display = ('name', 'country', 'last_seen', 'alias_count', 'player_count')
+    search_fields = ('name', 'alias__name', 'alias__player__ip')
+    readonly_fields = ('loadout', 'game_first', 'game_last')
     list_per_page = 20
+    inlines = [AliasInline]
 
     def get_queryset(self, request):
-        return super(ProfileAdmin, self).get_queryset(request).annotate(Count('player'))
+        return (super(ProfileAdmin, self).get_queryset(request))
 
     def earliest_name(self, obj):
-        return obj.player_set.first().name
+        return obj.alias_set.first().name
 
     def latest_name(self, obj):
-        return obj.player_set.last().name
+        return obj.alias_set.last().name
+
+    def alias_count(self, obj):
+        return obj.alias_set.count()
 
     def player_count(self, obj):
-        return obj.player_set.count()
-    player_count.admin_order_field = 'player__count'
+        return obj.alias_set.aggregate(num=Count('player'))['num']
 
 
 class PlayerInline(admin.TabularInline):
     model = models.Player
-    fields = ('profile', 'loadout', 'vip', 'admin', 'dropped')
-    readonly_fields = ('profile', 'loadout', 'vip', 'admin', 'dropped')
+    fields = ('alias', 'loadout', 'vip', 'admin', 'dropped')
+    readonly_fields = ('alias', 'loadout', 'vip', 'admin', 'dropped')
     extra = 0
 
 
 class GameAdmin(admin.ModelAdmin):
-    search_fields = ('player__name', 'player__ip')
+    search_fields = ('player__alias__name', 'player__ip')
     list_per_page = 20
     list_display = ('__str__', 'gametype', 'mapname', 'player_num', 'date_finished', 'outcome_readable')
     inlines = (PlayerInline,)
@@ -119,25 +118,22 @@ class GameAdmin(admin.ModelAdmin):
     outcome_readable.admin_order_field = 'outcome'
 
 
-class ScoreInline(admin.TabularInline):
-    model = models.Score
-    readonly_fields = ('category', 'points')
-    extra = 0
-
-
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'alias', 'team', 'dropped', 'vip', 'admin')
-    readonly_fields = ('game', 'profile', 'alias', 'loadout')
+    readonly_fields = ('game', 'alias', 'loadout')
     list_per_page = 20
-    inlines = (ScoreInline,)
 
     def get_queryset(self, request):
         return super(PlayerAdmin, self).get_queryset(request).select_related('profile')
 
 
-admin.site.register(models.Server)
-admin.site.register(models.ServerStatus)
-admin.site.register(models.PlayerStatus)
+class ServerAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'count_failure', 'enabled', 'listed', 'streamed')
+    list_filter = ('enabled', 'listed', 'streamed')
+    list_per_page = 50
+
+
+admin.site.register(models.Server, ServerAdmin)
 admin.site.register(models.Alias, AliasAdmin)
 admin.site.register(models.Profile, ProfileAdmin)
 admin.site.register(models.Game, GameAdmin)
@@ -148,5 +144,4 @@ admin.site.register(models.ISP, ISPAdmin)
 admin.site.register(models.IP, IPAdmin)
 admin.site.register(models.Procedure)
 admin.site.register(models.Objective)
-admin.site.register(models.Score)
 admin.site.register(models.Rank, RankAdmin)

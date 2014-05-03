@@ -1,0 +1,75 @@
+{% extends "tracker/chapters/server/layout/base_detail.html" %}
+{% load static tracker humanize i18n %}
+
+{% block swat_frame_content %}
+<div class="swat-game-score-pane">
+    <div class="inner">
+        <!--
+        <div class="block block-coop-chat">
+            <div class="swat-box">
+                <div class="inner">&nbsp;</div>
+            </div>
+        </div>
+        -->
+        <div class="block block-coop-objectives">
+            <div class="swat-box">
+                <div class="swat-heading">{% filter upper %}{% trans "Objectives" %}{% endfilter %}</div>
+                <div class="table width100 inner">
+                    {% for objective in status.objectives %}
+                        <div class="table-row spaceless">
+                            <div class="left">{{ objective.name|objective }}</div>
+                            <div class="player-status-cell left objective-{{objective.status_translated }}">{{ objective.status|objective_status }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="block block-coop-team-table">
+            <div class="swat-box">
+                <div class="swat-heading">{% filter upper %}{% trans "Team Status" %}{% endfilter %}</div>
+                <div class="table width100 inner">
+                    {% for player in status.players %}
+                    {% url 'tracker:player' name=player.name as player_url %}
+                    <div class="table-row spaceless swat-player-row" onclick="window.location.href='{{ player_url }}';">
+                        <div class="table-cell-small space-left space-right">{{ player.ping }}</div>
+                        <div class="{% ifequal player.team 1 %}swat-red{% else %}swat-blue{% endifequal %} left"><a href="{{ player_url }}">{{ player.name }}</a></div>
+                        <div class="player-cell-status left status-{{ player.coop_status_translated|default:'not_ready' }}">{{ player.coop_status|default:0|coop_status }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="swat-game-score-pane">
+    <div class="inner">
+        <div class="block block-coop-briefing">
+            <div class="swat-box">
+                <div class="header extra">{{ status.mapname|mapname }}</div>
+                <div class="inner height100 scrollable keep-scroll-position">
+                    {% filter linebreaksbr %}{% include "tracker/includes/maps.html" with mapname=status.mapname_translated only %}{% endfilter %}
+                </div>
+            </div>
+        </div>
+
+        <div class="block block-coop-procedures">
+            <div class="swat-box">
+                <div class="swat-heading">{% filter upper %}{% trans "Procedures" %}{% endfilter %}</div>
+                <div class="inner">
+                    <div class="table width100">
+                        <div class="table-row spaceless">
+                            <div class="left">{% trans "Report status to TOC" %}</div>
+                            <div class="table-cell-small right">{{ status.tocreports|default:_("n/a")}}</div>
+                        </div>
+                        <div class="table-row spaceless">
+                            <div class="left">{% trans "All weapons secured" %}</div>
+                            <div class="table-cell-small right">{{ status.weaponssecured|default:_("n/a")}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock swat_frame_content %}

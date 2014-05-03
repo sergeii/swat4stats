@@ -4,12 +4,16 @@ from __future__ import (unicode_literals, absolute_import, division)
 import re
 import hashlib
 import logging
+import datetime
+from functools import partial, reduce
 
 import six
 
 from django.core.urlresolvers import reverse
 from django.utils.encoding import force_bytes, force_text
+from django.utils import timezone
 from django.db import connection
+import julia
 
 from . import definitions
 
@@ -32,7 +36,7 @@ class lock(object):
         EXCLUSIVE
         ACCESS EXCLUSIVE
 
-    The subsequent args are models that require a lock.
+    The subsequent args are list of the models that require a lock.
     """
     def __init__(self, mode, *models):
         self.mode = mode
@@ -63,6 +67,43 @@ class lock(object):
         pass
 
 
+class Rank(object):
+
+    def __init__(self, ranks, score):
+        self.score = int(score)
+        self.i = self.title = self.lower = self.upper = None
+
+        for i, (title, min_score) in enumerate(ranks):
+            if self.score >= min_score:
+                self.i = i
+                self.title = title
+                self.lower = min_score
+            else:
+                # update the existing rank's upper bound
+                self.upper = min_score
+                break
+
+    @property
+    def total(self):
+        return self.upper
+
+    @property
+    def remaining(self):
+        return self.upper - self.score
+
+    @property
+    def complete(self):
+        return self.score
+
+    @property
+    def remaining_ratio(self):
+        return self.remaining / self.total
+
+    @property
+    def complete_ratio(self):
+        return self.complete / self.total
+
+
 def calc_coop_score(procedures):
     """
     Calculate and return overall COOP prcedure score.
@@ -81,12 +122,20 @@ def calc_coop_score(procedures):
                 score += procedure.score
     return score
 
+def calc_accuracy(weapons, min_ammo=None, interested=None):
+    """
+    Calculate average accuracy of a list (or any other iterable) of Weapon model instances.
 
-def calc_accuracy(weapons, min_ammo=None):
+    Args:
+        weapons - Weapon instance iterable
+        min_ammo - min number of ammo required to calculate accuracy
+        interested - list of weapon ids accuracy should be counted against 
+                     (definitions.WEAPONS_FIRED by default)
+    """
     hits = 0
     shots = 0
     for weapon in weapons:
-        if weapon.name in definitions.WEAPONS_FIRED:
+        if weapon.name in (interested or definitions.WEAPONS_FIRED):
             hits += weapon.hits
             shots += weapon.shots
     return int(calc_ratio(hits, shots, min_divisor=min_ammo) * 100)
@@ -116,7 +165,7 @@ def force_ipy(ip_address):
 
 
 def force_clean_name(name):
-    "Return a name free of SWAT text tags and leading/trailing whitespace."
+    """Return a name free of SWAT text tags and leading/trailing whitespace."""
     while True:
         match = re.search(r'(\[[\\/]?[cub]\]|\[c=[^\[\]]*?\])', name, flags=re.I)
         if not match:
@@ -142,6 +191,7 @@ def force_valid_name(name, ip_address):
 
 
 def force_name(name, ip_address):
+    """Return a non-empty tagless name."""
     return force_valid_name(force_clean_name(name), ip_address)
 
 
@@ -158,16 +208,6 @@ def sort_key(*comparable):
     return key
 
 
-def get_profile_url(profile, view, **kwargs):
-    kwargs = kwargs or {}
-    kwargs.update({
-        'profile_id': profile.pk,
-    })
-    if profile.name:
-        kwargs['slug'] = profile.name
-    return reverse(view, kwargs=kwargs)
-
-
 def rank_dicts(dicts):
     best = {}
     for d in dicts:
@@ -175,3 +215,28 @@ def rank_dicts(dicts):
             if key not in best or value > best[key]:
                 best[key] = value
     return best
+
+
+def escape_cache_key(key):
+    """Remove anything other than letters, digits and a dot from a key."""
+    return re.sub(r'[^0-9a-z.]', '', force_text(key), flags=re.I)
+
+
+def make_cache_key(*components):
+    """
+    Produce a cache key from the function arguments.
+
+    Args:
+        *components
+    Example
+        foo:bar:ham:
+    """
+    return '%s:' % ':'.join(map(force_text, components))
+
+
+def today():
+    return timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def tomorrow():
+    return today() + datetime.timedelta(days=1)

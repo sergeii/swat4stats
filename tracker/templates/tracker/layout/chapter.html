@@ -1,12 +1,14 @@
 {% extends "tracker/layout/nonmain.html" %}
-{% load staticfiles static tracker %}
+{% load static tracker %}
 
-{% block swat_frame %}
-    <div id="swat-chapter-header">
-        {% block swat_chapter_header %}
-            <div class="swat-heading">{% block swat_chapter_title %}{% endblock %}</div>
-        {% endblock %}
-        <div id="swat-chapter-center">{% block swat_chapter_center %}{% endblock %}</div>
+{% block swat_frame_content %}
+    <div class="swat-chapter">
+        <div class="header">
+            {% block swat_chapter_header %}
+            <div class="title"><div class="swat-heading">{% block swat_chapter_title %}{% endblock swat_chapter_title %}</div></div>
+            {% endblock swat_chapter_header %}
+            <div class="message">{% block swat_chapter_message %}{% endblock swat_chapter_message %}</div>
+        </div>
+        <div class="inner">{% block swat_chapter_content %}{% endblock swat_chapter_content %}</div>
     </div>
-    <div id="swat-chapter-content">{% block swat_chapter_content %}{% endblock %}</div>
-{% endblock %}
+{% endblock swat_frame_content %}

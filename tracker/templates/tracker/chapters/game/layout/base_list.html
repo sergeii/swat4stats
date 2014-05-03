@@ -1,0 +1,63 @@
+{% extends "tracker/layout/chapter.html" %}
+{% load tracker humanize i18n %}
+
+{% block title %}{{ block.super }}{% trans "Games" %}{% endblock %}
+{% block swat_chapter_title %}{% trans "Games" %}{% endblock %}
+
+{% block swat_chapter_content %}
+<div class="swat-chapter-pane-container">
+    <div class="swat-chapter-pane width75 left">
+        <div class="float">
+            <div class="left">
+                <div class="swat-tab-block left">
+                    <a class="swat-tab-button{% ifequal current_view_name 'tracker:game_list_history' %} active{% endifequal %}" href="{% url 'tracker:game_list_history' %}">{% trans "History" %}</a> 
+                    <a class="swat-tab-button{% ifequal current_view_name 'tracker:game_list_online' %} active{% endifequal %}" href="{% url 'tracker:game_list_online' %}">{% trans "Online" %}</a> 
+                </div>
+            </div>
+            <div class="right">
+                {% if page_obj.paginator.count %}
+                    {% include "tracker/includes/pagination.html" with filters=filters page_obj=page_obj only %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="swat-chapter-pane-container">
+    <div class="swat-chapter-pane width75 left">{% block swat_game_list %}{% endblock %}</div>
+    <div class="swat-chapter-pane width25">
+        <div class="swat-box">
+            <div class="header">{% trans "Featured Games" %}</div>
+            <div class="inner swat-game-list-featured">
+                {% for object in featured %}
+                    {% with player=object.best_player %}
+                    <div class="space-bottom float">
+                        <div class="left">{{ object.gametype|gametype }}</div>
+                        <div class="right gray">{{ object.date_finished|naturalday }}</div>
+                    </div>
+                    <div class="space-bottom">
+                        <div class="table width100">
+                            <div class="table-row middle">
+                                <div class="width30 left">{% show_game_light object %}</div>
+                                <div class="center {% ifequal object.winner 0 %}swat-blue{% endifequal %} {% ifequal object.winner 1 %}swat-red{% endifequal %}">{{ object.score_swat }}:{{ object.score_sus }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if not forloop.last %}<div class="swat-content-delimiter"></div>{% endif %}
+                    {% endwith %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="swat-chapter-pane-container space-top small">
+    <div class="swat-chapter-pane width75 left">
+        <div class="float">
+            <div class="right">
+                {% if page_obj.paginator.count %}
+                    {% include "tracker/includes/pagination.html" with filters=filters page_obj=page_obj only %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock swat_chapter_content %}

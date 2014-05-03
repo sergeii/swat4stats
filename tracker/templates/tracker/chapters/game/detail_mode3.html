@@ -1,0 +1,74 @@
+{% extends "tracker/chapters/game/layout/base_detail.html" %}
+{% load tracker humanize i18n %}
+
+{% block swat_frame_content %}
+
+<div class="swat-game-score-pane">
+    <div class="inner">
+        <div class="block block-coop-chat">
+            <div class="swat-box">
+                <div class="height100 inner scrollable">
+                    {% include "tracker/chapters/game/includes/dropped.html" with players=players_dropped only %}
+                    <div>{{ game.outcome|outcome }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="block block-coop-objectives">
+            <div class="swat-box">
+                <div class="swat-heading">{% filter upper %}{% trans "Objectives" %}{% endfilter %}</div>
+                <div class="table width100 inner">
+                    {% for objective in objectives %}
+                        <div class="table-row spaceless">
+                            <div class="left">{{ objective.name|objective }}</div>
+                            <div class="player-cell-status left objective-{{objective.status_translated }}">{{ objective.status|objective_status }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="block block-coop-team-table">
+            <div class="swat-box">
+                <div class="swat-heading">{% filter upper %}{% trans "Team Status" %}{% endfilter %}</div>
+                <div class="table width100 inner">
+                    {% for player in players_online %}
+                    <div class="table-row middle spaceless swat-player-row" onclick="window.location.href='{% profile_url player.profile year=game.date_finished.year %}';">
+                        <div class="table-cell-small space-left space-right">{% show_country player.country %}</div>
+                        <div class="left"><a href="{% profile_url player.profile year=game.date_finished.year %}">{{ player.name }}</a></div>
+                        <div class="player-cell-status left status-{{ player.coop_status_translated }}">{{ player.coop_status|coop_status }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="swat-game-score-pane">
+    <div class="inner">
+        <div class="block">
+            <div class="swat-box">
+                <div class="header">{% filter upper %}{% trans "Bonuses" %}{% endfilter %}</div>
+                <div class="height100 inner">
+                    <div class="table width100">
+                        {% include "tracker/chapters/game/includes/procedures.html" with score=procedures.bonus.score procedures=procedures.bonus.list only %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="block">
+            <div class="swat-box">
+                <div class="header">{% filter upper %}{% trans "Penalties" %}{% endfilter %}</div>
+                <div class="height100 inner">
+                    <div class="table width100">{% include "tracker/chapters/game/includes/procedures.html" with score=procedures.penalty.score procedures=procedures.penalty.list only %}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="swat-coop-score">
+            <p class="swat-heading">{% trans "Total:" %} <span class="{% if game.coop_score_normal >= 100 %}swat-green{% else %}swat-red{% endif %}">{{ game.coop_score_normal }}</span>/100</p>
+            <p class="swat-heading">{% trans "Ranking:" %} {{ coop_rank }}</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "tracker/layout/chapter.html" %}
+{% load static tracker humanize i18n %}
+
+{% block title %}{{ block.super}}{% trans "Leaderboard" %}{% endblock %}
+{% block swat_chapter_title %}{% trans "Leaderboard" %}{% endblock %}
+
+{% block swat_chapter_content %}
+
+<div class="swat-chapter-pane-container">
+    <div class="swat-chapter-pane small">&nbsp;</div>
+    <div class="swat-chapter-pane main right">
+        <div class="float">
+            <div class="swat-tab-block left">
+            {% for available_year in years reversed %}
+                {% ifequal available_year year %}
+                    <div class="swat-tab-button active">{{ available_year }}</div> 
+                {% else %}
+                    <a class="swat-tab-button" href="{% url 'tracker:leaderboard' board_name=board.name year=available_year %}">{{ available_year }}</a> 
+                {% endifequal %}
+            {% endfor %}
+            </div>
+            {% if page_obj.paginator.count %}
+            <div class="right">{% include "tracker/includes/pagination.html" with page_obj=page_obj only %}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="swat-chapter-pane-container float">
+
+    <div class="swat-chapter-pane small">
+        <div class="swat-box">
+            <div class="header">{% trans "Leaderboards" %}</div>
+            <div class="inner">
+                <div class="leaderboard-list">
+                {% for leaderboard in board_list.values %}
+                    {% ifchanged leaderboard.category %}
+                        <div class="category">{{ leaderboard.category }}</div>
+                    {% endifchanged %}
+                    <a class="swat-player-row{% ifequal board.id leaderboard.id %} active{% endifequal %}" href="{% url 'tracker:leaderboard' year=year board_name=leaderboard.name %}">{{ leaderboard.title }}</a>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="swat-chapter-pane main right">
+        <div class="swat-box bordered">
+            <div class="inner">
+                <div class="table width100">
+                {% for rank in object_list %}
+
+                    {% if forloop.first %}
+                    <div class="table-header spaceful">
+                        <div></div>
+                        <div></div>
+                        <div class="board-cell-name gray ">{% trans "Player" %}</div>
+                        <div class="board-cell-score gray">{% trans "Points" %}</div>
+                    </div>
+                    {% endif %}
+
+                    <div id="{{ rank.profile.pk }}" class="table-row astronomic middle swat-player-row {% cycle 'odd' '' %}" onclick="window.location='{% profile_url rank.profile year=year %}';">
+
+                        <div class="board-cell-position gray">{{ forloop.counter0|add:page_obj.start_index }}</div>
+
+                        <div class="board-cell-picture">{% show_profile_picture rank.profile 100 year=year %}</div>
+                        <div class="board-cell-name">{{ rank.profile.name }}</a></div>
+                        <div class="board-cell-score">{{ rank.points|valueformat:board.type }}</div>
+                    </div>
+                {% empty %}
+                    <div class="center">{% trans "No data available." %}</div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

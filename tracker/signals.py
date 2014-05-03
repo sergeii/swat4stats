@@ -6,7 +6,8 @@ from datetime import datetime
 
 import six
 from django.dispatch import receiver, Signal
-from django.db.models.signals import post_save
+from django.db.models import F
+from django.db.models.signals import pre_save, post_save
 from django.db import transaction
 from django.utils import timezone
 from django.utils.encoding import force_text
@@ -16,67 +17,60 @@ from .definitions import STATS, MODE_VIP, MODE_BS, MODE_RD, MODE_SG, MODES_COOP
 
 logger = logging.getLogger(__name__)
 
+query_status_received = Signal(providing_args=['server', 'status'])
+query_status_failed = Signal(providing_args=['server'])
 stream_data_received = Signal(providing_args=['data', 'server'])
 stream_data_saved = Signal(providing_args=['data', 'server', 'game', 'players'])
 
 
-#@receiver(stream_data_saved)
+@receiver(query_status_failed)
+def handle_failed_query_attempts(sender, server, **kwargs):
+    """
+    Unlist a server upon reaching the max number of successive failed attempts.
+    Keep counting otherwise.
+    """
+    if server.count_failure+1 >= models.Server.MAX_FAILURES:
+        server.listed = False
+        server.count_failure = 0
+        server.save(update_fields=['listed', 'count_failure'])
+        logger.debug('unlisted %s' % server)
+    else:
+        logger.debug('%s has %d failures' % (server, server.count_failure))
+        models.Server.objects.filter(pk=server.pk).update(count_failure=F('count_failure')+1)
+
+
+@receiver(query_status_received)
+def handle_successful_query_attempts(sender, server, status, **kwargs):
+    """Drop the server query failure counter upon receiving a successful response."""
+    if server.count_failure > 0:
+        server.count_failure = 0
+        server.save(update_fields=['count_failure'])
+
+
+@receiver(stream_data_saved)
 @transaction.atomic
-def cache_profile_overall_score(sender, data, server, game, **kwargs):
-    """
-    Retrieve and cache overall score of all players participated in the round.
-    """
-    options = (
-        models.Profile.SET_STATS_COMMON | 
-        models.Profile.SET_STATS_KILLS | 
-        models.Profile.SET_STATS_WEAPONS
-    )
-    gametype = int(game.gametype)
-    # VIP Escort
-    if gametype == MODE_VIP:
-        options |= models.Profile.SET_STATS_VIP
-    # Rapid Deployment
-    elif gametype == MODE_RD:
-        options |= models.Profile.SET_STATS_RD
-    # Smash and Grab
-    elif gametype == MODE_SG:
-        options |= models.Profile.SET_STATS_SG
-    # COOP
-    elif gametype in MODES_COOP:
-        # rewrite options (dont need any of the standard options)
-        options = models.Profile.SET_STATS_COOP
-    # aggregate stats relative to the game's date
-    year = game.date_finished.year
-    period = models.Rank.get_period_for_year(year)
-
-    for player in game.player_set.select_related('profile'):
-            for category, points in six.iteritems(player.profile.aggregate_mode_stats(options, *period)):
-                # create or update the calculated points along with the assotiated profile
-                models.Rank.objects.store(category, year, player.profile, points)
+def update_profile_game_reference(sender, data, server, game, players, **kwargs):
+    """Bulk update the profile entries of the pariciapted players with the reference to the saved game."""
+    # get the profile pks 
+    pks = list(map(lambda player: player.alias.profile_id, players))  # avoid profile.pk
+    # set first played game
+    models.Profile.objects.filter(pk__in=pks, game_first__isnull=True).update(game_first=game)
+    # set last played game
+    models.Profile.objects.filter(pk__in=pks).update(game_last=game)
 
 
-#@receiver(stream_data_saved)
-@transaction.atomic
-def update_profile_details(sender, data, server, game, players, **kwargs):
-    """
-    Retrieve profile instances of the players particiapted in the game of
-    and cache their popular name, team, country and loadout.
-    """
-    for player in players:
-        # update the profile's popular items
-        player.profile.update_popular(save=True)
-
-
-#@receiver(stream_data_saved)
-@transaction.atomic
-def update_profile_last_seen(sender, data, server, game, players, **kwargs):
-    """
-    Bulk update the profile entries last seen date of the particiapted players.
-    """
-    (models.Profile.objects
-        .filter(pk__in=list(map(lambda player: player.profile.pk, players)))
-        .update(date_played=game.date_finished)
-    )
+@receiver(pre_save, sender=models.Server)
+def update_server_country(sender, instance, **kwargs):
+    """Detect and save the server's location (country) by it's IP address prior to the model save."""
+    isp, created = models.ISP.objects.match_or_create(instance.ip)
+    try:
+        assert isp.country
+    # country is either empty or the isp is None
+    except:
+        pass
+    else:
+        # assign the country
+        instance.country = isp.country
 
 
 @receiver(stream_data_received)
@@ -142,8 +136,15 @@ def save_game(sender, data, server, **kwargs):
                     value = '0'
                 finally:
                     loadout[key] = value
-            # insert a Player entry
-            player = game.player_set.create(
+            # prepare a Player entry
+            player = models.Player(
+                game=game,
+                alias=models.Alias.objects.match_or_create(
+                    # prevent empty and coloured names
+                    name=utils.force_name(raw_player['name'].value, raw_player['ip'].value),
+                    ip=raw_player['ip'].value
+                )[0],
+                ip=raw_player['ip'].value,
                 # team is a mapping, insert a raw (0 or 1)
                 team=int(raw_player['team'].raw),
                 vip=raw_player['vip'].value,
@@ -151,23 +152,16 @@ def save_game(sender, data, server, **kwargs):
                 dropped=raw_player['dropped'].value,
                 # coop status is also a mapping
                 coop_status=int(raw_player['coop_status'].raw),
-                loadout=models.Loadout.objects.get_or_create(**loadout)[0],
-                # retrive profile, alias and isp
-                **models.Player.profile_alias(
-                    # prevent empty and coloured names
-                    utils.force_name(raw_player['name'].value, raw_player['ip'].value),
-                    raw_player['ip'].value,
-                )
+                loadout=models.Loadout.objects.get_or_create(**loadout)[0]
             )
-            # insert Player score in bulk (unless its a zero)
-            models.Score.objects.bulk_create([
-                models.Score(
-                    player=player, 
-                    category=category,
-                    points=raw_player[key].value
-                )
-                for category, key in STATS if (key in raw_player and raw_player[key].value != 0)
-            ])
+            # insert stats
+            for category, key in six.iteritems(STATS):
+                # score, sg_kills, etc
+                if key in raw_player:
+                    # set an instance attr with the same name from the raw_player dict
+                    setattr(player, key, raw_player[key].value)
+            # save the instance
+            player.save()
             # insert Player weapons in bulk .. unless its a COOP game
             if raw_player['weapons'] is not None:
                 models.Weapon.objects.bulk_create([
@@ -188,37 +182,3 @@ def save_game(sender, data, server, **kwargs):
             players.append(player)
     # emit a signal
     stream_data_saved.send(sender=None, data=data, server=server, game=game, players=players)
-
-
-@receiver(stream_data_received)
-@transaction.atomic
-def update_server_status(sender, data, server, **kwargs):
-    """
-    Update server's status upon receiving stream data from that server.
-    Attempt to update status of the players participated in the game, if supplied.
-    """
-    # append items with raw values
-    defaults = {
-        'gamename': data['gamename'].raw,
-        'gamever': data['gamever'].value,
-        'hostname': data['hostname'].value,
-        'passworded': data['passworded'].value,
-        'gametype': data['gametype'].raw,
-        'mapname': data['mapname'].raw,
-        'player_num': data['player_num'].value,
-        'player_max': data['player_max'].value,
-        'round_num': data['round_num'].value,
-        'round_max': data['round_max'].value,
-        'score_swat': data['score_swat'].value,
-        'score_sus': data['score_sus'].value,
-        'vict_swat': data['vict_swat'].value,
-        'vict_sus': data['vict_sus'].value,
-        'rd_bombs_defused': data['bombs_defused'].value,
-        'rd_bombs_total': data['bombs_total'].value,
-    }
-    obj, created = models.ServerStatus.objects.get_or_create(server=server, defaults=defaults)
-    # update the pre-existed entry
-    if not created:
-        for attr in defaults:
-            setattr(obj, attr, defaults[attr])
-        obj.save()

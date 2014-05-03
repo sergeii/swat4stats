@@ -1,0 +1,1 @@
+ALTER TABLE tracker_procedure ALTER COLUMN id TYPE bigint;

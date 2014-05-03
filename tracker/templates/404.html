@@ -1,4 +1,4 @@
 {% extends "tracker/layout/black.html" %}
-{% load tracker static i18n %}
+{% load i18n %}
 
-{% block message %}The requested URL {{ request_path }} does not exist.{% endblock %}
+{% block message %}{% trans "The requested page does not exist." %}{% endblock %}

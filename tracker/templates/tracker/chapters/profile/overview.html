@@ -1,0 +1,296 @@
+{% extends "tracker/chapters/profile/layout/base.html" %}
+{% load static tracker humanize i18n %}
+
+{% block head_inner %}
+{{ block.super }}
+<script type="text/javascript" src="{% static "js/gauge.min.js" %}"></script>
+{% endblock %}
+
+{% block head_script %}
+{{ block.super }}
+
+var makeGauge = function(target, value, max){
+    var gauge = new Gauge(document.getElementById(target));
+    gauge.setOptions({
+        lines: 12,
+        angle: 0,
+        lineWidth: 0.35,
+        pointer: {
+            length: 0.8,
+            strokeWidth: 0.045,
+            color: '#6FADCF'
+        },
+        limitMax: true,
+        percentColors: [[0.0, "#a9d70b" ], [0.50, "#f9c802"], [1.0, "#ff0000"]],
+        strokeColor: '#fff',
+        generateGradient: true
+    });
+    gauge.maxValue = Math.max(max, 0.001);
+    gauge.animationSpeed = 24;
+    gauge.set(Math.min(Math.max(value, 0.001), gauge.maxValue));
+};
+
+$(document).ready(function(){
+    makeGauge('gauge-spm', {{ stats.spm|floatformat:2 }}, {{ max.spm|floatformat:2|default:0 }});
+    makeGauge('gauge-kdr', {{ stats.kdr|floatformat:2 }}, {{ max.kdr|floatformat:2|default:0 }});
+});
+{% endblock %}
+
+{% block profile_content %}
+<div>
+    <div id="profile-content-top">
+        <div id="profile-content-rank">
+            
+            <div id="profile-content-rank-insignia">
+                <img src="{% get_static_prefix %}images/game/insignia/{{ rank.i }}.png" />
+            </div>
+
+            <div id="profile-content-rank-title">
+                <div>{% if rank.title %}{{ rank.title }}{% else %}{% trans "Unranked" %}{% endif %}</div>
+            </div>
+
+            <div id="profile-content-rank-progression">
+                <div class="progression-bar-outer">
+                    <div class="progression-bar">
+                        <div style="width: {% if rank.upper %}{{ rank.complete_ratio|percent }}{% else %}100%{% endif %};">&nbsp;</div>
+                    </div>
+                    {% if year_now == year and rank.upper %}
+                    <div class="progression-bar-info">
+                        <div class="left">
+                            {{ rank.score|intcomma }}/{{ rank.total|intcomma }}
+                        </div>
+                        <div class="right">
+                            {% blocktrans with points=rank.remaining|intcomma %}{{ points }} until rank up{% endblocktrans %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <div id="profile-score-block">
+            <div class="inner">
+                <div>
+                    <div class="gray">{% trans "Score Earned" %}</div>
+                    <div class="score">{{ stats.score|floatformat:0 }}</div>
+                </div>
+                <div>
+                    <div class="gray">{% trans "Time Played" %}</div>
+                    <div class="score">{{ stats.time|humantime }}</div>
+                </div>
+                <div>
+                    <div class="gray">{% trans "Games Played" %}</div>
+                    <div class="score">{{ stats.games|floatformat:0 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-chart-block">
+            <div class="profile-gauge-container">
+                <div class="gray">{% trans "Score/Minute" %}</div>
+                <canvas id="gauge-spm"></canvas>
+                <div class="score">{{ stats.spm|floatformat:2 }}</div>
+            </div>
+            <div class="profile-gauge-container">
+                <div class="gray">{% trans "Kills/Deaths" %}</div>
+                <canvas id="gauge-kdr" class="profile-gauge-container"></canvas>
+                <div class="score">{{ stats.kdr|floatformat:2 }}</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="swat-content-delimiter"></div>
+
+    <div id="profile-record-block">
+        {% for title, game, description in best %}
+            {% if game %}
+            <div class="profile-record-game">
+                <div class="gray center title undecorated">{{ title }}</div>
+                <div class="picture">{% show_game_light game %}</div>
+                <div class="score">{{ description }}</div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="swat-content-delimiter"></div>
+
+    {% if map_list %}
+    
+    <div class="profile-map-table">
+        <div class="table-header spaceful">
+            <div class="left">{% trans "Map" %}</div>
+            <div class="center">{% trans "Score" %}</div>
+            <div class="center">{% trans "Time Played" %}</div>
+            <div class="center">{% trans "Wins" %}</div>
+            <div class="center">{% trans "Losses" %}</div>
+            <div class="center">{% trans "Kills" %}</div>
+            <div class="center">{% trans "Deaths" %}</div>
+            <div class="center">{% trans "Top Score" %}</div>
+        </div>
+        {% for map in map_list|dictsort:"mapname" %}
+        <div class="table-row middle astronomic {% cycle 'odd' '' %}">
+            <div class="picture-cell" style="background-image: url('{% get_static_prefix %}images/game/maps/preview/{{ map.mapname }}.jpg');">
+                <div class="title">{{ map.mapname|mapname }}</div>
+            </div>
+            <div class="profile-table-cell {% zerohero map.overall_score map_best.overall_score 'swat-green' 'dark-gray' %}">{{ map.overall_score|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.time map_best.time 'swat-green' 'dark-gray' %}">{{ map.time|default:0|humantime }}</div>
+            <div class="profile-table-cell {% zerohero map.wins map_best.wins 'swat-green' 'dark-gray' %}">{{ map.wins|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.losses map_best.losses 'swat-green' 'dark-gray' %}">{{ map.losses|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.kills map_best.kills 'swat-green' 'dark-gray' %}">{{ map.kills|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.deaths map_best.deaths 'swat-green' 'dark-gray' %}">{{ map.deaths|default:0|intcomma }}</div>
+            <div class="profile-table-cell {% zerohero map.best_score map_best.best_score 'swat-green' 'dark-gray' %}">{{ map.best_score|default:0 }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="swat-content-delimiter"></div>
+
+    {% endif %}
+
+    <div class="clearfix floatfix width100">
+        <div class="profile-stats-block first">
+            <div class="left table width100">
+                <div class="table-row">
+                    <div class="left gray">{% trans "Overall Score" %}</div>
+                    <div class="right">{{ stats.score|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Best Score" %}</div>
+                    <div class="right">{{ stats.top_score|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Time Played" %}</div>
+                    <div class="right">{{ stats.time|humantime }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Games Played" %}</div>
+                    <div class="right">{{ stats.games|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Score/Minute" %}</div>
+                    <div class="right">{{ stats.spm|floatformat:2 }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Score/Round" %}</div>
+                    <div class="right">{{ stats.spr|floatformat:2 }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Wins" %}</div>
+                    <div class="right">{{ stats.wins|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Losses" %}</div>
+                    <div class="right">{{ stats.losses|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Draws" %}</div>
+                    <div class="right">{{ stats.draws|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="profile-stats-block">
+            <div class="left table width100">
+                <div class="table-row">
+                    <div class="left gray">{% trans "Kills" %}</div>
+                    <div class="right">{{ stats.kills|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Deaths" %}</div>
+                    <div class="right">{{ stats.deaths|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "K/D Ratio" %}</div>
+                    <div class="right">{{ stats.kdr|floatformat:2 }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Arrests" %}</div>
+                    <div class="right">{{ stats.arrests|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Times Arrested" %}</div>
+                    <div class="right">{{ stats.arrested|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Team Kills" %}</div>
+                    <div class="right">{{ stats.teamkills|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Best Kill Streak" %}</div>
+                    <div class="right">{{ stats.kill_streak|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Best Arrest Streak" %}</div>
+                    <div class="right">{{ stats.arrest_streak|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Best Death Streak" %}</div>
+                    <div class="right">{{ stats.death_streak|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-stats-block">
+            <div class="left table width100">
+                <div class="table-row">
+                    <div class="left gray">{% trans "VIP Escapes" %}</div>
+                    <div class="right">{{ stats.vip_escapes|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "VIP Captures" %}</div>
+                    <div class="right">{{ stats.vip_captures|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "VIP Rescues" %}</div>
+                    <div class="right">{{ stats.vip_rescues|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "VIP Kills" %}</div>
+                    <div class="right">{{ stats.vip_kills_valid|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Accident VIP Kills" %}</div>
+                    <div class="right">{{ stats.vip_kills_invalid|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Bombs Disarmed" %}</div>
+                    <div class="right">{{ stats.rd_bombs_defused|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Case Carrier Kills" %}</div>
+                    <div class="right">{{ stats.sg_kills|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Case Escapes" %}</div>
+                    <div class="right">{{ stats.sg_escapes|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-stats-block">
+            <div class="left table width100">
+                <div class="table-row">
+                    <div class="left gray">{% trans "Ammo Fired" %}</div>
+                    <div class="right">{{ stats.ammo_shots|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Enemy Hits" %}</div>
+                    <div class="right">{{ stats.ammo_hits|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Accuracy" %}</div>
+                    <div class="right">{{ stats.ammo_accuracy|percent }}</div>
+                </div>
+                <div class="table-row">
+                    <div class="left gray">{% trans "Longest Kill" %}</div>
+                    <div class="right">{{ stats.ammo_distance|floatformat:0|intcomma }}m</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

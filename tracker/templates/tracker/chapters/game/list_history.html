@@ -1,0 +1,140 @@
+{% extends "tracker/chapters/game/layout/base_list.html" %}
+{% load static tracker humanize i18n %}
+
+{% block head_script %}
+{{ block.super }}
+$(document).ready(function(){
+    $('#game-filter-window').popup('.sel-filter-open');
+});
+{% endblock head_script %}
+
+{% block swat_game_list %}
+<div class="swat-box bordered">
+    <div class="inner">
+        <div class="space-bottom big float">
+            <div class="left">
+                <span class="sel-filter-open interactive">{% trans "Search" %}</span>
+            </div>
+            <div class="right">
+                {% blocktrans count count=paginator.count %}{{ count }} game found{% plural %}{{ count }} games found{% endblocktrans %}
+            </div>
+        </div>
+        <div class="swat-game-list">
+        {% for game in object_list %}
+            {% ifchanged %}
+                <div class="title underlined">{{ game.date_finished|naturalday|title }}</div>
+            {% endifchanged %}
+            {% show_game game %}
+        {% empty %}
+            <div>{% trans "No games found." %}</div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="game-filter-window" class="swat-box popup">
+    <div class="inner">
+        <form id="swat-search-form" method="GET" action="{% url 'tracker:game_list_history' %}">
+        <div class="swat-form">
+            <div class="block-pane-two float">
+                <div class="left">
+                    <div class="swat-input-block">
+                        <div class="swat-input-label">{{ form.gametype.label }}</div>
+                        <div class="swat-input-inline">
+                            <div class="swat-input-checkbox-wrapper">
+                                <label>{{ form.filter_gametype }}<span></span></label>
+                            </div>
+                            <div class="swat-input-select-wrapper">{{ form.gametype }}</div>
+                        </div>
+                    </div>
+                    <div class="swat-input-block">
+                        <div class="swat-input-label">{{ form.mapname.label }}</div>
+                        <div class="swat-input-inline">
+                            <div class="swat-input-checkbox-wrapper">
+                                <label>{{ form.filter_mapname }}<span></span></label>
+                            </div>
+                            <div class="swat-input-select-wrapper">{{ form.mapname }}</div>
+                        </div>
+                    </div>
+                    <div class="swat-input-block">
+                        <div class="swat-input-label">{{ form.outcome.label }}</div>
+                        <div class="swat-input-inline">
+                            <div class="swat-input-checkbox-wrapper">
+                                <label>{{ form.filter_outcome }}<span></span></label>
+                            </div>
+                            <div class="swat-input-select-wrapper">{{ form.outcome }}</div>
+                        </div>
+                    </div>
+                    {% comment %}
+                    <div class="swat-input-block">
+                        <p class="swat-input-label">{{ form.gametime.label }}</p>
+                        <p class="swat-input-select-wrapper">{{ form.gametime }}</p>
+                    </div>
+                    {% endcomment %}
+                </div>
+                <div class="left">
+                    <div class="swat-input-block">
+                        <div class="swat-input-inline">
+                            <div>
+                                <div class="swat-input-label">&nbsp;</div>
+                                <div class="swat-input-checkbox-wrapper">
+                                    <label>{{ form.filter_date }}<span></span></label>
+                                </div>
+                            </div>
+                            <div class="swat-date-block">
+                                <div class="swat-input-block input-year">
+                                    <div class="swat-input-label">{{ form.year.label }}</div>
+                                    <div class="swat-input-select-wrapper">{{ form.year }}</div>
+                                </div>
+                                <div class="swat-input-block input-month">
+                                    <div class="swat-input-label">{{ form.month.label }}</div>
+                                    <div class="swat-input-select-wrapper">{{ form.month }}</div>
+                                </div>
+                                <div class="swat-input-block input-day">
+                                    <div class="swat-input-label">{{ form.day.label }}</div>
+                                    <div class="swat-input-select-wrapper">{{ form.day }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swat-input-block">
+                        <div class="swat-input-label">{{ form.server.label }}</div>
+                        <div class="swat-input-inline">
+                            <div class="swat-input-checkbox-wrapper">
+                                <label>{{ form.filter_server }}<span></span></label>
+                            </div>
+                            <div class="swat-input-select-wrapper">{{ form.server }}</div>
+                        </div>
+                    </div>
+                    <div class="swat-input-block">
+                        <div class="swat-input-label">{{ form.players.label }}</div>
+                        <div class="swat-input-inline">
+                            <div class="swat-input-checkbox-wrapper">
+                                <label>{{ form.filter_players }}<span></span></label>
+                            </div>
+                            <div class="swat-input-field-wrapper">{{ form.players }}</div>
+                        </div>
+                        {% if form.players.errors %}
+                            <div>{{ form.players.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="button-bar float">
+            <div class="width50 left">
+                <div class="width100 center">
+                    <button class="swat-button-submit" type="submit"></button>
+                </div>
+            </div>
+            <div class="width50 left">
+                <div class="width100 center">
+                    <div class="sel-filter-open swat-button-cancel"></div>
+                </div>
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+
+{% endblock swat_game_list %}

@@ -1,8 +1,0 @@
-{% load i18n %}
-{% if page_obj.paginator.num_pages > 1 %}
-    <div>
-        {% if page_obj.has_previous %}<a class="swat-sound-trigger swat-button-white" href="?{{ filters.urlencode }}&page={{ page_obj.previous_page_number }}">{% trans "Previous Page" %}</a>{% endif %}
-        <span class="space-left space-right">{{ page_obj.end_index }}/{{ page_obj.paginator.count }}</span>
-        {% if page_obj.has_next %}<a class="swat-sound-trigger swat-button-white" href="?{{ filters.urlencode }}&page={{ page_obj.next_page_number }}">{% trans "Next Page" %}</a>{% endif %}
-    </div>
-{% endif %}

@@ -56,26 +56,13 @@ STATS_COOP_SCORE = 42
 STATS_COOP_TEAMKILLS = 43
 STATS_COOP_DEATHS = 44
 
-POPULAR_NAMES = (
-    r'^todosetname',
-    r'^player',
-    r'^newname',
-    r'^afk',
-    r'^giocatore',
-    r'^jogador',
-    r'^jugador',
-    r'^joueur',
-    r'^spieler',
-    r'^gracz',
-    r'^test',
-    r'^\|\|$',
-    r'^lol$',
-    r'^swat$',
-    r'^noob$',
-    r'^vip$',
-    r'^xxx$',
-    r'^killer$',
-)
+STATS_SUICIDES = 45
+STATS_TOP_KILLS = 46
+STATS_TOP_ARRESTS = 47
+STATS_AMMO_SHOTS = 48
+STATS_AMMO_HITS = 49
+STATS_AMMO_ACCURACY = 50
+STATS_AMMO_DISTANCE = 51
 
 EQUIPMENT = {
     '0': 'None',
@@ -240,7 +227,7 @@ STREAM_PATTERN = {
             '2': 'Rapid Deployment',
             '3': 'CO-OP',
             '4': 'Smash And Grab',
-            '5': 'coopqm',
+            #'5': 'CO-OP QMM',
         }
     },
     # Map

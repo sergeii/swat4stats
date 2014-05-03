@@ -72,25 +72,16 @@ def requires_valid_source(view):
         from .views import StreamView
         error = None
         try:
-            server = models.Server.objects.get(
+            server = models.Server.objects.streamed().get(
                 ip=request.META['REMOTE_ADDR'], port=request.stream_data['port'].value
             )
-            # the server has not been activated
-            if not server.enabled:
-                logger.warning(
-                    'requires_valid_source: {}:{} is disabled'.format(
-                        request.META['REMOTE_ADDR'], 
-                        request.stream_data['port'].value,
-                    )
-                )
-                raise StreamSourceValidationError(_('The server is disabled.'))
-            # assemble an md5 hash value
+            # assemble an md5 hash test value
             hash = md5(
                 force_bytes('{}{}{}'.format(server.key, server.port, request.stream_data['timestamp']))
             )
             # validate the last 8 characters of the hash
             if hash.hexdigest()[-8:] != request.stream_data['hash'].value:
-                logger.warning(
+                logger.info(
                     'requires_valid_source: {} is not valid hash for {}:{} ({})'.format(
                         request.stream_data['hash'].value, 
                         request.META['REMOTE_ADDR'], 
@@ -100,7 +91,7 @@ def requires_valid_source(view):
                 )
                 raise StreamSourceValidationError(_('Failed to authenticate the server.'))
         except models.Server.DoesNotExist:
-            logger.warning(
+            logger.info(
                 'requires_valid_source: failed to retrieve {}:{}'.format(
                     request.META['REMOTE_ADDR'], request.stream_data['port'].value
                 )

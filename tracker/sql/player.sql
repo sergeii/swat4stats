@@ -1,0 +1,1 @@
+CREATE INDEX ON tracker_player (HOST(ip), id DESC);

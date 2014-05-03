@@ -1,0 +1,25 @@
+{% extends "tracker/chapters/profile/layout/base.html" %}
+{% load static tracker humanize i18n %}
+
+{% block profile_content %}
+<div class="clearfix floatfix width100">
+{% for rank in rank_list.values %}
+    {% page_url 'tracker:leaderboard' rank.position year=year board_name=rank.name as rank_url %}
+    {% ifchanged rank.category %}
+    {% if not forloop.first %}</div></div>{% endif %}
+    <div class="profile-rank-block {% cycle 'odd' '' %}">
+        <div class="title underlined">{{ rank.category }}</div>
+        <div class="profile-table">
+            <div class="table-header">
+                <div class="board-cell-name">{% trans "Leaderboard" %}</div>
+                <div class="board-cell-position">{% trans "Position" %}</div>
+            </div>
+        {% endifchanged %}
+        <div class="table-row middle astronomic swat-player-row {% cycle 'odd' '' %}" onclick="window.location.href='{{ rank_url }}#{{ profile.pk }}';">
+            <div class="board-cell-name"><a href="{{ rank_url }}#{{ profile.pk }}">{{ rank.title }}</a></div>
+            <div class="board-cell-position{% if not rank.position %} gray{% else %}{% if rank.position <= 5 %} swat-yellow{% endif %}{% endif %}">{{ rank.position|default:_("n/a") }}</div>
+        </div>
+    {% if forloop.last %}</div></div>{% endif %}
+{% endfor %}
+</div>
+{% endblock profile_content %}

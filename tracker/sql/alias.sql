@@ -1,0 +1,1 @@
+CREATE INDEX ON tracker_alias (upper(name), isp_id);

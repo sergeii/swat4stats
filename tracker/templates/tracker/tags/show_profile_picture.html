@@ -1,7 +1,7 @@
 {% load tracker %}
-<a href="{% profile_url profile %}">
-    <div class="swat-profile-picture-outer">
-        <div>{% show_player_picture profile %}</div>
-        {% if not noflag %}<div class="swat-profile-picture-country">{% show_country profile.country %}</div>{% endif %}
+<a class="block" href="{% profile_url profile year=year %}">
+    <div class="swat-profile-picture">
+        <div class="hoverable">{% show_player_picture profile size %}</div>
+        {% if not noflag %}<div class="country">{% show_country profile.country %}</div>{% endif %}
     </div>
 </a>

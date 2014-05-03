@@ -1,0 +1,56 @@
+{% extends "tracker/layout/chapter.html" %}
+{% load static tracker humanize i18n %}
+
+{% block title %}{{ block.super}}{% trans "TOP 20" %}{% endblock %}
+{% block swat_chapter_title %}{% trans "TOP 20" %}{% endblock %}
+
+{% block swat_chapter_content %}
+
+<div class="width100">
+    <div class="swat-tab-block left">
+        {% for available_year in years reversed %}
+            {% ifequal available_year year %}
+                <div class="swat-tab-button active">{{ available_year }}</div> 
+            {% else %}
+                <a class="swat-tab-button" href="{% url 'tracker:top' year=available_year %}">{{ available_year }}</a> 
+            {% endifequal %}
+        {% endfor %}
+    </div>
+
+    <div class="width100 swat-box bordered">
+        <div class="inner">
+            {% for board, title, type, items in boards %}
+            <div class="swat-top-row{% if not forloop.first %} delimited{% endif %}">
+                <div class="swat-top-board">
+                    <div class="title">{{ title }}</div>
+                    <div class="icon"><img src="{% get_static_prefix %}images/css/rank_{{ board }}.png" /></div>
+                </div>
+                <div class="swat-top-table">
+                    <div class="table height100">
+                    <div class="table-row middle">
+                    {% for rank in items %}
+                        <div class="swat-top-entry">
+                            <div class="inner">
+                                <div class="position">{{ forloop.counter }}</div>
+                                <div class="picture">{% show_profile_picture rank.profile 100 year=year %}</div>
+                                <div class="score">
+                                    <div>
+                                        <a href="{% profile_url rank.profile year=year %}">{{ rank.profile.name|truncatechars:30 }}</a>
+                                    </div>
+                                    <div class="gray">{{ rank.points|valueformat:type }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="width100 center">{% trans "No data available." %}</div>
+                    {% endfor %}
+                    </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

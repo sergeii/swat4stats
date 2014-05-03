@@ -1,20 +1,39 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import, division)
 
+import re
 import datetime
+import json
+from functools import partial
+import importlib
+import math
+
 import six
 
 from django import template
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, resolve
 from django.utils.encoding import force_text
+from django.utils import html
 from django.utils.text import slugify
-from django.utils.translation import override, ungettext_lazy, ugettext as _
+from django.utils.translation import override, pgettext, ungettext_lazy, ugettext as _
 from django.utils import timesince, timezone
+from django.contrib.humanize.templatetags import humanize
+from django.template import defaultfilters
+
 from julia import shortcuts
+from julia.node import BaseNodeError
+import django_countries
 
 from tracker import definitions, utils
 
 register = template.Library()
+trans = _
+
+@register.filter
+def highlight(text, word):
+    word = re.escape(html.escape(word))
+    text = html.escape(text)
+    return html.mark_safe(re.sub(r'(%s)' % word, r'<span class="highlight">\1</span>', text, flags=re.I))
 
 
 @register.filter
@@ -23,8 +42,22 @@ def times(number, step=1):
 
 
 @register.filter
-def accuracy(number):
-    return int(number * 100)
+def tojson(obj):
+    return json.dumps(obj)
+
+
+@register.filter
+@register.simple_tag
+def ratio(divident, divisor, places=2):
+    try:
+        return round(divident/divisor, 2)
+    except:
+        return 0
+
+
+@register.filter
+def percent(number):
+    return '{0}%'.format(int(number * 100))
 
 
 @register.inclusion_tag('tracker/tags/show_game.html')
@@ -47,13 +80,18 @@ def show_game_light(game):
     return locals()
 
 
+@register.inclusion_tag('tracker/tags/show_game_picture_light.html')
+def show_game_picture_light(game):
+    return locals()
+
+
 @register.inclusion_tag('tracker/tags/show_player.html')
 def show_player(player):
     return locals()
 
 
 @register.inclusion_tag('tracker/tags/show_player_picture.html')
-def show_player_picture(player):
+def show_player_picture(player, size=None):
     return locals()
 
 
@@ -63,39 +101,51 @@ def show_country(country):
 
 
 @register.simple_tag
-def game_url(game, view='tracker:game_detail', **kwargs):
+def game_url(game, view='tracker:game', **kwargs):
     kwargs.update({
         'game_id': game.pk,
-        'slug': '/'.join([
-            game.date_finished.strftime('%Y'), 
-            game.date_finished.strftime('%m'), 
-            game.date_finished.strftime('%d'),
-            slugify(shortcuts.map(definitions.stream_pattern_node, 'mapname', force_text(game.mapname))),
-        ])
+    })
+    try:
+        kwargs.update({
+            'slug_year': game.date_finished.strftime('%Y'), 
+            'slug_month': game.date_finished.strftime('%m'), 
+            'slug_day': game.date_finished.strftime('%d'),
+            'slug_name': slugify(shortcuts.map(definitions.stream_pattern_node, 'mapname', force_text(game.mapname))),
+        })
+    except BaseNodeError:
+        pass
+    return reverse(view, kwargs=kwargs)
+
+
+@register.simple_tag
+def server_url(server, view='tracker:server', **kwargs):
+    kwargs.update({
+        'server_ip': server.ip,
+        'server_port': server.port,
     })
     return reverse(view, kwargs=kwargs)
 
 
 @register.simple_tag
-def server_url(server, **kwargs):
+def profile_url(profile, view='tracker:profile_overview', **kwargs):
     kwargs.update({
-        'server_ip': server.ip,
-        'server_port': server.port,
+        'profile_id': profile.pk,
     })
-    return reverse('tracker:server_detail', kwargs=kwargs)
-
-
-@register.simple_tag
-def profile_url(profile, view='tracker:profile_detail', **kwargs):
-    return utils.get_profile_url(profile, view, **kwargs)
+    if profile.name:
+        kwargs['slug'] = profile.name
+    if 'year' in kwargs and not kwargs['year']:
+        del kwargs['year']
+    return reverse(view, kwargs=kwargs)
 
 
 @register.inclusion_tag('tracker/tags/show_profile_picture.html')
-def show_profile_picture(profile, *args):
-    return {
+def show_profile_picture(profile, size=None, *args, **kwargs):
+    kwargs.update({
         'profile': profile,
         'noflag': ('noflag' in args),
-    }
+        'size': size,
+    })
+    return kwargs
 
 
 @register.inclusion_tag('tracker/tags/show_weapon_picture.html')
@@ -112,43 +162,75 @@ def show_loadout_picture(loadout, slot, *args):
 
 
 @register.filter
+def gamename(gamename):
+    try:
+        return _(shortcuts.map(definitions.stream_pattern_node, 'gamename', force_text(gamename)))
+    except BaseNodeError:
+        return _('Unknown')
+
+
+@register.filter
 def gametype(gametype):
-    return _('MODE_%s' % gametype)
+    try:
+        return _(shortcuts.map(definitions.stream_pattern_node, 'gametype', force_text(gametype)))
+    except BaseNodeError:
+        return _('Unknown')
 
 
 @register.filter
 def gametype_short(gametype):
-    return _('MODE_SHORT_%s' % gametype)
+    return trans('MODE_SHORT_%s' % gametype)
+
+
+@register.filter
+def outcome(outcome):
+    return html.mark_safe(trans('OUTCOME_%s' % outcome))
 
 
 @register.filter
 def mapname(mapname):
-    return _(shortcuts.map(definitions.stream_pattern_node, 'mapname', force_text(mapname)))
+    try:
+        return _(shortcuts.map(definitions.stream_pattern_node, 'mapname', force_text(mapname)))
+    except BaseNodeError:
+        return _('Unknown')
 
 
 @register.filter
 def weapon(weapon):
-    return _(shortcuts.map(definitions.stream_pattern_node.item('players').item, 'loadout__primary', force_text(weapon)))
+    try:
+        return _(shortcuts.map(definitions.stream_pattern_node.item('players').item, 'loadout__primary', force_text(weapon)))
+    except BaseNodeError:
+        return _('Unknown')
 
 
 @register.filter
 def procedure(procedure):
-    return _('PROCEDURE_%s' % procedure)
+    return trans('PROCEDURE_%s' % procedure)
 
 
 @register.filter
 def objective(objective):
-    return _('OBJECTIVE_%s' % objective)
+    return trans('OBJECTIVE_%s' % objective)
 
 
 @register.filter
 def objective_status(status):
-    return _('OBJECTIVE_STATUS_%s' % status)
+    return trans('OBJECTIVE_STATUS_%s' % status)
 
 
 @register.filter
 def coop_status(status):
-    return _('COOP_STATUS_%s' % status)
+    return trans('COOP_STATUS_%s' % status)
+
+
+@register.filter
+def statname(statid):
+    return definitions.STATS[statid]
+
+
+@register.filter
+def colorless(string):
+    return utils.force_clean_name(string)
 
 
 @register.filter
@@ -190,10 +272,15 @@ def humanhours(seconds):
 
 @register.filter
 def country(iso):
-    import django_countries
-    iso = iso.upper()
-    countries = dict(django_countries.countries)
-    return dict(countries)[iso] if iso in countries else ''
+    try:
+        countries = country.dict
+    except AttributeError:
+        countries = dict(django_countries.countries)
+        setattr(country, 'dict', countries)
+    try:
+        return countries[iso.upper()]
+    except:
+        return _('Terra Incognita')
 
 
 @register.simple_tag
@@ -203,3 +290,35 @@ def zerohero(value, best_value, class_best, class_zero):
     if value >= best_value:
         return class_best
     return ''
+
+
+@register.filter
+def valueformat(value, format):
+    return {
+        'hours': humanhours,
+        'time': humantime,
+        'int': lambda value: humanize.intcomma(int(value)),
+        'ordinal': humanize.ordinal,
+        'ratio': lambda value: defaultfilters.floatformat(value, 2),
+        'percent': percent,
+    # return the value as if the specified format is not present
+    }.get(format, lambda value: value)(value)
+
+
+# credits: http://stackoverflow.com/questions/5749075/django-get-generic-view-class-from-url-name
+@register.assignment_tag
+def page_url(view, number, *args, **kwargs):
+    """
+    Attempt to reverse url for given view and append a querystring param 'page' to the url.
+
+    The view name must point to a class based view with the class attributes paginate_by and page_kwarg.
+    """
+    url = reverse(view, args=args, kwargs=kwargs)
+    func = resolve(url).func
+    # import the module
+    cls = getattr(importlib.import_module(func.__module__), func.__name__)
+    try:
+        page = int(math.ceil(number / cls.paginate_by))
+    except:
+        return url
+    return '%s?%s=%s' % (url, cls.page_kwarg, page)

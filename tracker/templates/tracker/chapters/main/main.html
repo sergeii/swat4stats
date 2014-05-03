@@ -1,0 +1,92 @@
+{% extends "tracker/layout/base.html" %}
+{% load i18n staticfiles static tracker humanize %}
+
+{% block title %}{{ block.super }}{% trans "Main" context "chapters" %}{% endblock %}
+
+{% block head_script %}
+{{ block.super }}
+$(document).ready(function(){
+    // start playing random chatter sounds
+    (function playChatter(){
+        var delay = (Math.floor(Math.random()*16)+12);  // play the next chatter in random seconds
+        setTimeout(function(){
+            var chatter = Math.floor(Math.random()*10);  // pick a random chatter from 0 to 10
+            document.playback('{% get_static_prefix %}sounds/chatter/radiochatter' + chatter + '.ogg', {volume: '0.3'});
+            console.log('Playing ' + chatter + ' now. Next in ' + delay + ' seconds.')
+            playChatter();
+        }, delay*1000);
+    })();
+    //document.playback('{% static "sounds/main.ogg" %}', {loop:'loop', volume: '0.1'});
+});
+{% endblock %}
+
+{% block swat_frame_content %}
+
+<div id="swat-menu">
+    <div id="swat-logo">&nbsp;</div>
+    <ul>
+        <p class="swat-menu-gray-thing">{% filter upper %}{% trans "Player Chart" %}{% endfilter %}</p>
+
+        <li><a class="swat-menu-heading" href="{% url 'tracker:top' %}">{% trans "TOP 20" %}</a></li>
+        <li class="swat-menu-description">{% trans "Praise the most notable players of the year." %}</li>
+
+        <li><a class="swat-menu-heading" href="{% url 'tracker:leaderboard' %}">{% trans "Leaderboard" %}</a></li>
+        <li class="swat-menu-description">{% trans "See the current year player standings." %}</li>
+
+        <p class="swat-menu-gray-thing">{% filter upper %}{% trans "Multiplayer Game" %}{% endfilter %}</p>
+
+        <li><a class="swat-menu-heading" href="{% url 'tracker:game_list' %}">{% trans "Games" %}</a></li>
+        <li class="swat-menu-description">{% trans "Check out game report history." %}</li>
+
+        <li><a class="swat-menu-heading" href="{% url 'tracker:server_list' %}">{% trans "Servers" %}</a></li>
+        <li class="swat-menu-description">{% trans "Join a multiplayer game." %}</li>
+
+        <p class="swat-menu-gray-thing"></p>
+        <li><a class="swat-menu-heading" href="{% url 'tracker:search' %}">{% trans "Search" %}</a></li>
+    </ul>
+</div>
+
+<div id="swat-main-container">
+    <div id="swat-main">
+        <div class="swat-box">
+            <div class="inner text">
+                <div class="title underlined">{% trans "Welcome aboard!" %}</div>
+                <div>I am proud to announce that the new SWAT 4 stats tracker that I have been developing for nearly a year has now finally arrived. Please look around, check out the complete game history that has been recorded by the original tracker written by <a href="http://prophet.ru/">Prophet</a> in 2007. <a href="{% url 'tracker:game' 1 %}">The first recorded game</a> dates back to August, 2007. Let this feature to refresh the good memories.</div>
+                <div class="right space-top">Kind regards, Serge.</div>
+            </div>
+        </div>
+
+        {% if summary.object_list %}
+        <div id="main-featured-players" class="swat-box">
+        <div class="header">{{ summary.title }}</div>
+            <div class="inner">
+                <div class="float">
+                {% for object in summary.object_list %}
+                    <div class="left width33 space-bottom bigger">
+                        <div class="title undecorated gray">{{ object.title }}</div>
+                        <div class="float">
+                            <div class="left">{% show_profile_picture object.profile 100 %}</div>
+                            <div class="left space-left">
+                                <div>{% show_player object.profile %}</div>
+                                <div class="space-top small">{{ object.points_translated }}</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if featured %}
+        <div id="main-featured-games" class="swat-box">
+            <div class="header">{% trans "Featured Games" %}</div>
+            <div class="inner swat-game-list">
+                {% for game in featured %}{% show_game game game.date_finished|naturalday %}{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock swat_frame_content %}

@@ -1,4 +1,7 @@
-{% load static %}
+{% load static %}{% spaceless %}
 <div class="swat-player-picture">
-    <img src="{% static 'images/game/characters/SwatHelmetLightArmor.gif' %}" />
+    <img src="{% get_static_prefix %}images/game/chars/{% if size %}{{ size }}{% else %}250{% endif %}/{% if player.vip %}vip{% else %}{{ player.team|default:0 }}{% if player.loadout.body and player.loadout.head %}_{{ player.loadout.body }}_{{ player.loadout.head }}{% endif %}{% endif %}.jpg" />
 </div>
+{# Only show loadout picture if body and head are present #}
+{# Set player team to SWAT by default #}
+{% endspaceless %}
