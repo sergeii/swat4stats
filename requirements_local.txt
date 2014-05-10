@@ -1,0 +1,24 @@
+Django==1.6.4
+IPy==0.81
+PyMySQL==0.6.2
+South==0.8.4
+Unipath==1.0
+django-aggregate-if==0.4
+django-cacheops==1.3.1
+django-countries==2.1.2
+django-debug-toolbar==1.2
+django-redis==3.6.1
+mock==1.0.1
+pip-tools==0.3.4
+psycopg2==2.5.2
+python-dateutil==2.2
+-e git+git@swat4stats.com:python/python-julia.git@892fe05cc7b55eebb12b9008ceba9584a2eb9499#egg=python_julia-origin/master
+-e git+git@swat4stats.com:python/python-serverquery.git@16e67d29d753c8252bbacba29daf718f61966062#egg=python_serverquery-origin/master
+-e git+git@swat4stats.com:python/python-whois.git@3a84fd8e8a604099439fbafb8e5f66c138438154#egg=python_whois-origin/master
+pytz==2014.2
+redis==2.9.1
+requests==2.2.1
+simplejson==3.4.1
+six==1.6.1
+sqlparse==0.1.11
+uWSGI==2.0.4
