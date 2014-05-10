@@ -1,6 +1,8 @@
 {% extends "tracker/chapters/game/layout/base_list.html" %}
 {% load static tracker humanize i18n %}
 
+{% block title %}{% trans "History" %} &middot; {{ block.super }}{% endblock %}
+
 {% block head_script %}
 {{ block.super }}
 $(document).ready(function(){
@@ -13,10 +15,7 @@ $(document).ready(function(){
     <div class="inner">
         <div class="space-bottom big float">
             <div class="left">
-                <span class="sel-filter-open interactive">{% trans "Search" %}</span>
-            </div>
-            <div class="right">
-                {% blocktrans count count=paginator.count %}{{ count }} game found{% plural %}{{ count }} games found{% endblocktrans %}
+                <span>{% blocktrans count count=paginator.count %}{{ count }} game found{% plural %}{{ count }} games found{% endblocktrans %}</span> | <span class="sel-filter-open interactive">{% trans "Filter" %}</span>
             </div>
         </div>
         <div class="swat-game-list">

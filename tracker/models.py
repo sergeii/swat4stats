@@ -21,7 +21,6 @@ import six
 import IPy
 import julia
 import serverquery
-import cacheops
 import aggregate_if
 from whois import whois
 
@@ -439,10 +438,6 @@ class ServerManager(models.Manager):
 
 @python_2_unicode_compatible
 class Server(models.Model):
-    MAX_FAILURES = 3   # max number of query response failures in a row
-                       # the server "listed" attribute 
-                       # will be switched off upon reaching the limit
-
     ip = models.GenericIPAddressField(protocol='IPv4')
     port = models.PositiveIntegerField()
     key = models.CharField(max_length=32)
@@ -455,8 +450,6 @@ class Server(models.Model):
     port_gs2 = models.PositiveIntegerField(null=True, blank=True)
     # ip-based country code
     country = models.CharField(max_length=2, null=True, blank=True)
-    # query failure count
-    count_failure = models.PositiveIntegerField(default=0)
 
     objects = ServerManager()
 
@@ -513,6 +506,8 @@ class Server(models.Model):
             logger.warning('failed to query %s (%s, %s)' % (self, type(e).__name__, e))
             # emit a failure signal
             signals.query_status_failed.send(sender=None, server=self)
+            # reraise the exception, so the caller is notified about the failure
+            raise
         else:
             # cache the status instance
             type(self).objects.status[self] = status
@@ -647,24 +642,21 @@ class Game(models.Model, GameMixin):
 class LoadoutManager(models.Manager):
 
     def get_or_create(self, defaults=None, **kwargs):
-        @cacheops.cached(timeout=60*60, extra=kwargs)
-        def _loadout_manager_get_or_create():
-            """
-            Pass the arguments to the original manager method after performing a couple of checks:
-                * Lookup attributes must contain all of the fields. 
-                  Raise AssertionError in case of afailure
+        """
+        Pass the arguments to the original manager method after performing a couple of checks:
+            * Lookup attributes must contain all of the fields. 
+              Raise AssertionError in case of afailure
 
-                * At least one of the fields must contain a non-zero (non-empty) loadout item.
-                  If the check fails, return None without performing a get_or_create call
-            """
-            # all fields are required for a call
-            for field in self.model.FIELDS:
-                assert field in kwargs
-            # dont create an entry if all of the fields miss an item
-            if not any(map(int, kwargs.values())):
-                return (None, False)
-            return super(LoadoutManager, self).get_or_create(defaults=defaults or {}, **kwargs)
-        return _loadout_manager_get_or_create()
+            * At least one of the fields must contain a non-zero (non-empty) loadout item.
+              If the check fails, return None without performing a get_or_create call
+        """
+        # all fields are required for a call
+        for field in self.model.FIELDS:
+            assert field in kwargs
+        # dont create an entry if all of the fields miss an item
+        if not any(map(int, kwargs.values())):
+            return (None, False)
+        return super(LoadoutManager, self).get_or_create(defaults=defaults or {}, **kwargs)
 
 
 @python_2_unicode_compatible
@@ -729,41 +721,38 @@ class AliasManager(models.Manager):
         return super(AliasManager, self).get_queryset().select_related()
 
     def match_or_create(self, defaults=None, **kwargs):
-        @cacheops.cached(timeout=60*60, extra=(defaults, kwargs))
-        def _alias_manager_get_or_create():
-            # name is required for a get_or_create call upon AliasManager
-            assert('name' in kwargs)
-            # use ip for lookup
-            ip = kwargs.pop('ip', None)
-            # acquire an isp
-            if kwargs.get('isp', None) is None and ip:
-                kwargs['isp'] = ISP.objects.match_or_create(ip)[0]
-            # attempt to match an existing entry by either name or name+isp pair
-            try:
-                filters = kwargs.copy()
-                # replace None with notnull lookup
-                if 'isp' in filters and not filters['isp']:
-                    del filters['isp']
-                    filters['isp__isnull'] = True
-                return (self.get_queryset().get(**filters), False)
-            # create a new entry
-            except ObjectDoesNotExist:
-                with transaction.atomic():
-                    # get a profile by name and optionally by ip and isp 
-                    # ISP could as well be empty
-                    if kwargs.get('profile', None) is None:
-                        filters = {
-                            'name': kwargs['name'],
-                            'isp': kwargs.get('isp', None)
-                        }
-                        # ip must not be empty
-                        if ip:
-                            filters.update({
-                                'ip': ip,
-                            })
-                        kwargs['profile'] = Profile.objects.match_smart_or_create(**filters)[0]
-                return (self.get_queryset().create(**kwargs), True)
-        return _alias_manager_get_or_create()
+        # name is required for a get_or_create call upon AliasManager
+        assert('name' in kwargs)
+        # use ip for lookup
+        ip = kwargs.pop('ip', None)
+        # acquire an isp
+        if kwargs.get('isp', None) is None and ip:
+            kwargs['isp'] = ISP.objects.match_or_create(ip)[0]
+        # attempt to match an existing entry by either name or name+isp pair
+        try:
+            filters = kwargs.copy()
+            # replace None with notnull lookup
+            if 'isp' in filters and not filters['isp']:
+                del filters['isp']
+                filters['isp__isnull'] = True
+            return (self.get_queryset().get(**filters), False)
+        # create a new entry
+        except ObjectDoesNotExist:
+            with transaction.atomic():
+                # get a profile by name and optionally by ip and isp 
+                # ISP could as well be empty
+                if kwargs.get('profile', None) is None:
+                    filters = {
+                        'name': kwargs['name'],
+                        'isp': kwargs.get('isp', None)
+                    }
+                    # ip must not be empty
+                    if ip:
+                        filters.update({
+                            'ip': ip,
+                        })
+                    kwargs['profile'] = Profile.objects.match_smart_or_create(**filters)[0]
+            return (self.get_queryset().create(**kwargs), True)
 
 
 @python_2_unicode_compatible
@@ -1061,19 +1050,17 @@ class ISPManager(models.Manager):
 
     def match_or_create(self, ip_address):
         ip_address = force_ipy(ip_address)
-        @cacheops.cached(timeout=60*60, extra=ip_address.int())
-        def _isp_manager_match_or_create():
-            # match against the known networks
-            try:
-                matched_obj, length = self.match(ip_address)
-                # do an extra lookup if the addr num exceedes the limit
-                if length > self.model.MAX_LENGTH:
-                    logger.warning('the returned range for {} is too large ({})'
-                        .format(ip_address.strNormal(3), length)
-                    )
-                    raise ObjectDoesNotExist
-                return (matched_obj, False)
-            except ObjectDoesNotExist:
+        # match against the known networks
+        try:
+            matched_obj, length = self.match(ip_address)
+            # do an extra lookup if the addr num exceedes the limit
+            if length > self.model.MAX_LENGTH:
+                logger.warning('the returned range for {} is too large ({})'
+                    .format(ip_address.strNormal(3), length)
+                )
+                raise ObjectDoesNotExist
+            return (matched_obj, False)
+        except ObjectDoesNotExist:
                 try:
                     data = whois.whois(ip_address.strNormal(3))
                     logger.debug('received whois for {}: {}, {}, {}'
@@ -1135,7 +1122,6 @@ class ISPManager(models.Manager):
                     # append the created ip range entry
                     isp.ip_set.add(ip_obj)
                     return (isp, created)
-        return _isp_manager_match_or_create()
 
 
 @python_2_unicode_compatible
@@ -1237,13 +1223,10 @@ class ProfileManager(models.Manager):
         raise self.model.DoesNotExist
 
     def match_smart_or_create(self, **kwargs):
-        @cacheops.cached(timeout=60*60, extra=kwargs)
-        def _profile_manager_match_smart_or_create():
-            try:
-                return (self.match_smart(**kwargs), False)
-            except ObjectDoesNotExist:
-                return (super(ProfileManager, self).get_queryset().create(), True)
-        return _profile_manager_match_smart_or_create()
+        try:
+            return (self.match_smart(**kwargs), False)
+        except ObjectDoesNotExist:
+            return (super(ProfileManager, self).get_queryset().create(), True)
 
     def popular(self):
         """
@@ -1827,7 +1810,7 @@ class RankManager(models.Manager):
             for entry in entries:
                 # zero or negative points - the entry should be deleted
                 if items[entry.category] <= 0:
-                    deletable.append(entry.category)
+                    deletable.append(entry.pk)
                 # points changed - the item should be updated
                 elif items[entry.category] != entry.points:
                     entry.points = items[entry.category]
@@ -1836,7 +1819,7 @@ class RankManager(models.Manager):
                 items.pop(entry.category)
 
             # delete the entries marked for removing
-            self.filter(category__in=deletable).delete()
+            self.filter(pk__in=deletable).delete()
 
             creatable = []
             for category, points in six.iteritems(items):

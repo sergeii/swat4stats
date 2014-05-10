@@ -11,7 +11,7 @@ INSTALLED_APPS = INSTALLED_APPS + ('stats',)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'swat4tracker2',
+        'NAME': 'swat4tracker',
         'USER': 'swat4tracker',
         'PASSWORD': 'swat4tracker',
         'HOST': '127.0.0.1',

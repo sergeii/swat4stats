@@ -1,6 +1,8 @@
 {% extends "tracker/chapters/game/layout/base_list.html" %}
 {% load tracker i18n %}
 
+{% block title %}{% trans "Online" %}  &middot; {{ block.super }}{% endblock %}
+
 {% block swat_game_list %}
 <div class="swat-box bordered">
     <div class="inner">

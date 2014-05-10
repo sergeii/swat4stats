@@ -62,12 +62,6 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder'
 )
 
-STATIC_URL = '/static/'
-STATIC_ROOT = PATH_VENV.child('static')
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = PATH_VENV.child('media')
-
 TEMPLATE_DIRS = (
     PATH_APP.child('templates'),
 )
@@ -75,6 +69,9 @@ TEMPLATE_DIRS = (
 STATICFILES_DIRS = (
     PATH_APP.child('static'),
 )
+
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'

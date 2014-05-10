@@ -1,7 +1,7 @@
 {% extends "tracker/layout/chapter.html" %}
 {% load tracker humanize i18n %}
 
-{% block title %}{{ block.super }}{{ profile.name }}{% ifnotequal year year_now %} - {{ year }}{% endifnotequal %}{% endblock %}
+{% block title %}{{ profile.name }}{% ifnotequal year year_now %} &middot; {{ year }}{% endifnotequal %}{% endblock %}
 
 {% block swat_chapter_header %}
 <div id="profile-title">
@@ -75,6 +75,8 @@
                             <div class="profile-recent-game-list">
                         {% endifchanged %}
                             {% show_game_light game %}
+                    {% empty %}
+                        <div class="center">{% trans "No data available." %}</div>
                     {% endfor %}
                     {% endspaceless %}
                 </div>

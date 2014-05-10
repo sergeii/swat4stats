@@ -1,1 +1,0 @@
-ALTER TABLE tracker_weapon ALTER COLUMN id TYPE bigint;

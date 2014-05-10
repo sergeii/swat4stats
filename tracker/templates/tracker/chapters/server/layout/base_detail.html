@@ -23,7 +23,7 @@ $(document).ready(function(){
 });
 {% endblock %}
 
-{% block title %}{{ block.super }} {{ status.hostname_clean }}{% endblock %}
+{% block title %}{{ status.hostname_clean }}{% endblock %}
 
 {% block swat_status %}{{ status.gamename|gamename }} {{ status.gamever }}{% endblock %}
 
@@ -47,7 +47,7 @@ $(document).ready(function(){
 <div class="swat-button-bar">
     <span class="swat-button active">{% trans "Scores" %}</span>
     {% if server.streamed %}
-    <a href="{% url 'tracker:game_list_history' %}?server={{ server.pk }}" class="swat-button">{% trans "History" %}</a>
+    <a href="{% url 'tracker:game_list_history' %}?filter_server=on&amp;server={{ server.pk }}" class="swat-button">{% trans "History" %}</a>
     {% endif %}
     <a href="xfire:join?game=swat4{% ifequal status.gamename_translated 'SWAT 4X' %}tss{% endifequal %}&amp;server={{ server.ip }}:{{ server.port }}" class="swat-button-arrow-right">{% trans "Join" %}</a>
 </div>

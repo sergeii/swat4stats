@@ -3,6 +3,8 @@ from __future__ import unicode_literals, absolute_import
 
 from .common import *
 
+ALLOWED_HOSTS = ['swat4tracker.com', 'swat4stats.com']
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -34,21 +36,26 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['error'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': True,
         },
         'tracker': {
             'handlers': ['error'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': True
         },
     },
 }
 
-CACHEOPS_REDIS = {
-    'unix_socket_path': '/var/run/redis/redis.sock',
-    'db': 3,
-    #'socket_timeout': 3,
+STATIC_ROOT = Path('/var/www/static/swat4tracker/')
+MEDIA_ROOT = Path('/var/www/media/swat4tracker/')
+
+CACHES['default'] = {
+    'BACKEND': 'redis_cache.cache.RedisCache',
+    'LOCATION': 'unix:/var/run/redis/redis.sock:1',
 }
 
-ALLOWED_HOSTS = ['swat4stats.com', 'swat4tracker.com']
+CACHEOPS_REDIS = {
+    'unix_socket_path': '/var/run/redis/redis.sock',
+    'db': 2,
+}

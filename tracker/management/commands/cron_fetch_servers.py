@@ -63,10 +63,9 @@ class FetchListThread(threading.Thread):
                             logger.error('failed to add %s:%s (%s, %s)' % (ip, port, type(e), e))
                     else:
                         # relist the server
-                        if obj.enabled and not obj.listed and not obj.port_gs1:
+                        if obj.enabled and not obj.listed:
                             obj.listed = True
-                            obj.count_failure = 0
-                            obj.save(update_fields=['listed', 'count_failure'])
+                            obj.save(update_fields=['listed'])
                             logger.debug('relisted %s' % obj)
                         else:
                             logger.debug('skipped %s' % obj)

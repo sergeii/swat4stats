@@ -1,7 +1,7 @@
 {% extends "tracker/layout/nonmain.html" %}
 {% load static tracker humanize i18n %}
 
-{% block title %}{{ block.super }}{{ game.mapname|mapname }}, {{ game.date_finished }}{% endblock %}
+{% block title %}{{ game.mapname|mapname }}, {{ game.date_finished }}{% endblock %}
 
 {% block swat_header_upper %}
 {{ block.super }}<div id="swat-server-title">{{ game.server.name }}</div>

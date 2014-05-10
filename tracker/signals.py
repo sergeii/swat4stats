@@ -8,7 +8,7 @@ import six
 from django.dispatch import receiver, Signal
 from django.db.models import F
 from django.db.models.signals import pre_save, post_save
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.utils import timezone
 from django.utils.encoding import force_text
 
@@ -23,28 +23,13 @@ stream_data_received = Signal(providing_args=['data', 'server'])
 stream_data_saved = Signal(providing_args=['data', 'server', 'game', 'players'])
 
 
-@receiver(query_status_failed)
-def handle_failed_query_attempts(sender, server, **kwargs):
-    """
-    Unlist a server upon reaching the max number of successive failed attempts.
-    Keep counting otherwise.
-    """
-    if server.count_failure+1 >= models.Server.MAX_FAILURES:
-        server.listed = False
-        server.count_failure = 0
-        server.save(update_fields=['listed', 'count_failure'])
-        logger.debug('unlisted %s' % server)
-    else:
-        logger.debug('%s has %d failures' % (server, server.count_failure))
-        models.Server.objects.filter(pk=server.pk).update(count_failure=F('count_failure')+1)
-
-
-@receiver(query_status_received)
-def handle_successful_query_attempts(sender, server, status, **kwargs):
-    """Drop the server query failure counter upon receiving a successful response."""
-    if server.count_failure > 0:
-        server.count_failure = 0
-        server.save(update_fields=['count_failure'])
+@receiver(stream_data_saved)
+def relist_streaming_server(sender, data, server, game, players, **kwargs):
+    """Attemp to relist a server that has sent data to the tracker."""
+    if not server.listed:
+        server.listed = True
+        server.save(update_fields=['listed'])
+        logger.debug('Sucessfully relisted a streaming server (%s)' % server)
 
 
 @receiver(stream_data_saved)
@@ -74,111 +59,117 @@ def update_server_country(sender, instance, **kwargs):
 
 
 @receiver(stream_data_received)
-@transaction.atomic
 def save_game(sender, data, server, **kwargs):
     """
     Save a Game entry upon receiving data from one of the streaming servers
     Also attempt to save assotiated Objective, Procedures and Player objects, if supplied.
     """
-    players = []
-    # insert a new game entry
-    game = server.game_set.create(
-        tag=data['tag'].value, 
-        gametype=int(data['gametype'].raw), 
-        mapname=int(data['mapname'].raw), 
-        outcome=int(data['outcome'].raw),
-        time=data['time'].value, 
-        player_num=data['player_num'].value,
-        score_swat=data['score_swat'].value,
-        score_sus=data['score_sus'].value,
-        vict_swat=data['vict_swat'].value,
-        vict_sus=data['vict_sus'].value,
-        rd_bombs_defused=data['bombs_defused'].value,
-        rd_bombs_total=data['bombs_total'].value,
-        # calculate coop score 100 max
-        coop_score=min(100, (utils.calc_coop_score(data['coop_procedures']) if data.get('coop_procedures', None) else 0)),
-    )
-    # insert objectives in bulk
-    if data.get('coop_objectives', None) is not None:
-        models.Objective.objects.bulk_create([
-            models.Objective(
-                game=game, 
-                # both items are mappings, insert the raw values instead
-                name=int(obj['name'].raw), 
-                status=int(obj['status'].raw),
-            )
-            for obj in data['coop_objectives']
-        ])
-    # insert procedures in bulk
-    if data.get('coop_procedures', None) is not None:
-        models.Procedure.objects.bulk_create([
-            models.Procedure(
-                game=game, 
-                # name is a mapping, insert its raw value
-                name=int(pro['name'].raw), 
-                status=pro['status'].value,
-                score=pro['score'].value,
-            )
-            for pro in data['coop_procedures']
-        ])
-    # insert players
-    if data.get('players', None) is not None:
-        # sorry for obvious comments
-        # i need something other than empty lines to delimit blocks of code :-)
-        for raw_player in data['players']:
-            # attempt to parse loadout
-            loadout = {}
-            for key in models.Loadout.FIELDS:
-                try:
-                    value = int(raw_player['loadout'][key].raw)
-                except (KeyError, ValueError, TypeError):
-                    # set zeroes (None) for absent items
-                    value = '0'
-                finally:
-                    loadout[key] = value
-            # prepare a Player entry
-            player = models.Player(
-                game=game,
-                alias=models.Alias.objects.match_or_create(
-                    # prevent empty and coloured names
-                    name=utils.force_name(raw_player['name'].value, raw_player['ip'].value),
-                    ip=raw_player['ip'].value
-                )[0],
-                ip=raw_player['ip'].value,
-                # team is a mapping, insert a raw (0 or 1)
-                team=int(raw_player['team'].raw),
-                vip=raw_player['vip'].value,
-                admin=raw_player['admin'].value,
-                dropped=raw_player['dropped'].value,
-                # coop status is also a mapping
-                coop_status=int(raw_player['coop_status'].raw),
-                loadout=models.Loadout.objects.get_or_create(**loadout)[0]
-            )
-            # insert stats
-            for category, key in six.iteritems(STATS):
-                # score, sg_kills, etc
-                if key in raw_player:
-                    # set an instance attr with the same name from the raw_player dict
-                    setattr(player, key, raw_player[key].value)
-            # save the instance
-            player.save()
-            # insert Player weapons in bulk .. unless its a COOP game
-            if raw_player['weapons'] is not None:
-                models.Weapon.objects.bulk_create([
-                    models.Weapon(
-                        player=player,
-                        name=int(weapon['name'].raw),
-                        time=weapon['time'].value,
-                        shots=weapon['shots'].value,
-                        hits=weapon['hits'].value,
-                        teamhits=weapon['teamhits'].value,
-                        kills=weapon['kills'].value,
-                        teamkills=weapon['teamkills'].value,
-                        # convert cm to meters (true division is on)
-                        distance=weapon['distance'].value / 100,
-                    )
-                    for weapon in raw_player['weapons']
-                ])
-            players.append(player)
+    with transaction.atomic():
+        try:
+            with transaction.atomic():
+                # insert a new game entry
+                game = server.game_set.create(
+                    tag=data['tag'].value, 
+                    gametype=int(data['gametype'].raw), 
+                    mapname=int(data['mapname'].raw), 
+                    outcome=int(data['outcome'].raw),
+                    time=data['time'].value, 
+                    player_num=data['player_num'].value,
+                    score_swat=data['score_swat'].value,
+                    score_sus=data['score_sus'].value,
+                    vict_swat=data['vict_swat'].value,
+                    vict_sus=data['vict_sus'].value,
+                    rd_bombs_defused=data['bombs_defused'].value,
+                    rd_bombs_total=data['bombs_total'].value,
+                    # calculate coop score 100 max
+                    coop_score=min(100, (utils.calc_coop_score(data['coop_procedures']) if data.get('coop_procedures', None) else 0)),
+                )
+        except IntegrityError as e:
+            logger.warning('the game with tag %s has already been saved' % data['tag'].value)
+            return
+
+        players = []
+        # insert objectives in bulk
+        if data.get('coop_objectives', None) is not None:
+            models.Objective.objects.bulk_create([
+                models.Objective(
+                    game=game, 
+                    # both items are mappings, insert the raw values instead
+                    name=int(obj['name'].raw), 
+                    status=int(obj['status'].raw),
+                )
+                for obj in data['coop_objectives']
+            ])
+        # insert procedures in bulk
+        if data.get('coop_procedures', None) is not None:
+            models.Procedure.objects.bulk_create([
+                models.Procedure(
+                    game=game, 
+                    # name is a mapping, insert its raw value
+                    name=int(pro['name'].raw), 
+                    status=pro['status'].value,
+                    score=pro['score'].value,
+                )
+                for pro in data['coop_procedures']
+            ])
+        # insert players
+        if data.get('players', None) is not None:
+            # sorry for obvious comments
+            # i need something other than empty lines to delimit blocks of code :-)
+            for raw_player in data['players']:
+                # attempt to parse loadout
+                loadout = {}
+                for key in models.Loadout.FIELDS:
+                    try:
+                        value = int(raw_player['loadout'][key].raw)
+                    except (KeyError, ValueError, TypeError):
+                        # set zeroes (None) for absent items
+                        value = '0'
+                    finally:
+                        loadout[key] = value
+                # prepare a Player entry
+                player = models.Player(
+                    game=game,
+                    alias=models.Alias.objects.match_or_create(
+                        # prevent empty and coloured names
+                        name=utils.force_name(raw_player['name'].value, raw_player['ip'].value),
+                        ip=raw_player['ip'].value
+                    )[0],
+                    ip=raw_player['ip'].value,
+                    # team is a mapping, insert a raw value (0 or 1)
+                    team=int(raw_player['team'].raw),
+                    vip=raw_player['vip'].value,
+                    admin=raw_player['admin'].value,
+                    dropped=raw_player['dropped'].value,
+                    # coop status is also a mapping
+                    coop_status=int(raw_player['coop_status'].raw),
+                    loadout=models.Loadout.objects.get_or_create(**loadout)[0]
+                )
+                # insert stats
+                for category, key in six.iteritems(STATS):
+                    # score, sg_kills, etc
+                    if key in raw_player:
+                        # set an instance attr with the same name from the raw_player dict
+                        setattr(player, key, raw_player[key].value)
+                # save the instance
+                player.save()
+                # insert Player weapons in bulk .. unless its a COOP game
+                if raw_player['weapons'] is not None:
+                    models.Weapon.objects.bulk_create([
+                        models.Weapon(
+                            player=player,
+                            name=int(weapon['name'].raw),
+                            time=weapon['time'].value,
+                            shots=weapon['shots'].value,
+                            hits=weapon['hits'].value,
+                            teamhits=weapon['teamhits'].value,
+                            kills=weapon['kills'].value,
+                            teamkills=weapon['teamkills'].value,
+                            # convert cm to meters (true division is on)
+                            distance=weapon['distance'].value / 100,
+                        )
+                        for weapon in raw_player['weapons']
+                    ])
+                players.append(player)
     # emit a signal
     stream_data_saved.send(sender=None, data=data, server=server, game=game, players=players)

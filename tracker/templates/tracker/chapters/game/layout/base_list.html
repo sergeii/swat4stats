@@ -1,7 +1,7 @@
 {% extends "tracker/layout/chapter.html" %}
 {% load tracker humanize i18n %}
 
-{% block title %}{{ block.super }}{% trans "Games" %}{% endblock %}
+{% block title %}{% trans "Games" %}{% endblock %}
 {% block swat_chapter_title %}{% trans "Games" %}{% endblock %}
 
 {% block swat_chapter_content %}
@@ -29,21 +29,11 @@
             <div class="header">{% trans "Featured Games" %}</div>
             <div class="inner swat-game-list-featured">
                 {% for object in featured %}
-                    {% with player=object.best_player %}
-                    <div class="space-bottom float">
-                        <div class="left">{{ object.gametype|gametype }}</div>
-                        <div class="right gray">{{ object.date_finished|naturalday }}</div>
-                    </div>
-                    <div class="space-bottom">
-                        <div class="table width100">
-                            <div class="table-row middle">
-                                <div class="width30 left">{% show_game_light object %}</div>
-                                <div class="center {% ifequal object.winner 0 %}swat-blue{% endifequal %} {% ifequal object.winner 1 %}swat-red{% endifequal %}">{{ object.score_swat }}:{{ object.score_sus }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    {% if not forloop.last %}<div class="swat-content-delimiter"></div>{% endif %}
-                    {% endwith %}
+                    <div class="nowrap">{{ object.mapname|mapname }}, {{ object.gametype|gametype }}</div>
+                    <div class="gray space-bottom">{{ object.date_finished|naturalday }}</div>
+                    <div class="space-bottom bigger">{% show_game_light object %}</div>
+                {% empty %}
+                    <div class="center">{% trans "No games found." %}</div>
                 {% endfor %}
             </div>
         </div>

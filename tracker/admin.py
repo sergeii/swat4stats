@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import)
 
+from django.db import transaction
 from django.db.models import Count
 from django.contrib import admin
 from django.utils.encoding import force_text
@@ -78,9 +79,9 @@ class AliasInline(admin.TabularInline):
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'country', 'last_seen', 'alias_count', 'player_count')
-    search_fields = ('name', 'alias__name', 'alias__player__ip')
-    readonly_fields = ('loadout', 'game_first', 'game_last')
+    list_display = ('name', 'country', 'last_seen', 'alias_count', 'player_count',)
+    search_fields = ('name',)
+    readonly_fields = ('loadout', 'game_first', 'game_last',)
     list_per_page = 20
     inlines = [AliasInline]
 
@@ -128,7 +129,7 @@ class PlayerAdmin(admin.ModelAdmin):
 
 
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'count_failure', 'enabled', 'listed', 'streamed')
+    list_display = ('__str__', 'enabled', 'listed', 'streamed')
     list_filter = ('enabled', 'listed', 'streamed')
     list_per_page = 50
 

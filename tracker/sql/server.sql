@@ -1,1 +1,0 @@
-CREATE INDEX ON tracker_server (HOST(ip), port);

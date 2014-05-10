@@ -5,13 +5,29 @@ from fabric.api import *
 
 from . import backend, frontend, cache
 
+
+@task
+def restart():
+    execute(code)
+    execute(contrib)
+    execute(migrate)
+    execute(invalidate)
+    execute(collectstatic)
+    execute(uwsgi)
+    execute(nginx)
+    execute(crontab)
+
+
 @task
 def everything():
     """Deploy everything."""
     execute(project)
+    execute(migrate)
+    execute(invalidate)
     execute(collectstatic)
     execute(uwsgi)
     execute(nginx)
+    execute(crontab)
 
 
 @task
@@ -27,10 +43,37 @@ def code():
     """Deploy the project source code."""
     backend.checkout()
 
+
+@task
+@roles('backend')
+def migrate():
+    for app in env.project['apps']:
+        backend.managepy('migrate %s' % app)
+
+
+@task
+@roles('backend')
+def syncdb():
+    backend.managepy('syncdb --noinput')
+
+
+@task
+@roles('backend')
+def convert_to_south():
+    for app in env.project['apps']:
+        backend.managepy('migrate %s --fake' % app)
+
+
 @task
 @roles('backend')
 def collectstatic():
     backend.managepy('collectstatic --noinput')
+
+
+@task
+@roles('backend')
+def invalidate():
+    backend.managepy('invalidate all')
 
 
 @task
@@ -54,6 +97,15 @@ def project():
     code()
     contrib()
     backend.dependencies()
+
+
+@task
+@roles('backend')
+def crontab():
+    """Install cronjob for the user."""
+    with quiet():
+        sudo('crontab -r', user=env.crontab['user'])
+    sudo('crontab %s' % env.crontab['conf'], user=env.crontab['user'])
 
 
 @task

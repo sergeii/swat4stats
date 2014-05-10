@@ -63,3 +63,24 @@ class StreamDataSavedCase(TestCase):
         self.assertEqual(profile.last_seen, now_cached)
         self.assertEqual(profile.game_first.pk, game.pk)
         self.assertEqual(profile.game_last.pk, game.pk)
+
+
+    def test_server_is_relisted_when_data_is_saved(self):
+        server = models.Server.objects.create(ip='127.0.0.1', port=10450, listed=False)
+        game = models.Game.objects.create(
+            server=server,
+            gametype=definitions.MODE_VIP,
+            mapname=0,
+            player_num=16,
+            time=651,
+            outcome=definitions.SUS_GAMES[2],
+        )
+        signals.stream_data_saved.send(
+            sender=None,
+            data=julia.node.DictValueNode(raw={}, pattern={}),
+            server=server,
+            game=game,
+            players=[],
+        )
+
+        self.assertTrue(models.Server.objects.get(pk=server.pk).listed)

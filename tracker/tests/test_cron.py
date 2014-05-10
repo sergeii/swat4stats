@@ -393,3 +393,9 @@ class UpdateProfileCase(TestCase):
         self.assertRaises(ObjectDoesNotExist, models.Rank.objects.get, category=const.STATS_VIP_KILLS_INVALID)
         self.assertRaises(ObjectDoesNotExist, models.Rank.objects.get, category=const.STATS_VIP_ESCAPES)
         self.assertRaises(ObjectDoesNotExist, models.Rank.objects.get, category=const.STATS_RD_BOMBS_DEFUSED)
+
+
+class QueryServersCommandTestCase(TestCase):
+
+    def test_foo(self):
+        pass

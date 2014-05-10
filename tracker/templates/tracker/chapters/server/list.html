@@ -21,7 +21,7 @@ $(document).ready(function(){
         setTimeout(
             function(){
                 $.ajax({
-                    url: '{% url 'tracker:server_list_ajax' %}?{{ filters.urlencode }}',
+                    url: '{% url 'tracker:server_list_ajax' %}?' + $.param(JSON.parse('{{ form.cleaned_data|tojson|escapejs }}')),
                     success: function(data){
                         $('#server-list').htmlScroll(data);
                     },
@@ -39,7 +39,7 @@ $(document).ready(function(){
 });
 {% endblock %}
 
-{% block title %}{{ block.super }}{% trans "Servers" %}{% endblock %}
+{% block title %}{% trans "Servers" %}{% endblock %}
 
 {% block background %}{% static "images/game/maps/background/servers.jpg" %}{% endblock background %}
 

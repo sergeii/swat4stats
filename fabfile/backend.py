@@ -49,11 +49,12 @@ def dependencies():
 
 
 @task
-def managepy(cmd):
+def managepy(cmd, user=None):
     """Run a django's project manage.py command inside the virtual environment."""
-    with utils.virtualenv(env.paths['base']):
-        with cd(env.paths['project']):
-            sudo('python %s %s' % (env.paths['project'].child('manage.py'), cmd))
+    with shell_env(PYTHONDONTWRITEBYTECODE='1'):
+        with utils.virtualenv(env.paths['base']):
+            with cd(env.paths['project']):
+                sudo('python %s %s' % (env.paths['project'].child('manage.py'), cmd), user=user or env.project['uid'])
 
 
 @task
@@ -78,4 +79,4 @@ def rmvirtualenv(path=None, force=False):
 
     This task is an alias to the rm -rf command.
     """
-    utils.rmdir(path or env.paths['base'], force)
+    utils.rmfiles(path or env.paths['base'], force)

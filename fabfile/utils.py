@@ -9,6 +9,13 @@ from fabric.api import *
 from fabric.contrib.console import confirm
 
 
+def rmfiles(path, force=False):
+    """Remove a directory contents upon a user confirmation."""
+    if force or confirm("Do you really want to %s contents?" % path):
+        puts("Purging %s contents." % path)
+        sudo('rm -rf %s' % mkpath(path).child('*'))
+
+
 def rmdir(path, force=False):
     """Remove a directory and it's contents upon a user confirmation."""
     if force or confirm("Do you really want to remove %s along with it's contents?" % path):

@@ -14,6 +14,11 @@ logger = logging.getLogger(__name__)
 # the semaphore serves for enforcing number of concurrent connections
 semaphore = threading.Semaphore(config.MAX_STATUS_CONNECTIONS)
 
+# list of available servers
+servers_listed = set()
+# list of servers that have responded to a query
+servers_alive = set()
+
 
 class QueryThread(threading.Thread):
 
@@ -23,7 +28,15 @@ class QueryThread(threading.Thread):
 
     def run(self):
         semaphore.acquire()
-        self.server.query()
+
+        try:
+            self.server.query()
+        except:
+            pass
+        else:
+            # the server is okay
+            servers_alive.add(self.server.pk)
+
         semaphore.release()
 
 
@@ -36,17 +49,28 @@ class Command(BaseCommand):
         Usage:
             python manage.py cron_query_servers 60 5
         """
+        threads = []
         limit = eval(limit)
         interval = eval(interval)
         total = 0
 
         while total < limit:
-            self.query()
+            # clear the thread list
+            threads = []
+
+            for server in models.Server.objects.listed():
+                servers_listed.add(server.pk)
+                threads.append(QueryThread(server=server))
+            # query the servers
+            [thread.start() for thread in threads]
+            
             total += interval
             sleep(interval)
 
-    def query(self):
-        """Query the active servers that have been marked to be listed."""
-        for server in models.Server.objects.listed():
-            thread = QueryThread(server=server)
-            thread.start()
+        # only wait for the last group of threads
+        [thread.join() for thread in threads]
+
+        pks = servers_listed-servers_alive
+        # unlist the servers that have never responded to a query
+        models.Server.objects.filter(pk__in=pks).update(listed=False)
+        logger.warning('Unlisted %s servers' % len(pks))

@@ -1,1 +1,1 @@
-<span class="{% if player.vip %}swat-green{% else %}{% ifequal player.team 0 %}swat-blue{% else %}swat-red{% endifequal %}{% endif %}">{{ player.name }}</span>
+<span class="{% if player.vip %}swat-green{% else %}{% ifequal player.team 0 %}swat-blue{% else %}swat-red{% endifequal %}{% endif %}">{{ player.name|truncatechars:30 }}</span>

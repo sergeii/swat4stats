@@ -1,5 +1,5 @@
 {% load i18n static tracker %}{% block document %}<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 {% block html %}
 <head>
 {% block head %}
@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta http-equiv="content-type" content="text/html;charset=utf-8">
 <link rel="shortcut icon" href="{% static "favicon.ico" %}">
-<title>{% block title %}SWAT4 Tracker - {% endblock %}</title>
+<title>{% block head_title %}{% block title %}{% trans "Undefined" %}{% endblock title %} &middot; {% trans "SWAT4 Stats Tracker" %}{% endblock head_title %}</title>
 <link rel="stylesheet" type="text/css" href="{% static "css/reset.css" %}">
 {% if not debug %}<link rel="stylesheet" type="text/css" href="{% static "css/base.css" %}">{% endif %}
 <link rel="stylesheet" type="text/css" href="{% static "css/fonts.css" %}">
@@ -92,48 +92,47 @@ $(document).ready(function(){
 </head>
 
 <body>
-    {% block body %}
-    <div id="container" style="background: url('{% block background %}{% static "images/game/maps/background/intro.jpg" %}{% endblock background %}') no-repeat; background-size: cover;">
+{% block body %}
+    <div id="container">
     {% block container %}
-
-        <div id="swat-header">
-        {% block swat_header %}
-            <div class="upper">{% block swat_header_upper %}{% endblock %}</div>
-            <div class="lower">
-                {% block swat_header_lower %}
-                    <div class="left">{% block swat_top_left %}{% endblock %}</div>
-                    <div class="right">{% block swat_top_right %}{% endblock %}</div>
-                {% endblock %}
-            </div>
-        {% endblock %}
-        </div>
-
-        <div id="swat-frame">
-            {% block swat_frame %}
-                <div class="inner">
-                    {% block swat_frame_content %}{% endblock swat_frame_content %}
-                </div>
-            {% endblock swat_frame %}
-        </div>
-
-        <div id="swat-footer">
-            <div class="inner">
-            {% block swat_footer %}
-                <div class="left">
-                    {% block swat_bottom_left %}{% endblock %}
-                </div>
-                <div class="status">{% block swat_status %}{% endblock %}</div>
-                <div class="right">{% block swat_bottom_right %}{% endblock %}</div>
-                <div id="copyright">
-                    <p>&copy; 2013-{% now "Y" %} <a href="mailto:kh.sergei@gmail.com">Serge</a></p>
+        <div id="background" style="background-image: url('{% block background %}{% static "images/game/maps/background/intro.jpg" %}{% endblock background %}');">
+            <div id="swat-header">
+            {% block swat_header %}
+                <div class="upper">{% block swat_header_upper %}{% endblock %}</div>
+                <div class="lower">
+                    {% block swat_header_lower %}
+                        <div class="left">{% block swat_top_left %}{% endblock %}</div>
+                        <div class="right">{% block swat_top_right %}{% endblock %}</div>
+                    {% endblock %}
                 </div>
             {% endblock %}
             </div>
-        </div>
 
+            <div id="swat-frame">
+                {% block swat_frame %}
+                    <div class="inner">
+                        {% block swat_frame_content %}{% endblock swat_frame_content %}
+                    </div>
+                {% endblock swat_frame %}
+            </div>
+
+            <div id="swat-footer">
+                <div class="inner">
+                {% block swat_footer %}
+                    <div class="left">
+                        {% block swat_bottom_left %}{% endblock %}
+                    </div>
+                    <div class="status">{% block swat_status %}{% endblock %}</div>
+                    <div class="right">{% block swat_bottom_right %}{% endblock %}</div>
+                    <div id="copyright">
+                        <p>&copy; 2013-{% now "Y" %} <a href="mailto:kh.sergei@gmail.com">Serge</a></p>
+                    </div>
+                {% endblock %}
+                </div>
+            </div>
+        </div>
     {% endblock container %}
     </div>
-
 {% endblock body %}
 </body>
 {% endblock html %}

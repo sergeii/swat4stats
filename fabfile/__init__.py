@@ -11,8 +11,8 @@ env.always_use_pty = False
 env.use_ssh_config = True
 
 HERE = utils.mkpath(os.path.dirname(__file__))
-BASE = utils.mkpath('/home/django/swat4tracker/')
-PROJECT = BASE.child('src')
+BASE = utils.mkpath('/home/www_swat4tracker/')
+PROJECT = BASE.child('app')
 
 env.roledefs = {
     'backend': ['188.226.208.32'],
@@ -34,24 +34,29 @@ env.paths = {
 env.project = {
     # also the uwsgi supervisorctl name
     'name': 'swat4tracker',
-    'owner': 'django:django',
-    'python': utils.mkpath('/usr/bin/python3'),
-    # extra dirs to create
-    'dirs': (
-        (BASE.child('pid'), None, '0777'),
-        (BASE.child('sock'), None, '0777'),
-        (BASE.child('log'), None, '0777'),
-        # public static folder
-        (BASE.child('static'), None, None),
-        # public media folder (nginx owned)
-        (BASE.child('media'), 'www-data:www-data', None),
-    )
+    'apps': ('tracker',),
+    'uid': 'www_swat4tracker',
+    'gid': 'www_swat4tracker',
+    'python': utils.mkpath('/usr/bin/python3.4'),
 }
+
+env.project['dirs'] = (
+    (BASE.child('pid'), None, '0777'),
+    (BASE.child('log'), None, '0777'),
+    # public dirs must be owned by the uwsgi user and readable by everyone
+    ('/var/www/media/swat4tracker/', '%s:%s' % (env.project['uid'], env.project['gid']), '0755'),
+    ('/var/www/static/swat4tracker/', '%s:%s' % (env.project['uid'], env.project['gid']), '0755'),
+)
 
 env.nginx = {
     # site name
     'name': env.project['name'],
     'conf': env.paths['conf'].child('nginx.conf'),
+}
+
+env.crontab = {
+    'user': env.project['uid'],
+    'conf': env.paths['conf'].child('crontab.txt'),
 }
 
 env.uwsgi = {

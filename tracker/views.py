@@ -194,23 +194,19 @@ class StreamView(generic.View):
         return HttpResponse('\n'.join(list(filter(None, [code, message]))))
 
     @method_decorator(requires_valid_request(definitions.stream_pattern_node))
-    @method_decorator(requires_unique_request)
     @method_decorator(requires_valid_source)
     def post(self, request):
         logger.debug('receieved stream data from {}:{}'
             .format(request.stream_source.ip, request.stream_source.port)
         )
-        stream_data_received.send(
-            self, data=request.stream_data, server=request.stream_source
-        )
+        stream_data_received.send(sender=None, data=request.stream_data, server=request.stream_source)
         return StreamView.status(request, StreamView.STATUS_OK)
 
     def get(self, request):
-        """
-        Display data streaming tutorial.
-        """
+        """Display data streaming tutorial."""
         return render(request, 'tracker/chapters/stream/stream.html', {})
 
+    @method_decorator(never_cache)
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super(StreamView, self).dispatch(*args, **kwargs)
@@ -227,7 +223,7 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.TemplateView):
         ),
         (
             _('Highest Playtime'), 
-            db.models.Sum('time'), 
+            aggregate_if.Sum('time', only=Q(game__gametype__in=definitions.MODES_VERSUS)), 
             lambda value: templatetags.humantime(value)
         ),
         (
@@ -549,7 +545,7 @@ class GameDetailView(generic.DetailView):
             ('ammo_accuracy', _('Highest Accuracy'), _('%d%%')),
             ('ammo_shots', _('Most Ammo Fired'), ngettext_lazy('%d bullet', '%d bullets')),
             ('kill_streak', _('Highest Kill Streak'), ngettext_lazy('%d kill', '%d kills')),
-            ('arrest_streak', _('Highest Kill Streak'), ngettext_lazy('%d kill', '%d kills')),
+            ('arrest_streak', _('Highest Arrest Streak'), ngettext_lazy('%d arrest', '%d arrests')),
         ),
         definitions.MODE_VIP: (
             ('vip_captures', _('Most VIP captures'), ngettext_lazy('%d capture', '%d captures')),
@@ -747,7 +743,7 @@ class ServerDetailView(generic.DetailView):
         return super(ServerDetailView, self).dispatch(*args, **kwargs)
 
     def get_template_names(self, *args, **kwargs):
-        return [self.TEMPLATE_MODE % {'mode': self.object.status.gametype}, self.TEMPLATE_DEFAULT]
+        return [self.TEMPLATE_MODE % {'mode': self.status.gametype}, self.TEMPLATE_DEFAULT]
 
     def get(self, request, *args, **kwargs):
         try:
@@ -784,8 +780,12 @@ class ServerDetailView(generic.DetailView):
     def get_context_data(self, *args, **kwargs):
         context_data = super(ServerDetailView, self).get_context_data(*args, **kwargs)
 
-        # sort players by id
-        players = sorted(self.status.players, key=lambda player: player['id'])
+        # sort players by score, kills, arrests, -deaths
+        players = sorted(
+            self.status.players, 
+            key=lambda player: (player.get('score', 0), player.get('kills', 0), player.get('arrests', 0), -player.get('deaths', 0)),
+            reverse=True
+        )
 
         context_data.update({
             'FETCH_INTERVAL': self.FETCH_INTERVAL,
@@ -817,9 +817,9 @@ class ServerDetailAjaxView(ServerDetailView):
 
 
 class ProfileBaseView(AnnualViewMixin, generic.DetailView):
-    RECENT_TIME = 60*60*24*7
+    RECENT_TIME = 60*60*24
     RECENT_MAX = 50
-    RECENT_MAX_MAPS = 10
+    RECENT_MAX_MAPS = 5
 
     award_list = (
         (const.STATS_SPM, 
@@ -1016,7 +1016,7 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
                 if game.mapname != map_name:
                     map_name = game.mapname
                     map_count += 1
-                if map_count >= self.RECENT_MAX_MAPS:
+                if map_count > self.RECENT_MAX_MAPS:
                     break
                 recent.append(game)
             return recent
@@ -1077,7 +1077,7 @@ class ProfileDetailView(ProfileBaseView):
 
     def get_context_data(self, *args, **kwargs):
         stats = self.get_stats()
-        maps = self.get_maps()
+        maps = []  #self.get_maps()
 
         context_data = super(ProfileDetailView, self).get_context_data(*args, **kwargs)
         context_data.update({
@@ -1106,18 +1106,25 @@ class ProfileDetailView(ProfileBaseView):
                         % {'points': int(stats['top_kills'])}
                     )
                 ),
-                # (
-                #     _('Top Arrests'), 
-                #     self.get_best_game('arrests', stats['top_arrests']),
-                #     (ngettext_lazy('%(points)d arrest', '%(points)d arrests', int(stats['top_arrests'])) 
-                #         % {'points': int(stats['top_arrests'])}
-                #     )
-                # ),
+                (
+                    _('Top Arrests'), 
+                    self.get_best_game('arrests', stats['top_arrests']),
+                    (ngettext_lazy('%(points)d arrest', '%(points)d arrests', int(stats['top_arrests'])) 
+                        % {'points': int(stats['top_arrests'])}
+                    )
+                ),
                 (
                     _('Best Kill Streak'), 
                     self.get_best_game('kill_streak', stats['kill_streak']),
                     (ngettext_lazy('%(points)d kill in a row', '%(points)d kills in a row', int(stats['kill_streak'])) 
                         % {'points': int(stats['kill_streak'])}
+                    )
+                ),
+                (
+                    _('Best Arrest Streak'), 
+                    self.get_best_game('arrest_streak', stats['arrest_streak']),
+                    (ngettext_lazy('%(points)d arrest in a row', '%(points)d arrests in a row', int(stats['arrest_streak'])) 
+                        % {'points': int(stats['arrest_streak'])}
                     )
                 ),
             ),
@@ -1205,7 +1212,7 @@ class ProfileDetailView(ProfileBaseView):
 
     def get_max(self, *categories):
         "Return the max values for the K/D and S/M stats."
-        @cacheops.cached(timeout=60*60*12)
+        @cacheops.cached(timeout=60*60*24)
         def _get_max():
             return (models.Rank.objects
                 .filter(year=self.year)

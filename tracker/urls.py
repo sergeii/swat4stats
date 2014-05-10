@@ -31,11 +31,7 @@ urlpatterns = patterns('',
     # legacy profile url redirect page
     url(r'^player/(?P<name>.+)/$', views.ProfileRedirectView.as_view(), name='player'),
     # top 20
-    url(
-        r'^top/(?:(?P<year>\d{4})/)?$', 
-        views.TopListView.as_view(),
-        name='top'
-    ),
+    url(r'^top/(?:(?P<year>\d{4})/)?$', views.TopListView.as_view(), name='top'),
     # leaderboards
     url(
         r'^leaderboard/(?:(?P<year>\d{4})/)?(?:(?P<board_name>[\w]+)/)?$', 

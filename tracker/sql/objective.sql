@@ -1,1 +1,0 @@
-ALTER TABLE tracker_objective ALTER COLUMN id TYPE bigint;
