@@ -1,4 +1,5 @@
 Django
+IPy
 South
 Unipath
 django-aggregate-if
