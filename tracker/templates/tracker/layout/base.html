@@ -23,18 +23,17 @@
 
 <script type="text/javascript">
 {% block head_script %}
-document.playback.enabled = false;
-
-$(window).resize(function(){
-    document.scale();
-});
-
 $(document).ready(function(){
     document.scale();
 
     $('[placeholder]').placeholder('gray');
+
     $(document).on('click', '.sel-toggle-display', function(){
         $($(this).attr('data-target')).toggle();
+    });
+
+    $(window).resize(function(){
+        document.scale();
     });
 });
 {% endblock head_script %}
