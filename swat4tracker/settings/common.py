@@ -22,6 +22,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
 
     'south',
     'cacheops',
@@ -88,6 +90,8 @@ SECRET_KEY = 'gtnc%v99=-*!a@t+et@7tzc^20_y)z!swb9!nu0zn1)%om^x-z'
 
 ALLOWED_HOSTS = []
 INTERNAL_IPS = ()
+
+SITE_ID = 1
 
 ADMINS = (
     ('Sergei', 'kh.sergei@gmail.com'),
