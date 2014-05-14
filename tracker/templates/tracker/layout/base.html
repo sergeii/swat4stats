@@ -32,54 +32,6 @@ $(window).resize(function(){
 $(document).ready(function(){
     document.scale();
 
-    {% comment %}
-    /*
-    $('#toggle-sound').bind('click', function(e){
-        if (document.playback.enabled){
-           $('audio').each(function(){
-                this.pause();
-            });
-        }
-        else {
-            $('audio').each(function(){
-                if (typeof this.loop != 'undefined' && this.loop){
-                    this.play();
-                }
-                //this.currentTime = 0;
-            });
-        }
-        document.playback.enabled = !document.playback.enabled;
-        console.log('playback.enabled is now ' + document.playback.enabled);
-    });
-    */
-   /*
-    $(document).on('click', '.swat-sound-trigger', function(){
-        var src;
-        var self = $(this);
-        var href = self.attr('href');
-        var form = self.attr('data-form') ? $('#' + self.attr('data-form')) : null;
-
-        if (self.hasClass('swat-menu-heading')){
-            src = '{% static "sounds/gui/ui_MainButton1.ogg" %}';
-        }
-        else if (self.hasClass('swat-button-back')){
-            src = '{% static "sounds/gui/ui_BackButton1.ogg" %}';
-        }
-        else {
-            src = '{% static "sounds/gui/ui_BasicButton1.ogg" %}';
-        }
-        document.playback(src, {volume: '0.5'}, function(){
-            if (href){
-                window.location.href = href;
-            }
-            else if (form){
-                form.submit();
-            }
-        });
-        return form || href ? false : true;
-    });
-    */
-    {% endcomment %}
     $('[placeholder]').placeholder('gray');
     $(document).on('click', '.sel-toggle-display', function(){
         $($(this).attr('data-target')).toggle();
