@@ -3,23 +3,6 @@
 
 {% block title %}{% trans "Main" %}{% endblock %}
 
-{% block head_script %}
-{{ block.super }}
-$(document).ready(function(){
-    // start playing random chatter sounds
-    (function playChatter(){
-        var delay = (Math.floor(Math.random()*16)+12);  // play the next chatter in random seconds
-        setTimeout(function(){
-            var chatter = Math.floor(Math.random()*10);  // pick a random chatter from 0 to 10
-            document.playback('{% get_static_prefix %}sounds/chatter/radiochatter' + chatter + '.ogg', {volume: '0.3'});
-            console.log('Playing ' + chatter + ' now. Next in ' + delay + ' seconds.')
-            playChatter();
-        }, delay*1000);
-    })();
-    //document.playback('{% static "sounds/main.ogg" %}', {loop:'loop', volume: '0.1'});
-});
-{% endblock %}
-
 {% block swat_frame_content %}
 
 <div id="swat-menu">
