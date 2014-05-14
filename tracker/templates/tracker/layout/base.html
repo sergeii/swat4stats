@@ -1,4 +1,4 @@
-{% load i18n static tracker %}{% block document %}<!DOCTYPE html>
+{% load i18n static tracker %}{% block document %}{% spaceless %}<!DOCTYPE html>
 <html>
 {% block html %}
 <head>
@@ -95,4 +95,4 @@ $(document).ready(function(){
 </body>
 {% endblock html %}
 </html>
-{% endblock document %}
+{% endspaceless %}{% endblock document %}
