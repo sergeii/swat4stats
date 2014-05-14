@@ -90,7 +90,8 @@ class AnnualViewMixin(object):
         })
         return context_data
 
-    def get_min_year(self):
+    @classmethod
+    def get_min_year(cls):
         # cache untill tomorrow
         @cacheops.cached(timeout=(utils.tomorrow()-timezone.now()).seconds)
         def _get_min_year():
