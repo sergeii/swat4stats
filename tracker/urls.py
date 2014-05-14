@@ -7,9 +7,9 @@ from django.views import generic
 
 from . import views
 
-
 profile_urls = patterns('',
-    url(r'^$', views.ProfileDetailView.as_view(), name='profile_overview'),
+    url(r'^$', views.ProfileDetailView.as_view(), name='profile'),
+    url(r'^overview/$', views.ProfileDetailView.as_view(), name='profile_overview'),
     url(r'^equipment/$', views.ProfileWeaponListView.as_view(), name='profile_equipment'),
     url(r'^coop/$', views.ProfileCoopDetailView.as_view(), name='profile_coop'),
     url(r'^ranking/$', views.ProfileRankingListView.as_view(), name='profile_ranking'),
@@ -22,6 +22,7 @@ server_urls = patterns('',
 )
 
 urlpatterns = patterns('',
+    # main page
     url(r'^$', views.MainView.as_view(), name='main'),
     # profile page
     url(
