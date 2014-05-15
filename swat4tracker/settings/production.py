@@ -27,7 +27,7 @@ LOGGING = {
     },
     'handlers': {
         'error': {
-            'level': 'ERROR',
+            'level': 'WARNING',
             'class': 'logging.FileHandler',
             'filename': PATH_VENV.child('log', 'django.err.log'),
             'formatter': 'simple',
@@ -36,12 +36,12 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['error'],
-            'level': 'ERROR',
+            'level': 'WARNING',
             'propagate': True,
         },
         'tracker': {
             'handlers': ['error'],
-            'level': 'ERROR',
+            'level': 'WARNING',
             'propagate': True
         },
     },
