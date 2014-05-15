@@ -1,2 +1,3 @@
 User-agent: *
 Disallow: /admin
+Sitemap: http://swat4stats.com/sitemap.xml
