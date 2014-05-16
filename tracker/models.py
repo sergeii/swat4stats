@@ -196,7 +196,7 @@ class ServerStatusManager(object):
 
 class ServerStatus(GameMixin):
      # query field map -> instance field, coerce function
-    VARS_REQUIRED = {
+    vars_required = {
         'hostname': ('hostname', force_text),
         'gamename': (
             'gamevariant', 
@@ -218,7 +218,7 @@ class ServerStatus(GameMixin):
         'player_max': ('maxplayers', int),
     }
     # optional vars
-    VARS_OPTIONAL = {
+    vars_optional = {
         'time': ('timeleft', int),
         'rd_bombs_defused': ('bombsdefused', int),
         'rd_bombs_total': ('bombstotal', int),
@@ -229,17 +229,14 @@ class ServerStatus(GameMixin):
         'tocreports': ('tocreports', force_text),
         'weaponssecured': ('weaponssecured', force_text),
     }
-    # combine requried and optional params
-    VARS_ALL = dict(VARS_REQUIRED, **VARS_OPTIONAL)
-
     # instance.players list item variables
-    VARS_PLAYER_REQUIRED = {
+    vars_player_required = {
         'name': ('player', force_text),
         'score': ('score', int),
         'ping': ('ping', lambda n: max(0, min(999, int(n)))),
         'team': ('team', int),
     }
-    VARS_PLAYER_OPTIONAL = {
+    vars_player_optional = {
         'coop_status': ('coopstatus', int),
         'coop_status_translated': (
             'coopstatus', 
@@ -251,7 +248,10 @@ class ServerStatus(GameMixin):
         'arrested': ('arrested', int),
         'vip': ('vip', lambda value: bool(int(value))),
     }
-    VARS_PLAYER_ALL = dict(VARS_PLAYER_REQUIRED, **VARS_PLAYER_OPTIONAL)
+
+    # combine requried and optional params
+    vars_all = dict(vars_required, **vars_optional)
+    vars_player_all = dict(vars_player_required, **vars_player_optional)
 
     class ResponseError(Exception):
         pass
@@ -266,7 +266,7 @@ class ServerStatus(GameMixin):
         self.server = server
         self.date_updated = None
         # initialize response variables
-        for attr, (param, coerce) in six.iteritems(self.VARS_ALL):
+        for attr, (param, coerce) in six.iteritems(self.vars_all):
             setattr(self, attr, None)
         # query the server
         self.query()
@@ -324,15 +324,15 @@ class ServerStatus(GameMixin):
 
         If the server returns nothing or the sanity check fails, raise ResponseError.
         """
-        response = self.query_gamespy1_server(self.server.ip, self.server.port_gs1_default)
+        response = self.query_gamespy1_server(self.server.ip, self.server.port_gs1_default, self.timeout)
         if response:
             self.players = []
             self.objectives = []
             try:
                 # sanitize status params
-                for attr, (param, coerce) in six.iteritems(self.VARS_ALL):
+                for attr, (param, coerce) in six.iteritems(self.vars_all):
                     # update variables
-                    if param in self.VARS_REQUIRED or param in response:
+                    if param in self.vars_required or param in response:
                         # run the assotiated coerce function
                         value = coerce(response[param])
                         # update the attr with the coerced value
@@ -342,9 +342,9 @@ class ServerStatus(GameMixin):
                     item = {
                         'id': id,
                     }
-                    for attr, (param, coerce) in six.iteritems(self.VARS_PLAYER_ALL):
+                    for attr, (param, coerce) in six.iteritems(self.vars_player_all):
                         # required or optional
-                        if param in self.VARS_PLAYER_REQUIRED or param in player:
+                        if param in self.vars_player_required or param in player:
                             item[attr] = coerce(player[param])
                     # add the player to the list
                     self.players.append(item)
