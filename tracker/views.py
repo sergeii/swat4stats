@@ -1273,7 +1273,7 @@ class ProfileWeaponListView(ProfileBaseView):
         Example:
             {0: {'name': 0, 'kills': 123, ...}, 1: {...}, ...}
         """
-        @cacheops.cached(timeout=60*60, extra=(self.object.pk, self.year))
+        @cacheops.cached(timeout=60*60*24, extra=(self.object.pk, self.year))
         def _get_weapons():
             aggregated = self.object.aggregate_weapon_stats(
                 *models.Rank.get_period_for_year(self.year), 
@@ -1283,7 +1283,7 @@ class ProfileWeaponListView(ProfileBaseView):
         return _get_weapons()
 
     def get_favourite_loadout(self):
-        @cacheops.cached(timeout=60*60, extra=(self.object.pk, self.year))
+        @cacheops.cached(timeout=60*60*24, extra=(self.object.pk, self.year))
         def _get_favourite_loadout():
             return self.object.fetch_popular_loadout(year=self.year)
         return _get_favourite_loadout()
