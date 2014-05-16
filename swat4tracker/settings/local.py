@@ -6,8 +6,6 @@ from .common import *
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ('127.0.0.1',)
 
-INSTALLED_APPS = INSTALLED_APPS + ('stats',)
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -17,20 +15,8 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '5432',
         'OPTIONS': {},
-    },
-    'stats': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'swat4tracker1214',
-        'USER': 'swat4tracker',
-        'PASSWORD': 'swat4tracker',
-        'HOST': '127.0.0.1',
-        'OPTIONS': {},
     }
 }
-
-DATABASE_ROUTERS = (
-    'stats.router.Router',
-)
 
 LOGGING = {
     'version': 1,
@@ -68,11 +54,6 @@ LOGGING = {
             'handlers': ['debug'],
             'level': 'DEBUG',
             'propagate': True,
-        },
-        'stats7': {
-            'handlers': ['debug'],
-            'level': 'DEBUG',
-            'propagate': True
         },
         'tracker': {
             'handlers': ['debug', 'console'],
