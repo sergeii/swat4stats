@@ -859,7 +859,14 @@ class Player(models.Model):
 
     class Meta:
         # custom (HOST(ip), id DESC) index
-        pass
+        index_together = (
+            ('alias', 'score'), 
+            ('alias', 'kills'), 
+            ('alias', 'arrests'),
+            ('alias', 'kill_streak'),
+            ('alias', 'arrest_streak'),
+            #('alias', 'death_streak'),
+        )
 
     @property
     def profile(self):
