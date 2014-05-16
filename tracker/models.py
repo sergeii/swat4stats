@@ -252,6 +252,8 @@ class ServerStatus(GameMixin):
     # combine requried and optional params
     vars_all = dict(vars_required, **vars_optional)
     vars_player_all = dict(vars_player_required, **vars_player_optional)
+    # query timeout
+    timeout = 2
 
     class ResponseError(Exception):
         pass
@@ -378,13 +380,13 @@ class ServerStatus(GameMixin):
         raise self.ResponseError
 
     @staticmethod
-    def query_gamespy1_server(ip_addr, port):
+    def query_gamespy1_server(ip_addr, port, timeout):
         """
         Query a gamespy1 server using provided address details.
 
         If successful, attempt to parse players and COOP objectives.
         """
-        response = serverquery.gamespy1.Server(ip_addr, port).status()
+        response = serverquery.gamespy1.Server(ip_addr, port, timeout).status()
         if response:
             response['objectives'] = {}
             response['players'] = {}
