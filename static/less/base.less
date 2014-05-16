@@ -395,24 +395,25 @@ a:visited:hover {
         border-color: inherit;
         position: absolute;
         width: @button-symbol-width;
-        padding: 0 0.15em;
-        background-size: 1.25em auto;
-        background-position: center center;
+        margin: 0 0.2em;
+        background-size: auto @button-symbol-width;
         background-repeat: no-repeat;
 
         border-left: 0.15em solid;
         top: 0;
         right: 0;
-        background-image: url(../images/css/arrow_white_right.png);
+
+        background-position: 0 center;
+        background-image: url(../images/css/arrow_right.png);
     }
 
     &:hover:after {
-        background-image: url(../images/css/arrow_yellow_right.png);
+        background-position: -@button-symbol-width center;
     }
 
     &.inactive {
         &:after, &:hover:after {
-            background-image: url(../images/css/arrow_gray_right.png);
+            background-position: -2*@button-symbol-width center;
         }
     }
 }
@@ -426,34 +427,14 @@ a:visited:hover {
         right: none;
         border-left: none;
         border-right: 0.15em solid;
-        background-image: url(../images/css/arrow_white_left.png);
-    }
 
-    &:hover:after {
-        background-image: url(../images/css/arrow_yellow_left.png);
-    }
-
-    &.inactive {
-        &:after, &:hover:after {
-            background-image: url(../images/css/arrow_gray_left.png);
-        }
+        background-image: url(../images/css/arrow_left.png);
     }
 }
 
 .swat-button-cross:extend(.swat-button-arrow-right all){
     &:after {
-        background-image: url(../images/css/menu_exit_white.png);
-        background-size: 1em auto;
-    }
-
-    &:hover:after {
-        background-image: url(../images/css/menu_exit_yellow.png);
-    }
-
-    &.inactive {
-        &:after, &:hover:after {
-            background-image: url(../images/css/menu_exit_gray.png);
-        }
+        background-image: url(../images/css/menu_exit.png);
     }
 }
 
