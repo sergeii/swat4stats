@@ -98,6 +98,7 @@ class ServerSitemap(sitemaps.Sitemap):
 
 class ProfileSitemap(sitemaps.Sitemap):
     limit = 1000
+    changefreq = 'daily'
 
     def items(self):
         return models.Profile.objects.popular()
@@ -108,6 +109,7 @@ class ProfileSitemap(sitemaps.Sitemap):
 
 class GameSitemap(sitemaps.Sitemap):
     limit = 1000
+    changefreq = 'never'
 
     def items(self):
         return models.Game.objects.all()
