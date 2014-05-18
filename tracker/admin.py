@@ -131,6 +131,7 @@ class PlayerAdmin(admin.ModelAdmin):
 class ServerAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'enabled', 'listed', 'streamed')
     list_filter = ('enabled', 'listed', 'streamed')
+    search_fields = ('ip',)
     list_per_page = 50
 
 
