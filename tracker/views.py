@@ -247,16 +247,16 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.TemplateView):
             db.models.Max('kill_streak'), 
             lambda value: ngettext_lazy('%d kill', '%d kills') % value
         ),
-        (
-            _('Highest CO-OP Score'), 
-            db.models.Sum('game__coop_score'), 
-            lambda value: ngettext_lazy('%d points', '%d points') % value
-        ),
-        (
-            _('Highest CO-OP Playtime'), 
-            aggregate_if.Sum('time', only=Q(game__gametype__in=definitions.MODES_COOP)), 
-            lambda value: templatetags.humantime(value)
-        ),
+        # (
+        #     _('Highest CO-OP Score'), 
+        #     db.models.Sum('game__coop_score'), 
+        #     lambda value: ngettext_lazy('%d points', '%d points') % value
+        # ),
+        # (
+        #     _('Highest CO-OP Playtime'), 
+        #     aggregate_if.Sum('time', only=Q(game__gametype__in=definitions.MODES_COOP)), 
+        #     lambda value: templatetags.humantime(value)
+        # ),
     )
 
     def get_summary(self):
