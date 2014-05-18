@@ -367,7 +367,7 @@ class BoardListView(TopListView):
         # the url/context name is obtained with defitions.STATS dict
         [_('Score'), (
             (const.STATS_SCORE, _('Score'), 'int'),
-            (const.STATS_TIME, _('Time Played'), 'time'),
+            (const.STATS_TIME, _('Time Played'), 'hours'),
             (const.STATS_WINS, _('Wins'), 'int'),
             (const.STATS_SPM, _('Score/Minute'), 'ratio'),
             (const.STATS_SPR, _('Score/Round'), 'ratio'),
@@ -398,7 +398,7 @@ class BoardListView(TopListView):
         # )],
         [_('CO-OP'), (
             (const.STATS_COOP_SCORE, _('Score'), 'int'),
-            (const.STATS_COOP_TIME, _('Time Played'), 'time'),
+            (const.STATS_COOP_TIME, _('Time Played'), 'hours'),
             (const.STATS_COOP_GAMES, _('Missions Attempted'), 'int'),
             (const.STATS_COOP_WINS, _('Missions Completed'), 'int'),
             (const.STATS_COOP_ENEMY_ARRESTS, _('Suspects Arrested'), 'int'),
