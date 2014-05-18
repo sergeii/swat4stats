@@ -1513,3 +1513,60 @@ class ProfileRedirectView(generic.RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         return '%s?player=%s' % (reverse('tracker:search'), kwargs.get('name', ''))
+
+
+class APIMotdViewMixin(object):
+    # default values
+    time_initial = 60  # start displaying in 60 seconds after a map launch
+    time_repeat = 0  # display once
+
+    def get_context_data(self, *args, **kwargs):
+        # parse initial time
+        try:
+            time_initial = int(self.request.GET['initial'])
+            assert time_initial >= 0
+        except:
+            # set default value
+            time_initial = self.time_initial
+        # parse repeat time
+        try:
+            time_repeat = int(self.request.GET['repeat'])
+            assert time_repeat >= 0
+        except:
+            # set default
+            time_repeat = self.time_repeat
+
+        context_data = super(APIMotdViewMixin, self).get_context_data(*args, **kwargs)
+        context_data.update({
+            'time_initial': time_initial,
+            'time_repeat': time_repeat,
+        })
+        return context_data
+
+
+class APIMotdSummaryView(SummaryViewMixin, APIMotdViewMixin, generic.TemplateView):
+    template_name = 'tracker/api/motd/summary.html'
+
+    # borrow summary from MainView
+    summary = MainView.summary
+    get_summary = MainView.get_summary
+
+
+class APIMotdLeaderboardView(APIMotdViewMixin, BoardListView):
+    template_name = 'tracker/api/motd/leaderboard.html'
+    model = models.Rank
+    limit = 5
+
+    def get_queryset(self, *args, **kwargs):
+        return super(APIMotdLeaderboardView, self).get_queryset(*args, **kwargs)[:self.limit]
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super(APIMotdLeaderboardView, self).get_context_data(*args, **kwargs)
+        context_data.update({
+            'limit': self.limit,
+        })
+        return context_data
+
+    def get_default_board(self):
+        """Return a random leaderboard name."""
+        return random.choice(list(self.board_list))

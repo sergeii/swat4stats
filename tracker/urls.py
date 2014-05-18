@@ -21,11 +21,18 @@ server_urls = patterns('',
     url(r'^ajax/$', views.ServerDetailAjaxView.as_view(), name='server_ajax'),
 )
 
+api_urls = patterns('',
+    url(r'^motd/summary/$', views.APIMotdSummaryView.as_view()),
+    url(r'^motd/leaderboard/(?:(?P<board_name>[\w]+)/)?$', views.APIMotdLeaderboardView.as_view()),
+)
+
 urlpatterns = patterns('',
     # main page
     url(r'^$', views.MainView.as_view(), name='main'),
     # stream page
     url(r'^stream/$', views.StreamView.as_view(), name='stream'),
+    # stream page
+    url(r'^api/', include(api_urls)),
     # profile page
     url(
         r'^player/(?:(?P<year>\d{4})/)?(?:(?P<slug>[^/]+)/)?(?P<profile_id>\d+)/', 
