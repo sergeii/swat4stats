@@ -417,7 +417,7 @@ class BoardListView(TopListView):
         board_name = self.kwargs.get('board_name', None)
         # set default
         if not board_name:
-            board_name = self.board_name_default
+            board_name = self.get_default_board()
         # check the selected board name
         if board_name not in self.board_list:
             raise Http404
@@ -458,6 +458,9 @@ class BoardListView(TopListView):
 
     def get_objects(self):
         return {}
+
+    def get_default_board(self):
+        return self.board_name_default
 
 
 class GameListBaseView(FeaturedViewMixin, generic.ListView):
