@@ -24,6 +24,8 @@ server_urls = patterns('',
 urlpatterns = patterns('',
     # main page
     url(r'^$', views.MainView.as_view(), name='main'),
+    # stream page
+    url(r'^stream/$', views.StreamView.as_view(), name='stream'),
     # profile page
     url(
         r'^player/(?:(?P<year>\d{4})/)?(?:(?P<slug>[^/]+)/)?(?P<profile_id>\d+)/', 
@@ -56,7 +58,4 @@ urlpatterns = patterns('',
 
     # search page
     url(r'^search/$', views.PlayerSearchView.as_view(), name='search'),
-
-    # stream page
-    url(r'^stream/$', views.StreamView.as_view(), name='stream'),
 )
