@@ -52,6 +52,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request', 
 
     'tracker.context_processors.current_view', 
+    'tracker.context_processors.current_site', 
 )
 
 TEMPLATE_LOADERS = (

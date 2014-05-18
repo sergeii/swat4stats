@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import)
+from __future__ import unicode_literals, absolute_import
+
+from django.contrib.sites.models import Site
 
 
 def current_view(request):
@@ -11,3 +13,7 @@ def current_view(request):
                 (request.resolver_match.func.__module__, request.resolver_match.func.__name__),
         }
     return {}
+
+
+def current_site(request):
+    return {'current_site': Site.objects.get_current()}
