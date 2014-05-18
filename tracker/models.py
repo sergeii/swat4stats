@@ -1253,7 +1253,7 @@ class ProfileManager(models.Manager):
 
 @python_2_unicode_compatible
 class Profile(models.Model):
-    TIME_RECENT = 3600*24*90
+    TIME_RECENT = 3600*24*30*6
     TIME_POPULAR = 3600*24*7
     MIN_KILLS = 500   # min kills required for kd ratio calculation
     MIN_TIME = 60*60*10  # min time for score per minute and other time-based ratio
