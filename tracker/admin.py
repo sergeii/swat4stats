@@ -80,7 +80,7 @@ class AliasInline(admin.TabularInline):
 
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('name', 'country', 'last_seen', 'alias_count', 'player_count',)
-    search_fields = ('name',)
+    search_fields = ('name', 'alias__name')
     readonly_fields = ('loadout', 'game_first', 'game_last',)
     list_per_page = 20
     inlines = [AliasInline]
