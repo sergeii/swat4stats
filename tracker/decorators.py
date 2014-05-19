@@ -33,7 +33,8 @@ def requires_valid_request(pattern_node):
         def wrapped(request, *args, **kwargs):
             from .views import StreamView
             # parse the body
-            qs = QueryString().parse(force_text(request.body))
+            body = force_text(request.body)
+            qs = QueryString().parse(body)
             # expand querystring with either method
             qs = (QueryString.expand_dots if any('.' in key for key in qs) else QueryString.expand_array)(qs)
             try:
@@ -46,8 +47,9 @@ def requires_valid_request(pattern_node):
                     request, StreamView.STATUS_ERROR, _('Unable to parse data (%(message)s).') % {'message': e}
                 )
             else:
-                # set a request attribute
+                # set request attributes
                 setattr(request, 'stream_data', data)
+                setattr(request, 'stream_data_raw', body)
                 return view(request, *args, **kwargs)
         return wrapped
     return decorator

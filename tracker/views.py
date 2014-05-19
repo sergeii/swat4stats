@@ -204,7 +204,14 @@ class StreamView(generic.View):
         logger.debug('receieved stream data from {}:{}'
             .format(request.stream_source.ip, request.stream_source.port)
         )
-        stream_data_received.send(sender=None, data=request.stream_data, server=request.stream_source)
+        # emit a signal
+        stream_data_received.send(
+            sender=None, 
+            data=request.stream_data, 
+            server=request.stream_source, 
+            # attach raw http message body
+            raw=request.stream_data_raw
+        )
         return StreamView.status(request, StreamView.STATUS_OK)
 
     def get(self, request):

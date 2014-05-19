@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 query_status_received = Signal(providing_args=['server', 'status'])
 query_status_failed = Signal(providing_args=['server'])
-stream_data_received = Signal(providing_args=['data', 'server'])
+stream_data_received = Signal(providing_args=['data', 'server', 'raw'])
 stream_data_saved = Signal(providing_args=['data', 'server', 'game', 'players'])
 
 
