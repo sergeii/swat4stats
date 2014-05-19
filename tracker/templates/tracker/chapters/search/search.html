@@ -32,7 +32,7 @@
 
     <div class="float">
         {% if object_list %}
-        <div id="player-search-list" class="left">
+        <div class="swat-chapter-pane width70">
 
             {% if page_obj.paginator.num_pages > 1 %}
             <div class="right space-bottom">
@@ -42,7 +42,7 @@
 
             <div class="swat-box bordered width100">
                 <div class="inner">
-                    <div class="swat-table width100">
+                    <div id="player-search-list" class="swat-table width100">
                     <div class="table-header">
                         <div class="left">{% trans "Player" %}</div>
                         <div></div>
@@ -74,8 +74,8 @@
             
         </div>
         {% endif %}
+        
     </div>
-
     {% endblock swat_frame_content %}
 </div>
 {% endblock swat_frame %}
