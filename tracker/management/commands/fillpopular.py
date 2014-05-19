@@ -33,7 +33,7 @@ class Command(BaseCommand):
             else:
                 models.Profile.TIME_POPULAR = seconds
 
-        for profile in models.Profile.objects.select_related('game_first', 'game_last', 'loadout'):
+        for profile in models.Profile.objects.select_related('game_first', 'game_last', 'loadout').order_by('pk'):
             if not options['skip_extreme']:
                 try:
                     game_first, game_last = self.get_extreme_games(profile)
