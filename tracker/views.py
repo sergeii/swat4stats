@@ -151,8 +151,8 @@ class SummaryViewMixin(object):
             return None
 
 
-class FeaturedViewMixin(object):
-    sample = 500
+class FeaturedViewMixin(AnnualViewMixin):
+    sample = 200
     limit = 10
 
     def get_context_data(self, *args, **kwargs):
@@ -163,14 +163,18 @@ class FeaturedViewMixin(object):
         return context_data
 
     def get_featured_games(self):
+        # get current/past year's extreme dates
+        start, end = models.Rank.get_period_for_year(self.year)
+        # get random offset
+        offset = random.randint(0, self.sample)
+
         qs = (models.Game.objects
             .extra(
                 select={'score_total': 'score_swat + score_sus'}, 
                 order_by=('-score_total',)
             )
+            .filter(date_finished__gte=start, date_finished__lte=end)
         )
-        # get random offset
-        offset = random.randint(0, self.sample)
         return qs[offset:offset+self.limit]
 
 
