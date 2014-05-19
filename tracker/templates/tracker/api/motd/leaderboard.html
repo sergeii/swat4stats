@@ -2,7 +2,7 @@
 [c=FFA500]{{ current_site.name }} [b]-[\b] {% blocktrans with category=board.title count limit=limit %}Best player by {{ category }}{% plural %}TOP {{ limit }} by {{ category }}{% endblocktrans %}
 {% for rank in object_list %}
 {{ time_initial|add:forloop.counter }}	{{ time_repeat }}
-[c=FFFFFF]#{{ forloop.counter }} [c=555555]- [c=FFFF00][b]{{ rank.profile.name|truncatechars:30|safe }}[\b] [c=555555]- [c=FFFFFF]{{ rank.points|valueformat:board.type }}
+[c=FFFFFF]#{{ forloop.counter }} [c=555555]- [c=FFFF00][b]{{ rank.profile.name|truncatechars:30 }}[\b] [c=555555]- [c=FFFFFF]{{ rank.points|valueformat:board.type }}
 {% endfor %}
 {% with count=page_obj.paginator.count %}{{ time_initial|add:count|add:1 }}	{{ time_repeat }}{% endwith %}
 [c=FFA500]{% blocktrans with domain=current_site.domain %}Feel free to visit {{ domain }} to see more{% endblocktrans %}{% endif %}

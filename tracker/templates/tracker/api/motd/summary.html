@@ -2,7 +2,7 @@
 [c=FFA500]{{ current_site.name }} [b]-[\b] {{ summary.title }}
 {% for object in summary.object_list %}
 {{ time_initial|add:forloop.counter }}	{{ time_repeat }}
-[c=FFFFFF]{{ object.title }} [c=555555]- [c=FFFF00][b]{{ object.profile.name|truncatechars:30|safe }}[\b]
+[c=FFFFFF]{{ object.title }} [c=555555]- [c=FFFF00][b]{{ object.profile.name|truncatechars:30 }}[\b]
 {% endfor %}
 {% with count=summary.object_list|length %}{{ time_initial|add:count|add:1 }}	{{ time_repeat }}{% endwith %}
 [c=FFA500]{% blocktrans with domain=current_site.domain %}Feel free to visit {{ domain }} to see more{% endblocktrans %}{% endif %}
