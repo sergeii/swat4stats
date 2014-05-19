@@ -67,14 +67,14 @@ class ISPAdmin(admin.ModelAdmin):
 class AliasAdmin(admin.ModelAdmin):
     list_display = ('name', 'isp')
     search_fields = ('name', 'isp__name')
-    readonly_fields = ('isp',)
+    readonly_fields = ('profile', 'isp',)
     list_per_page = 20
 
 
 class AliasInline(admin.TabularInline):
     model = models.Alias
-    fields = ('name', 'isp')
-    readonly_fields = ('isp',)
+    fields = ('name', 'profile', 'isp')
+    readonly_fields = ('profile', 'isp',)
     extra = 0
 
 
