@@ -1165,12 +1165,7 @@ class ProfileManager(models.Manager):
             min_date = timezone.now() - datetime.timedelta(seconds=self.model.TIME_RECENT)
             kwargs['player__game__date_finished__gte'] = min_date
         # limit query in case of a lookup different from name+ip pair
-        return (queryset.select_related('profile')
-            .filter(**kwargs)
-            # get the most recent entry
-            .order_by('-player__pk')[0:1]
-            .get()
-        ).profile
+        return queryset.select_related('profile').filter(**kwargs)[0:1].get().profile
 
     def match_recent(self, **kwargs):
         return self.match(recent=True, **kwargs)
