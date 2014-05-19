@@ -216,6 +216,9 @@ class StreamView(generic.View):
 class MainView(SummaryViewMixin, FeaturedViewMixin, generic.TemplateView):
     template_name = 'tracker/chapters/main/main.html'
 
+    # featured game limit
+    limit = 20
+
     summary = (
         (
             _('Highest Score'), 
