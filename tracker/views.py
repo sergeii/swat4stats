@@ -1551,6 +1551,7 @@ class APIMotdViewMixin(object):
         context_data.update({
             'time_initial': time_initial,
             'time_repeat': time_repeat,
+            'nodelay': ('nodelay' in self.request.GET),
         })
         return context_data
 
