@@ -17,35 +17,19 @@ DATABASES = {
     },
 }
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'simple': {
-            'format': '[%(levelname)s - %(filename)s:%(lineno)s - %(funcName)s()] - %(message)s'
-        },
+LOGGING['handlers'].update({
+    'django': {
+        'level': 'WARNING',
+        'class': 'logging.FileHandler',
+        'filename': PATH_VENV.child('log', 'django.log'),
+        'formatter': 'simple',
     },
-    'handlers': {
-        'error': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': PATH_VENV.child('log', 'django.err.log'),
-            'formatter': 'simple',
-        },
+    'stream': {
+        'level': 'INFO',
+        'class': 'logging.FileHandler',
+        'filename': PATH_VENV.child('log', 'stream.log'),
     },
-    'loggers': {
-        'django': {
-            'handlers': ['error'],
-            'level': 'WARNING',
-            'propagate': True,
-        },
-        'tracker': {
-            'handlers': ['error'],
-            'level': 'WARNING',
-            'propagate': True
-        },
-    },
-}
+})
 
 STATIC_ROOT = Path('/var/www/static/swat4tracker/')
 MEDIA_ROOT = Path('/var/www/media/swat4tracker/')

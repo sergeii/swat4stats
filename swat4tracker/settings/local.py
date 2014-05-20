@@ -18,50 +18,37 @@ DATABASES = {
     }
 }
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'simple': {
-            'format': '[%(levelname)s - %(filename)s:%(lineno)s - %(funcName)s()] - %(message)s'
-        },
+LOGGING['handlers'].update({
+    'django': {
+        'level': 'WARNING',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join('/tmp', '%s_debug.log' % PATH_PROJECT.name),
+        'formatter': 'simple',
     },
-    'handlers': {
-        'debug': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join('/tmp', 'debug.log'),
-            'formatter': 'simple',
-        },
-        'sql': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join('/tmp', 'sql.log'),
-        },
-        'console':{
-            'level': 'ERROR',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
+    'sql': {
+        'level': 'WARNING',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join('/tmp', '%s_sql.log' % PATH_PROJECT.name),
     },
-    'loggers': {
-        'django.db.backends': {
-            'handlers': ['sql'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-        'django': {
-            'handlers': ['debug'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'tracker': {
-            'handlers': ['debug', 'console'],
-            'level': 'DEBUG',
-            'propagate': True
-        },
+    'console': {
+        'level': 'DEBUG',
+        'class': 'logging.StreamHandler',
+        'formatter': 'simple',
     },
-}
+    'stream': {
+        'level': 'INFO',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join('/tmp', '%s_stream.log' % PATH_PROJECT.name),
+    },
+})
+
+LOGGING['loggers'].update({
+    'django.db.backends': {
+        'handlers': ['sql'],
+        'level': 'DEBUG',
+        'propagate': False,
+    },
+})
 
 CACHES['default'] = {
     'BACKEND': 'redis_cache.cache.RedisCache',

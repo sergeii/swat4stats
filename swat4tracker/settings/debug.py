@@ -10,23 +10,7 @@ TEMPLATE_DEBUG = True
 INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 MIDDLEWARE_CLASSES = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDDLEWARE_CLASSES
 
-LOGGING['handlers'].update({
-    'debug': {
-        'level': 'DEBUG',
-        'class': 'logging.FileHandler',
-        'filename': os.path.join('/tmp', 'debug.log'),
-        'formatter': 'simple',
-    },
-    'sql': {
-        'level': 'DEBUG',
-        'class': 'logging.FileHandler',
-        'filename': os.path.join('/tmp', 'sql.log'),
-    },
-    'console':{
-        'level': 'DEBUG',
-        'class': 'logging.StreamHandler',
-        'formatter': 'simple',
-    },
-})
+LOGGING['handlers']['django']['level'] = 'DEBUG'
+LOGGING['handlers']['sql']['level'] = 'DEBUG'
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False

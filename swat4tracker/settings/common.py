@@ -111,6 +111,36 @@ CACHES = {
     },
 }
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '[%(levelname)s - %(filename)s:%(lineno)s - %(funcName)s()] - %(message)s'
+        },
+    },
+    'handlers': {
+        # implement django and stream handlers
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['django'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'tracker': {
+            'handlers': ['django'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
+        'stream': {
+            'handlers': ['stream'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+    },
+}
+
 CACHEOPS = {
     #'auth.user': ('get', 60*15),
     #'auth.*': ('all', 60*60),
