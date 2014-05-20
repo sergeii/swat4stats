@@ -65,7 +65,7 @@
         <div id="main-featured-games" class="swat-box">
             <div class="header">{% trans "Featured Games" %}</div>
             <div class="inner swat-game-list">
-                {% for game in featured %}{% show_game game game.date_finished|naturalday %}{% endfor %}
+                {% for game in featured %}{% show_game game %}{% endfor %}
             </div>
         </div>
         {% endif %}
