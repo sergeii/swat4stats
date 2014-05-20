@@ -173,3 +173,9 @@ def save_game(sender, data, server, **kwargs):
                 players.append(player)
     # emit a signal
     stream_data_saved.send(sender=None, data=data, server=server, game=game, players=players)
+
+
+@receiver(stream_data_received)
+def log_game(sender, raw, **kwargs):
+    """Save raw stream data into a log file."""
+    logging.getLogger('stream').info(raw)
