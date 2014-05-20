@@ -45,6 +45,21 @@ $(document).ready(function(){
 
 {% block swat_chapter_title %}{% trans "Servers" %}{% endblock %}
 
+{% block swat_chapter_message %}
+<div class="ad-server">
+{% if not debug %}
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-8486650912954327"
+     data-ad-slot="6213411077"
+     data-ad-format="auto"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+{% else %}
+<img src="http://pagead2.googlesyndication.com/simgad/14536766770096069896" />
+{% endif %}
+</div>
+{% endblock swat_chapter_message %}
+
 {% block swat_chapter_content %}
 <div id="server-list" class="swat-server-table">
 {% block server_list  %}
