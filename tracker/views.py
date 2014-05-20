@@ -478,7 +478,7 @@ class BoardListView(TopListView):
 
 
 class GameListBaseView(FeaturedViewMixin, generic.ListView):
-    limit = 10
+    limit = 5
 
 
 class GameListView(FilterViewMixin, GameListBaseView):
