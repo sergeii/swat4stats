@@ -139,7 +139,7 @@ class SummaryViewMixin(object):
         if now.day >= 25:
             return (_('Monthly Summary'), month, now)
         # display past month summary
-        elif now.day <= 1:
+        elif now.day <= 5:
             return (_('Monthly Summary'), month-relativedelta(months=1), now)
         # display current week summary
         elif weekday >= 4:
