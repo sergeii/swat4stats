@@ -6,7 +6,7 @@ from .local import *
 DEBUG = True
 TEMPLATE_DEBUG = True
 
-#INTERNAL_IPS = INTERNAL_IPS + ('192.168.1.10', '192.168.1.20')
+INTERNAL_IPS = INTERNAL_IPS + ('192.168.1.10', '192.168.1.20')
 INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 MIDDLEWARE_CLASSES = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDDLEWARE_CLASSES
 
