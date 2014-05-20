@@ -1019,21 +1019,18 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
         @cacheops.cached(timeout=60*5, extra=self.object.pk)
         def _get_recent_games():
             recent = []
-            map_count = 0
-            map_name = None
             min_date = self.object.game_last.date_finished - datetime.timedelta(seconds=self.RECENT_TIME)
             games = (self.get_games()
-                .filter(date_finished__gte=min_date, date_finished__lte=self.object.game_last.date_finished)
+                .filter(date_finished__gte=min_date)
                 .order_by('-date_finished')
             )[:self.RECENT_MAX]
-            # attempt to limit the number of displayed games by a number of maps
+            # limit by number of maps
+            maps = set()
             for game in games:
-                if game.mapname != map_name:
-                    map_name = game.mapname
-                    map_count += 1
-                if map_count > self.RECENT_MAX_MAPS:
-                    break
+                maps.add(game.mapname)
                 recent.append(game)
+                if len(maps) >= self.RECENT_MAX_MAPS:
+                    break
             return recent
         return _get_recent_games()
 
