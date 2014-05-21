@@ -1009,7 +1009,11 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
 
     def get_games(self):
         """Return a queryset of profile related games sorted by id in descending order."""
-        return models.Game.objects.filter(player__alias__profile=self.object)
+        return (models.Game.objects
+            .filter(player__alias__profile=self.object)
+            .order_by('-date_finished')
+            .distinct('pk', 'date_finished')
+        )
 
     def get_recent_games(self):
         """
@@ -1020,10 +1024,7 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
         def _get_recent_games():
             recent = []
             min_date = self.object.game_last.date_finished - datetime.timedelta(seconds=self.RECENT_TIME)
-            games = (self.get_games()
-                .filter(date_finished__gte=min_date)
-                .order_by('-date_finished')
-            )[:self.RECENT_MAX]
+            games = self.get_games().filter(date_finished__gte=min_date)[:self.RECENT_MAX]
             # limit by number of maps
             maps = set()
             for game in games:
@@ -1458,7 +1459,6 @@ class ProfileHistoryListView(ProfileBaseView, generic.list.MultipleObjectMixin):
         # for paginator
         self.object_list = (self.get_games()
             .filter(date_finished__gte=start, date_finished__lte=end)
-            .order_by('-date_finished')
         )
         context_data = super(ProfileHistoryListView, self).get_context_data(*args, **kwargs)
         return context_data
