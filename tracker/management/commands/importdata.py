@@ -6,11 +6,13 @@ import sys
 import datetime
 
 from django.core.management.base import BaseCommand, CommandError
+from django.core.exceptions import ObjectDoesNotExist
 from django import db
 from django.utils import timezone
 
 import mock
 from julia import shortcuts, node
+from julia.parse import QueryString
 from cacheops.invalidation import invalidate_all
 
 from tracker.models import Server
@@ -25,8 +27,9 @@ class InvalidServer(Exception):
 class Command(BaseCommand):
 
     servers = {
-        '-==MYT Team Svr==-': models.Server.objects.get_or_create(ip='81.19.209.212', port=10480, defaults={'enabled': True, 'key': 'foo'})[0],
-        '-==MYT Co-op Svr==-': models.Server.objects.get_or_create(ip='81.19.209.212', port=10880, defaults={'enabled': True, 'key': 'bar'})[0],
+        '-==MYT Team Svr==-': models.Server.objects.get_or_create(ip='81.19.209.212', port=10480)[0],
+        '-==MYT Co-op Svr==-': models.Server.objects.get_or_create(ip='81.19.209.212', port=10880)[0],
+        '[C=EF2929]||ESA|| [C=A90E0E]Starship! [C=ffffff]2VK=Kick!': models.Server.objects.get_or_create(ip='193.192.58.147', port=10480)[0],
     }
 
     def handle(self, *args, **options):
@@ -46,12 +49,23 @@ class Command(BaseCommand):
 
 
     def parse_line(self, line):
-        querystring = shortcuts.julia_v1(line)
+        qs = QueryString().parse(line)
+        # expand querystring with either method
+        qs = (QueryString.expand_dots if any('.' in key for key in qs) else QueryString.expand_array)(qs)
         try:
-            data = stream_pattern_node.parse(querystring)
+            data = stream_pattern_node.parse(qs)
         except node.ValueNodeError as e:
             self.stdout.write(str(e))
         else:
+
+            try:
+                models.Game.objects.get(tag=data['tag'].value)
+            except ObjectDoesNotExist:
+                pass
+            else:
+                self.stdout.write('%s exists' % data['tag'].value)
+                return
+
             try:
                 round_date = self.parse_datetime(data['timestamp'].value)
                 with mock.patch.object(timezone, 'now') as mock_now:
@@ -59,7 +73,7 @@ class Command(BaseCommand):
                     # fix distance
                     self.fix_distance(data)
                     # emit signal
-                    stream_data_received.send(sender=None, data=data, server=self.servers[data['hostname'].value])
+                    stream_data_received.send(sender=None, data=data, server=self.servers[data['hostname'].value], raw=line)
             except (db.utils.IntegrityError, KeyError) as e:
                 self.stdout.write(str(e))
             else:
