@@ -87,8 +87,6 @@ TIME_FORMAT = 'H:i'
 ROOT_URLCONF = 'swat4tracker.urls'
 WSGI_APPLICATION = 'swat4tracker.wsgi.application'
 
-SECRET_KEY = 'gtnc%v99=-*!a@t+et@7tzc^20_y)z!swb9!nu0zn1)%om^x-z'
-
 ALLOWED_HOSTS = []
 INTERNAL_IPS = ()
 
