@@ -3,3 +3,5 @@
 10 * * * * /home/www_swat4tracker/bin/python /home/www_swat4tracker/app/manage.py cron_update_popular "60*60*2"
 20 */6 * * * /home/www_swat4tracker/bin/python /home/www_swat4tracker/app/manage.py cron_update_ranks "60*60*12"
 30 */6 * * * /home/www_swat4tracker/bin/python /home/www_swat4tracker/app/manage.py cron_update_positions
+# update past year positions on jan, 1
+0 0 1 1 * /home/www_swat4tracker/bin/python /home/www_swat4tracker/app/manage.py cron_update_positions "-1"
