@@ -12,7 +12,7 @@ DATABASES = {
         'PORT': '5432',
         'NAME': 'swat4tracker',
         'USER': 'swat4tracker',
-        'PASSWORD': 'eXaYXS0z0U1aR66X',
+        'PASSWORD': 'swat4tracker',
         'OPTIONS': {},
     },
 }
