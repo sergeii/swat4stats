@@ -9,9 +9,9 @@ django-redis
 mock
 psycopg2
 python-dateutil
--e git+git@swat4stats.com:python/python-julia.git#egg=python-julia
--e git+git@swat4stats.com:python/python-serverquery.git#egg=python-serverquery
--e git+git@swat4stats.com:python/python-whois.git#egg=python-whois
+-e git+https://github.com/sergeii/python-julia.git#egg=python-julia
+-e git+https://github.com/sergeii/python-serverquery.git#egg=python-serverquery
+-e git+https://github.com/sergeii/python-whois.git#egg=python-whois
 pytz
 redis
 requests
