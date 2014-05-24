@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import)
 
+import logging
 from functools import partial
 import six
 
@@ -9,6 +10,7 @@ from julia import node, shortcuts
 
 from . import const
 
+logger = logging.getLogger(__name__)
 
 # aquire a stream pattern node that will live in memory 
 # and will be available application wide
