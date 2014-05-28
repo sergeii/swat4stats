@@ -6,6 +6,9 @@ from .common import *
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ('127.0.0.1',)
 
+STATIC_ROOT = PATH_VENV.child('static')
+MEDIA_ROOT = PATH_VENV.child('media')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
