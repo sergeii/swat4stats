@@ -28,6 +28,7 @@ INSTALLED_APPS = (
     'south',
     'cacheops',
     'django_countries',
+    'compressor',
     
     'tracker',
 )
@@ -62,7 +63,8 @@ TEMPLATE_LOADERS = (
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder', 
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder'
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
 )
 
 TEMPLATE_DIRS = (
@@ -145,3 +147,20 @@ CACHEOPS = {
     #'*.*': ('count', 60*15),
     'tracker.*': ('just_enable', None),
 }
+
+COMPRESS_ENABLED = True
+COMPRESS_OUTPUT_DIR = ''
+
+COMPRESS_CSS_FILTERS = (
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.datauri.CssDataUriFilter',
+    'compressor.filters.cssmin.CSSMinFilter',
+)
+
+COMPRESS_PRECOMPILERS = (
+    ('text/coffeescript', 'coffee --compile --stdio'),
+    ('text/less', 'lessc {infile} {outfile}'),
+)
+
+# only data-encode small files
+COMPRESS_DATA_URI_MAX_SIZE = 1024*5

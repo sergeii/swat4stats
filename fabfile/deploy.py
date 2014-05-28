@@ -68,6 +68,7 @@ def convert_to_south():
 @roles('backend')
 def collectstatic():
     backend.managepy('collectstatic --noinput')
+    backend.managepy('compress')
 
 
 @task

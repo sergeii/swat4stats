@@ -1,4 +1,4 @@
-{% load i18n static tracker %}{% block document %}{% spaceless %}<!DOCTYPE html>
+{% load i18n static tracker compress %}{% block document %}{% spaceless %}<!DOCTYPE html>
 <html>
 {% block html %}
 
@@ -10,11 +10,17 @@
 <meta http-equiv="content-type" content="text/html;charset=utf-8">
 <link rel="shortcut icon" href="{% static "favicon.ico" %}">
 <title>{% block head_title %}{% block title %}{% trans "Undefined" %}{% endblock title %} &middot; {% trans "SWAT4 Stats Tracker" %}{% endblock head_title %}</title>
+
+{% compress css %}
 <link rel="stylesheet" type="text/css" href="{% static "css/reset.css" %}">
-{% if not debug %}<link rel="stylesheet" type="text/css" href="{% static "css/base.css" %}">{% endif %}
 <link rel="stylesheet" type="text/css" href="{% static "css/fonts.css" %}">
+<link rel="stylesheet" type="text/less" href="{% static "less/base.less" %}" />
+{% endcompress %}
+
+{% compress js %}
 <script type="text/javascript" src="{% static "js/jquery-1.9.1.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/base.js" %}"></script>
+{% endcompress %}
 
 {% if debug %}
 <link rel="stylesheet/less" type="text/css" href="{% static "less/base.less" %}" />

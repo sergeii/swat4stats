@@ -64,3 +64,5 @@ CACHEOPS_REDIS = {
     'db': 2,
     'socket_timeout': 3,
 }
+
+COMPRESS_OFFLINE = False

@@ -43,3 +43,5 @@ CACHEOPS_REDIS = {
     'unix_socket_path': '/var/run/redis/redis.sock',
     'db': 2,
 }
+
+COMPRESS_OFFLINE = True
