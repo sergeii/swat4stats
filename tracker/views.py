@@ -1024,7 +1024,10 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
         def _get_recent_games():
             recent = []
             min_date = self.object.game_last.date_finished - datetime.timedelta(seconds=self.RECENT_TIME)
-            games = self.get_games().filter(date_finished__gte=min_date)[:self.RECENT_MAX]
+            games = (self.get_games()
+                .filter(date_finished__gte=min_date)
+                .order_by('-pk')
+            )[:self.RECENT_MAX]
             # limit by number of maps
             maps = set()
             for game in games:
