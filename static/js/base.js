@@ -32,8 +32,7 @@ jQuery.prototype.placeholder = function(cls){
 }
 
 jQuery.prototype.popup = function(selector, callback){
-    var obj = this;
-    var self = $(obj);
+    var self = this;
     // hide and align the element
     self.hide(0, function(){
         self.css({
@@ -47,7 +46,7 @@ jQuery.prototype.popup = function(selector, callback){
     $(document).on('click', selector, function(){
         self.toggle(0, function(){
             if (callback){
-                callback.call(obj);
+                callback.call(self);
             }
         });
     });

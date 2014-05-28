@@ -5,7 +5,7 @@
 {{ block.super }}
 $(document).ready(function(){
     $('#swat-search-window').popup('.sel-search-open', function(){
-        $(this).find('input').focus();
+        this.find('input').focus();
     });
 });
 {% endblock head_script %}
