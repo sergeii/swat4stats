@@ -1609,7 +1609,7 @@ class APIWhoisView(generic.View):
         return HttpResponse('\n'.join(list(filter(None, [code, command, message]))))
 
     # limit request rate to the whois api
-    @method_decorator(ratelimit(rate='5/m', block=True))
+    @method_decorator(ratelimit(rate='5/m', block=False))
     @method_decorator(decorators.requires_valid_source)
     @method_decorator(decorators.requires_valid_request(pattern_node))
     def dispatch(self, *args, **kwargs):
@@ -1619,7 +1619,13 @@ class APIWhoisView(generic.View):
         self.command_name = self.request.stream_data['command'].value
 
         try:
+
+            # annotate request rate limit block reason
+            if getattr(request, 'limited', False):
+                raise self.CommandError(_('Request rate limit exceeded'))
+
             context_data = self.get_context_data()
+
         except self.CommandError as e:
             # respond with an error code
             return self.status(request, '1', request.stream_data['command_id'].value, str(e))
