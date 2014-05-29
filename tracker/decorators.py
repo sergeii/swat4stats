@@ -32,8 +32,8 @@ def requires_valid_request(pattern_node):
         @wraps(view)
         def wrapped(request, *args, **kwargs):
             from .views import StreamView
-            # parse the body
-            body = force_text(request.body)
+            # parse request string (either POST body or GET querystring)
+            body = force_text(request.body if request.method == 'POST' else request.META['QUERY_STRING'])
             qs = QueryString().parse(body)
             # expand querystring with either method
             qs = (QueryString.expand_dots if any('.' in key for key in qs) else QueryString.expand_array)(qs)
