@@ -95,7 +95,9 @@ class ServerStatusManager(object):
                 return list(self.get_values(keys))
             # fetch the first item
             try:
-                return next(self.get_values(keys))
+                # iter because get_values may return a list or a dictview
+                # depending on the python version
+                return next(iter(self.get_values(keys)))
             except StopIteration:
                 return None
 
@@ -151,7 +153,6 @@ class ServerStatusManager(object):
         return list(self)
 
     def get_values(self, keys):
-        # sort the values by given params
         return redis.get_many(keys).values()
 
     def get_cache_key_pattern(self):
