@@ -24,9 +24,12 @@ from django.utils import timezone, timesince
 from django.contrib.humanize.templatetags import humanize
 from django.views.decorators.cache import never_cache
 from django.db.models import Q
+from django.template.loader import render_to_string
+from django.template.context import RequestContext
 import aggregate_if
 import cacheops
 from julia import shortcuts
+from brake.decorators import ratelimit
 
 from .signals import stream_data_received
 from . import decorators, models, forms, definitions, utils, const, templatetags
@@ -1581,3 +1584,102 @@ class APIMotdLeaderboardView(APIMotdViewMixin, BoardListView):
     def get_default_board(self):
         """Return a random leaderboard name."""
         return random.choice(list(self.board_list))
+
+
+class APIWhoisView(generic.View):
+    template_name = 'tracker/api/whois/%(command)s.html'
+    pattern_node = shortcuts.parse_pattern(const.WHOIS_PATTERN)
+
+    command_name = None
+
+    class CommandError(Exception):
+        pass
+
+
+    @staticmethod
+    def status(request, code, command, message=None):
+        """
+        Return an integer status code and command id followed by an optional message.
+        The response components are delimited with a newline.
+
+        Example:
+            0\nGBAh1La\n127.0.0.1 belongs to localhost
+            1\nNbaY1hd\nInvalid IP address
+        """
+        return HttpResponse('\n'.join(list(filter(None, [code, command, message]))))
+
+    # limit request rate to the whois api
+    @method_decorator(ratelimit(rate='5/m', block=True))
+    @method_decorator(decorators.requires_valid_source)
+    @method_decorator(decorators.requires_valid_request(pattern_node))
+    def dispatch(self, *args, **kwargs):
+        return super(APIWhoisView, self).dispatch(*args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        self.command_name = self.request.stream_data['command'].value
+
+        try:
+            context_data = self.get_context_data()
+        except self.CommandError as e:
+            # respond with an error code
+            return self.status(request, '1', request.stream_data['command_id'].value, str(e))
+
+        # respond with command result
+        return self.status(
+            request,
+            '0', 
+            request.stream_data['command_id'].value, 
+            render_to_string(self.get_template_names(), context_data, RequestContext(request))
+        )
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = {}
+
+        # only handle commands that have assotiated handlers
+        try:
+            method = getattr(self, 'handle_%s' % self.command_name)
+        except AttributeError:
+            raise self.CommandError(_('%(command)s is not a valid command name') % {'command': self.command_name})
+        else:
+            # invoke an assotiated command context data handler
+            # passing the provided argument
+            context_data.update(method(self.request.stream_data['args'].value))
+
+        return context_data
+
+    def get_template_names(self, *args, **kwargs):
+        return self.template_name % {'command': self.command_name}
+
+    def handle_whois(self, arg):
+        """
+        Handle a whois command.
+
+        Args:
+            arg - command argument
+                  argument is expected to be a player name 
+                  and an IP address delimited by \t (tab character)
+        """
+        try:
+            name, ip = arg.split('\t')
+        except:
+            raise self.CommandError(_('%(arg)s is not a valid argument for the whois command') % {'arg': arg})
+        # get isp
+        try:
+            isp = models.ISP.objects.match_or_create(ip)[0]
+        except ObjectDoesNotExist:
+            isp = None
+        except ValueError:
+            raise self.CommandError(_('%(ip)s is not a valid IP address') % {'ip': ip})
+        # attempt to match profile
+        try:
+            profile = models.Profile.objects.match_smart(name=name, isp=isp, ip=ip)
+        except ObjectDoesNotExist:
+            profile = None
+
+        return {
+            'name': name,
+            'ip': ip,
+            'isp': isp.name if isp else None,
+            'country': isp.country if isp else None,
+            'profile': profile,
+        }

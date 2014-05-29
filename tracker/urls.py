@@ -24,6 +24,7 @@ server_urls = patterns('',
 api_urls = patterns('',
     url(r'^motd/summary/$', views.APIMotdSummaryView.as_view()),
     url(r'^motd/leaderboard/(?:(?P<board_name>[\w]+)/)?$', views.APIMotdLeaderboardView.as_view()),
+    url(r'^whois/$', views.APIWhoisView.as_view()),
 )
 
 urlpatterns = patterns('',

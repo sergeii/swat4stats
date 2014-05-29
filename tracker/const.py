@@ -917,3 +917,28 @@ STREAM_PATTERN = {
         },
     },
 }
+
+# julia pattern for whois api 
+WHOIS_PATTERN = {
+    '0': {
+        'type': node.StringPatternNode,
+        'name': 'hash',
+        'required': True,
+    },
+    '1': {
+        'type': node.StringPatternNode,
+        'name': 'command',
+        'required': True,
+    },
+    '2': {
+        'type': node.StringPatternNode,
+        'name': 'command_id',
+        'required': True,
+    },
+    '3': {
+        'type': node.StringPatternNode,
+        'name': 'args',
+        'required': False,
+        'default': '',
+    },
+}

@@ -123,3 +123,32 @@ def requires_unique_request(view):
 
         return view(request, *args, **kwargs)
     return wrapped
+
+
+def requires_valid_source(view):
+    """
+    Decorate a view with a wrapper that attemps to find the client IP in the list of streaming servers.
+
+    In case of success set `stream_source` request attribute pointing to a model instance 
+    of the matched server and call the original view.
+
+    In case of failure return an error status response.
+    """
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        from .views import StreamView
+        try:
+            server = (models.Server.objects
+                .streamed()
+                .filter(ip=request.META['REMOTE_ADDR'])[:1]
+                .get()
+            )
+        except models.Server.DoesNotExist:
+            logger.warning('server with IP {} is not registered'.format(request.META['REMOTE_ADDR']))
+        else:
+            # set request attr
+            setattr(request, 'stream_source', server)
+            return view(request, *args, **kwargs)
+        # return error status view instead
+        return StreamView.status(request, StreamView.STATUS_ERROR, _('The server is not registered.'))
+    return wrapped
