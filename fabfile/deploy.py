@@ -7,7 +7,7 @@ from . import backend, frontend, cache
 
 
 @task
-def restart():
+def reload():
     execute(code)
     execute(contrib)
     execute(migrate)
@@ -19,7 +19,7 @@ def restart():
 
 
 @task
-def everything():
+def reinstall():
     """Deploy everything."""
     execute(project)
     execute(migrate)
@@ -130,3 +130,13 @@ def uwsgi():
 def memcached():
     """Deploy memcached."""
     cache.memcached('restart')
+
+
+# for backward compatibility..
+@task
+def everything():
+    execute(reinstall)
+
+@task
+def restart():
+    execute(reload)
