@@ -44,7 +44,9 @@ def requires_valid_request(pattern_node):
                 logger.warning('failed to parse querystring ({})'.format(e))
                 # return error status view
                 return StreamView.status(
-                    request, StreamView.STATUS_ERROR, _('Unable to parse data (%(message)s).') % {'message': e}
+                    request, 
+                    StreamView.STATUS_ERROR, 
+                    _('Unable to parse data from (%(message)s).') % {'message': e},
                 )
             else:
                 # set request attributes
@@ -55,28 +57,33 @@ def requires_valid_request(pattern_node):
     return decorator
 
 
-def requires_valid_source(view):
+def requires_authorized_source(view):
     """
-    Decorate a view with a wrapper that validates 
-    succefully parsed stream data against the list of registered servers.
+    Decorate a view with a wrapper that attemps to find 
+    the client IP in the list of streaming servers and challenge it's key hash.
 
     In case of success set `stream_source` request attribute pointing to a model instance 
-    of the matched server and return the original view.
+    of the matched server and call the original view.
 
-    In case of failure return an error status response view.
+    In case of failure return an error status response.
     """
     @wraps(view)
     def wrapped(request, *args, **kwargs):
         from .views import StreamView
-        error = None
+        # stream_data is required for this decorator
+        assert request.stream_data
         try:
             server = (models.Server.objects
                 .streamed()
                 .get(ip=request.META['REMOTE_ADDR'], port=request.stream_data['port'].value)
             )
-            expected = md5(force_bytes('%s%s%s' % (server.key, server.port, request.stream_data['timestamp'])))
+            # assemble key test string
+            expected_string = ('{}{}{}'
+                .format(server.key, server.port, request.stream_data['timestamp'])
+            )
+            expected_hash = md5(force_bytes(expected_string))
             # validate the last 8 characters of the hash
-            if expected.hexdigest()[-8:] != request.stream_data['hash'].value:
+            if expected_hash.hexdigest()[-8:] != request.stream_data['hash'].value:
                 logger.warning(
                     '{} is not valid hash for {}:{} ({})'.format(
                         request.stream_data['hash'].value, 
@@ -85,18 +92,12 @@ def requires_valid_source(view):
                         request.stream_data['timestamp'],
                     )
                 )
-                raise StreamSourceValidationError(_('Failed to authenticate the server.'))
-        except models.Server.DoesNotExist:
-            logger.warning('{}:{} is not registered'.format(request.META['REMOTE_ADDR'], request.stream_data['port'].value))
-            error = _('The server is not registered.')
-        except StreamSourceValidationError as e:
-            error = str(e)
+                raise StreamSourceValidationError
+        except (models.Server.DoesNotExist, StreamSourceValidationError):
+            return StreamView.status(request, StreamView.STATUS_ERROR, ('The server is not registered.'))
         else:
-            # set request attr
             setattr(request, 'stream_source', server)
             return view(request, *args, **kwargs)
-        # return error status view instead
-        return StreamView.status(request, StreamView.STATUS_ERROR, error)
     return wrapped
 
 

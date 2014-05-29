@@ -28,9 +28,8 @@ import aggregate_if
 import cacheops
 from julia import shortcuts
 
-from .decorators import (requires_valid_request, requires_valid_source, requires_unique_request)
 from .signals import stream_data_received
-from . import models, forms, definitions, utils, const, templatetags
+from . import decorators, models, forms, definitions, utils, const, templatetags
 
 logger = logging.getLogger(__name__)
 
@@ -196,10 +195,10 @@ class StreamView(generic.View):
             3. 1\nInvalid server key
             4. 1\nThe server is not registered
         """
-        return HttpResponse('\n'.join(list(filter(None, [code, message]))))
+        return HttpResponse('\n'.join(map(force_text, filter(None, [code, message]))))
 
-    @method_decorator(requires_valid_request(definitions.stream_pattern_node))
-    @method_decorator(requires_valid_source)
+    @method_decorator(decorators.requires_valid_request(definitions.stream_pattern_node))
+    @method_decorator(decorators.requires_authorized_source)
     def post(self, request):
         logger.debug('receieved stream data from {}:{}'
             .format(request.stream_source.ip, request.stream_source.port)
