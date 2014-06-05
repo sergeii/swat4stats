@@ -506,7 +506,7 @@ class Server(models.Model):
         try:
             status = ServerStatus(self)
         except Exception as e:
-            logger.warning('failed to query %s (%s, %s)' % (self, type(e).__name__, e))
+            logger.debug('failed to query %s (%s, %s)' % (self, type(e).__name__, e))
             # emit a failure signal
             signals.query_status_failed.send(sender=None, server=self)
             # reraise the exception, so the caller is notified about the failure

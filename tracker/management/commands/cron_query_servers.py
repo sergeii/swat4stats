@@ -73,4 +73,5 @@ class Command(BaseCommand):
         pks = servers_listed-servers_alive
         # unlist the servers that have never responded to a query
         models.Server.objects.filter(pk__in=pks).update(listed=False)
-        logger.warning('Unlisted %s servers' % len(pks))
+        if pks:
+            logger.debug('Unlisted %s servers' % len(pks))
