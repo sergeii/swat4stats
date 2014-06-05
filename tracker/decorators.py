@@ -41,12 +41,12 @@ def requires_valid_request(pattern_node):
                 # feed the parsed query string
                 data = pattern_node.parse(qs)
             except ValueNodeError as e:
-                logger.warning('failed to parse querystring ({})'.format(e))
+                logger.warning('failed to parse querystring "{}" ({})'.format(body, e))
                 # return error status view
                 return StreamView.status(
                     request, 
                     StreamView.STATUS_ERROR, 
-                    _('Unable to parse data from (%(message)s).') % {'message': e},
+                    _('Unable to parse data (%(message)s).') % {'message': e},
                 )
             else:
                 # set request attributes
