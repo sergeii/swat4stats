@@ -15,6 +15,7 @@ class IPAdmin(admin.ModelAdmin):
     list_per_page = 20
     list_display = ('range_from_normal', 'range_to_normal', 'length', 'isp', 'date_created', 'is_actual')
     list_filter = ('isp__country',)
+    raw_id_fields = ('isp',)
 
     def get_queryset(self, request):
         return super(IPAdmin, self).get_queryset(request).select_related('isp')
