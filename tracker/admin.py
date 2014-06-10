@@ -10,27 +10,6 @@ from julia import shortcuts
 from . import models, utils, definitions
 
 
-class RankAdmin(admin.ModelAdmin):
-    ordering = ('-points',)
-    list_per_page = 30
-    raw_id_fields = ('profile',)
-    search_fields = ('profile__name',)
-    list_filter = ('category', 'year')
-    list_display = ('position', 'category', 'year', 'profile', 'points',)
-
-
-class LoadoutAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'count')
-    list_per_page = 20
-
-    def count(self, obj):
-        return obj.player_set.count()
-    count.admin_order_field = 'player__count'
-
-    def get_queryset(self, request):
-        return super(LoadoutAdmin, self).get_queryset(request).annotate(Count('player'))
-
-
 class IPAdmin(admin.ModelAdmin):
     search_fields = ('range_from', 'range_to', 'isp__name')
     list_per_page = 20
@@ -46,6 +25,12 @@ class IPInline(admin.TabularInline):
     fields = ('range_from_normal', 'range_to_normal', 'length')
     readonly_fields = fields 
     extra = 0
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class ISPAdmin(admin.ModelAdmin):
@@ -63,12 +48,8 @@ class ISPAdmin(admin.ModelAdmin):
 
     count.admin_order_field = 'ip__count'
 
-
-class AliasAdmin(admin.ModelAdmin):
-    list_display = ('name', 'isp')
-    search_fields = ('name', 'isp__name')
-    readonly_fields = ('profile', 'isp',)
-    list_per_page = 20
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class AliasInline(admin.TabularInline):
@@ -76,6 +57,12 @@ class AliasInline(admin.TabularInline):
     fields = ('name', 'profile', 'isp')
     readonly_fields = ('profile', 'isp',)
     extra = 0
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -100,32 +87,9 @@ class ProfileAdmin(admin.ModelAdmin):
     def player_count(self, obj):
         return obj.alias_set.aggregate(num=Count('player'))['num']
 
-
-class PlayerInline(admin.TabularInline):
-    model = models.Player
-    fields = ('alias', 'loadout', 'vip', 'admin', 'dropped')
-    readonly_fields = ('alias', 'loadout', 'vip', 'admin', 'dropped')
-    extra = 0
-
-
-class GameAdmin(admin.ModelAdmin):
-    search_fields = ('player__alias__name', 'player__ip')
-    list_per_page = 20
-    list_display = ('__str__', 'gametype', 'mapname', 'player_num', 'date_finished', 'outcome_readable')
-    inlines = (PlayerInline,)
-
-    def outcome_readable(self, obj):
-        return shortcuts.map(definitions.stream_pattern_node, 'outcome', force_text(obj.outcome))
-    outcome_readable.admin_order_field = 'outcome'
-
-
-class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'alias', 'team', 'dropped', 'vip', 'admin')
-    readonly_fields = ('game', 'alias', 'loadout')
-    list_per_page = 20
-
-    def get_queryset(self, request):
-        return super(PlayerAdmin, self).get_queryset(request).select_related('profile')
+    def has_delete_permission(self, request, obj=None):
+        """Do not allow an admin to delete profiles."""
+        return False
 
 
 class ServerAdmin(admin.ModelAdmin):
@@ -134,16 +98,12 @@ class ServerAdmin(admin.ModelAdmin):
     search_fields = ('ip',)
     list_per_page = 50
 
+    def has_delete_permission(self, request, obj=None):
+        """Do not allow an admin to delete servers."""
+        return False
+
 
 admin.site.register(models.Server, ServerAdmin)
-admin.site.register(models.Alias, AliasAdmin)
 admin.site.register(models.Profile, ProfileAdmin)
-admin.site.register(models.Game, GameAdmin)
-admin.site.register(models.Player, PlayerAdmin)
-admin.site.register(models.Loadout, LoadoutAdmin)
-admin.site.register(models.Weapon)
 admin.site.register(models.ISP, ISPAdmin)
 admin.site.register(models.IP, IPAdmin)
-admin.site.register(models.Procedure)
-admin.site.register(models.Objective)
-admin.site.register(models.Rank, RankAdmin)

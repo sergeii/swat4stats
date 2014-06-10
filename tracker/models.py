@@ -443,7 +443,7 @@ class ServerManager(models.Manager):
 class Server(models.Model):
     ip = models.GenericIPAddressField(protocol='IPv4')
     port = models.PositiveIntegerField()
-    key = models.CharField(max_length=32)
+    key = models.CharField(max_length=32, blank=True)
 
     enabled = models.BooleanField(default=False)
     streamed = models.BooleanField(default=False)
