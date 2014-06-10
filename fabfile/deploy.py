@@ -97,6 +97,13 @@ def project():
     backend.base()
     code()
     contrib()
+    dependencies()
+
+
+@task
+@roles('backend')
+def dependencies():
+    """Install the python packages defined in requirements.txt."""
     backend.dependencies()
 
 
