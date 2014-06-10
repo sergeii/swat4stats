@@ -29,6 +29,7 @@ INSTALLED_APPS = (
     'cacheops',
     'django_countries',
     'compressor',
+    'django_markdown',
     
     'tracker',
 )
@@ -164,3 +165,5 @@ COMPRESS_PRECOMPILERS = (
 
 # only data-encode small files
 COMPRESS_DATA_URI_MAX_SIZE = 1024*5
+
+MARKDOWN_PROTECT_PREVIEW = True

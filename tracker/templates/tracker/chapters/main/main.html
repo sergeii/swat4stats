@@ -1,5 +1,5 @@
 {% extends "tracker/layout/base.html" %}
-{% load i18n staticfiles static tracker humanize %}
+{% load i18n staticfiles static tracker humanize django_markdown %}
 
 {% block title %}{% trans "Main" %}{% endblock %}
 
@@ -31,11 +31,21 @@
 
 <div id="swat-main-container">
     <div id="swat-main">
+
         <div class="swat-box">
-            <div class="inner text">
-                <div class="title underlined">{% trans "Welcome aboard!" %}</div>
-                <div>I am proud to announce that the new SWAT 4 stats tracker that I have been developing for nearly a year has now finally arrived. Please look around, check out the complete game history that has been recorded by the original tracker written by <a href="http://prophet.ru/">Prophet</a> in 2007. <a href="{% url 'tracker:game' 1 %}">The first recorded game</a> dates back to August, 2007. Let this feature to refresh the good memories.</div>
-                <div class="right space-top">Kind regards, Serge.</div>
+            <div class="inner text article-list">
+                {% for article in article_list %}
+                    <div class="article">
+                        <div class="float">
+                            <div class="left title underlined">{{ article.title }}</div>
+                            <div class="right gray">{{ article.date_published|naturaltime }}</div>
+                        </div>
+                        <div>{{ article.text|markdown }}</div>
+                        {% if article.signature %}<div class="right space-top">{{ article.signature }}</div>{% endif %}
+                    </div>
+                {% empty %}
+                    <div class="center">{% trans "No news so far."%}</div>
+                {% endfor %}
             </div>
         </div>
 
@@ -69,7 +79,7 @@
             </div>
         </div>
         {% endif %}
-        
+
     </div>
 </div>
 

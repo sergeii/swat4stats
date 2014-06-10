@@ -226,8 +226,10 @@ class StreamView(generic.View):
         return super(StreamView, self).dispatch(*args, **kwargs)
 
 
-class MainView(SummaryViewMixin, FeaturedViewMixin, generic.TemplateView):
+class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
     template_name = 'tracker/chapters/main/main.html'
+    # display the latest 5 articles on main
+    queryset = models.Article.published.latest(5)
 
     summary = (
         (

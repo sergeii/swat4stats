@@ -5,7 +5,9 @@ from django.db import transaction
 from django.db.models import Count
 from django.contrib import admin
 from django.utils.encoding import force_text
+
 from julia import shortcuts
+from django_markdown.admin import MarkdownModelAdmin
 
 from . import models, utils, definitions
 
@@ -104,7 +106,15 @@ class ServerAdmin(admin.ModelAdmin):
         return False
 
 
+class ArticleAdmin(MarkdownModelAdmin):
+    list_display = ('__str__', 'is_published', 'date_published')
+    search_fields = ('title', 'text',)
+    list_per_page = 20
+    date_hierarchy = 'date_published'
+
+
 admin.site.register(models.Server, ServerAdmin)
 admin.site.register(models.Profile, ProfileAdmin)
 admin.site.register(models.ISP, ISPAdmin)
 admin.site.register(models.IP, IPAdmin)
+admin.site.register(models.Article, ArticleAdmin)

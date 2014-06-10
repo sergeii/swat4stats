@@ -1902,3 +1902,37 @@ class Rank(models.Model):
             date - datetime object
         """
         return model.get_period_for_year(date.year)
+
+
+class PublishedArticleManager(models.Manager):
+
+    def get_queryset(self, *args, **kwargs):
+        """
+        Return a queryset that would fetch articles with 
+        the `date_published` column greater or equal to the current time.
+        """
+        return (super(PublishedArticleManager, self)
+            .get_queryset(*args, **kwargs)
+            .filter(is_published=True, date_published__lte=timezone.now)
+        )
+
+    def latest(self, limit):
+        """Display the latest `limit` published articles."""
+        return self.get_queryset().order_by('-date_published')[:limit]
+
+
+@python_2_unicode_compatible
+class Article(models.Model):
+    title = models.CharField(max_length=64)
+    text = models.TextField()
+    signature = models.CharField(max_length=128, blank=True)
+    is_published = models.BooleanField(default=False)
+    date_published = models.DateTimeField()
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+
+    objects = models.Manager()
+    published = PublishedArticleManager()
+
+    def __str__(self):
+        return self.title
