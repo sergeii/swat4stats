@@ -56,7 +56,7 @@ class ISPAdmin(admin.ModelAdmin):
 class AliasInline(admin.TabularInline):
     model = models.Alias
     fields = ('name', 'profile', 'isp')
-    readonly_fields = ('profile', 'isp',)
+    readonly_fields = fields
     extra = 0
 
     def has_add_permission(self, request):
