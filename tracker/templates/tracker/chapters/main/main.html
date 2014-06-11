@@ -40,7 +40,7 @@
                             <div class="left title underlined">{{ article.title }}</div>
                             <div class="right gray">{{ article.date_published|naturaltime }}</div>
                         </div>
-                        <div>{{ article.text|markdown }}</div>
+                        <div class="text">{{ article.text|markdown }}</div>
                         {% if article.signature %}<div class="right space-top">{{ article.signature }}</div>{% endif %}
                     </div>
                 {% empty %}
