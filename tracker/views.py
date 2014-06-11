@@ -228,8 +228,7 @@ class StreamView(generic.View):
 
 class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
     template_name = 'tracker/chapters/main/main.html'
-    # display the latest 5 articles on main
-    queryset = models.Article.published.latest(5)
+    model = models.Article
 
     summary = (
         (
@@ -273,6 +272,10 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
         #     lambda value: templatetags.humantime(value)
         # ),
     )
+
+    def get_queryset(self, *args, **kwargs):
+        """Display the latest 5 articles."""
+        return self.model.published.latest(5)
 
     def get_summary(self):
         now = timezone.now()
