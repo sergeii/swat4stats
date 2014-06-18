@@ -94,20 +94,20 @@ Setup virtual environment::
 
 Migrate db::
 
-    python manage.py syncdb
-    python manage.py migrate
+    DJ_DEBUG=1 ./manage.py syncdb
+    DJ_DEBUG=1 ./manage.py migrate
 
 Run server with the local settings `swat4tracker.settings.debug`::
 
-    DJ_DEBUG=1 python manage.py runserver
+    DJ_DEBUG=1 ./manage.py runserver
 
 Fetch servers from gametracker and markmods::
     
-    DJ_DEBUG=1 python manage.py cron_fetch_servers
+    DJ_DEBUG=1 ./manage.py cron_fetch_servers
 
 Query servers every 10 seconds for 10 minutes::
 
-    DJ_DEBUG=1 python manage.py cron_query_servers 600 10
+    DJ_DEBUG=1 ./manage.py cron_query_servers 600 10
 
 Required Streaming Software
 ===========================
