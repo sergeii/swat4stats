@@ -86,7 +86,7 @@ Configure PostgreSQL::
 
 Setup virtual environment::
 
-    virtualenv --python==`which python3` /tmp/swat4stats
+    virtualenv --python=`which python3` /tmp/swat4stats
     source /tmp/swat4stats/bin/activate
     git clone https://github.com/sergeii/swat4stats.com /tmp/swat4stats/code
     cd /tmp/swat4stats/code
