@@ -20,14 +20,18 @@ DATABASES = {
 LOGGING['handlers'].update({
     'django': {
         'level': 'WARNING',
-        'class': 'logging.FileHandler',
+        'class': 'logging.handlers.RotatingFileHandler',
         'filename': PATH_VENV.child('log', 'django.log'),
         'formatter': 'simple',
+        'maxBytes': 1024*1024*5,
+        'backupCount': 5,
     },
     'stream': {
         'level': 'INFO',
-        'class': 'logging.FileHandler',
+        'class': 'logging.handlers.RotatingFileHandler',
         'filename': PATH_VENV.child('log', 'stream.log'),
+        'maxBytes': 1024*1024*50,
+        'backupCount': 10,
     },
 })
 
