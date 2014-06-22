@@ -21,6 +21,19 @@ query_status_received = Signal(providing_args=['server', 'status'])
 query_status_failed = Signal(providing_args=['server'])
 stream_data_received = Signal(providing_args=['data', 'server', 'raw'])
 stream_data_saved = Signal(providing_args=['data', 'server', 'game', 'players'])
+live_servers_detected = Signal(providing_args=['servers'])
+dead_servers_detected = Signal(providing_args=['servers'])
+
+
+@receiver(dead_servers_detected)
+def unlist_dead_servers(sender, servers, **kwargs):
+    """Remove dead servers from the query list."""
+    (models.Server.objects
+        .filter(pk__in=list(map(lambda server: server.pk, servers)))
+        .update(listed=False)
+    )
+    if servers:
+        logger.debug('Unlisted %s servers' % len(servers))
 
 
 @receiver(stream_data_saved)

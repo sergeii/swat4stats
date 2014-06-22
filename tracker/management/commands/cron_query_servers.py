@@ -8,6 +8,7 @@ from time import sleep
 from django.core.management.base import BaseCommand, CommandError
 
 from tracker import models, utils, config
+from tracker.signals import live_servers_detected, dead_servers_detected
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ semaphore = threading.Semaphore(config.MAX_STATUS_CONNECTIONS)
 # list of available servers
 servers_listed = set()
 # list of servers that have responded to a query
-servers_alive = set()
+servers_live = set()
 
 
 class QueryThread(threading.Thread):
@@ -35,7 +36,7 @@ class QueryThread(threading.Thread):
             pass
         else:
             # the server is okay
-            servers_alive.add(self.server.pk)
+            servers_live.add(self.server)
 
         semaphore.release()
 
@@ -59,7 +60,7 @@ class Command(BaseCommand):
             threads = []
 
             for server in models.Server.objects.listed():
-                servers_listed.add(server.pk)
+                servers_listed.add(server)
                 threads.append(QueryThread(server=server))
             # query the servers
             [thread.start() for thread in threads]
@@ -69,9 +70,6 @@ class Command(BaseCommand):
 
         # only wait for the last group of threads
         [thread.join() for thread in threads]
-
-        pks = servers_listed-servers_alive
-        # unlist the servers that have never responded to a query
-        models.Server.objects.filter(pk__in=pks).update(listed=False)
-        if pks:
-            logger.debug('Unlisted %s servers' % len(pks))
+        # emit signals
+        live_servers_detected.send(sender=None, servers=servers_live)
+        dead_servers_detected.send(sender=None, servers=servers_listed-servers_live)
