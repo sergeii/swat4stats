@@ -58,9 +58,10 @@ class FetchListThread(threading.Thread):
                         try:
                             # make sure the server will be queried automatically, hence listed=True
                             models.Server.objects.create_server(ip, port, enabled=True, listed=True)
-                            logger.info('added %s:%s from %s' % (ip, port, self.url))
                         except Exception as e:
-                            logger.error('failed to add %s:%s (%s, %s)' % (ip, port, type(e), e))
+                            logger.debug('failed to add %s:%s (%s, %s)' % (ip, port, type(e), e))
+                        else:
+                            logger.debug('added %s:%s from %s' % (ip, port, self.url))
                     else:
                         # relist the server
                         if obj.enabled and not obj.listed:
