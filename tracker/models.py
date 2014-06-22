@@ -452,6 +452,8 @@ class Server(models.Model):
     port_gs2 = models.PositiveIntegerField(null=True, blank=True)
     # ip-based country code
     country = models.CharField(max_length=2, null=True, blank=True)
+    # cached hostname
+    hostname = models.CharField(max_length=256, null=True, blank=True)
 
     objects = ServerManager()
 
@@ -483,14 +485,9 @@ class Server(models.Model):
 
     @property
     def name(self):
-        try:
-            status = self.status
-            assert status.hostname_clean
-        except:
-            # fall back to __str__/__unicode__
-            return force_text(self)
-        else:
-            return status.hostname_clean
+        if self.hostname:
+            return utils.force_clean_name(self.hostname)
+        return '{0.ip}:{0.port}'.format(self)
 
     @property
     def status(self):
@@ -517,7 +514,7 @@ class Server(models.Model):
             signals.query_status_received.send(sender=None, server=self, status=status)
 
     def __str__(self):
-        return '{0.ip}:{0.port}'.format(self)
+        return self.name
 
     def clean(self):
         self.port = int(self.port)

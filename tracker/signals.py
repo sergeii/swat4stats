@@ -25,6 +25,27 @@ live_servers_detected = Signal(providing_args=['servers'])
 dead_servers_detected = Signal(providing_args=['servers'])
 
 
+@receiver(live_servers_detected)
+def update_server_hostname(sender, servers, **kwargs):
+    """Attempt to update server hostname."""
+    for server in servers:
+        try:
+            status = server.status
+            assert status
+        except:
+            # no status available
+            # try another server
+            continue
+        try:
+            # only update server hostname in case it's different from the status value
+            if server.hostname != status.hostname:
+                server.hostname = status.hostname
+                server.save(update_fields=['hostname'])
+        except:
+            # ignore db errors
+            pass
+
+
 @receiver(dead_servers_detected)
 def unlist_dead_servers(sender, servers, **kwargs):
     """Remove dead servers from the query list."""
