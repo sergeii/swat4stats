@@ -20,7 +20,7 @@ class StreamDataSavedCase(TestCase):
 
     def setUp(self):
         super(StreamDataSavedCase, self).setUp()
-        models.Server.objects.create(ip='127.0.0.1', port=10480, key='12345', enabled=True)
+        models.Server.objects.create(ip='127.0.0.1', port=10480, enabled=True)
         (models.ISP.objects
             .create(name='localhost', country='un')
             .ip_set.create(range_from=utils.force_ipy('127.0.0.0').int(), range_to=utils.force_ipy('127.0.0.255').int())

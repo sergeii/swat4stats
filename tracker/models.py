@@ -443,7 +443,6 @@ class ServerManager(models.Manager):
 class Server(models.Model):
     ip = models.GenericIPAddressField(protocol='IPv4')
     port = models.PositiveIntegerField()
-    key = models.CharField(max_length=32, blank=True)
 
     enabled = models.BooleanField(default=False)
     streamed = models.BooleanField(default=False)
@@ -524,8 +523,6 @@ class Server(models.Model):
         self.port = int(self.port)
         if not (1 <= self.port <= 65535):
             raise ValidationError(_('Port number must be between 1 and 65535 inclusive.'))
-        if self.streamed and not self.key:
-            raise ValidationError(_('Server key must not be empty.'))
 
 
 @python_2_unicode_compatible

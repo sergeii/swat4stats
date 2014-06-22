@@ -3,7 +3,6 @@ from __future__ import (unicode_literals, absolute_import)
 
 import logging
 from functools import wraps
-from hashlib import md5
 
 from django.http import Http404
 from django.utils.translation import ugettext as _
@@ -77,23 +76,7 @@ def requires_authorized_source(view):
                 .streamed()
                 .get(ip=request.META['REMOTE_ADDR'], port=request.stream_data['port'].value)
             )
-            # assemble key test string
-            expected_string = ('{}{}{}'
-                .format(server.key, server.port, request.stream_data['timestamp'])
-            )
-            expected_hash = md5(force_bytes(expected_string))
-            # validate the last 8 characters of the hash
-            if expected_hash.hexdigest()[-8:] != request.stream_data['hash'].value:
-                logger.warning(
-                    '{} is not valid hash for {}:{} ({})'.format(
-                        request.stream_data['hash'].value, 
-                        request.META['REMOTE_ADDR'], 
-                        request.stream_data['port'].value,
-                        request.stream_data['timestamp'],
-                    )
-                )
-                raise StreamSourceValidationError
-        except (models.Server.DoesNotExist, StreamSourceValidationError):
+        except models.Server.DoesNotExist:
             return StreamView.status(request, StreamView.STATUS_ERROR, ('The server is not registered.'))
         else:
             setattr(request, 'stream_source', server)

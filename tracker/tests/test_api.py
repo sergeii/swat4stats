@@ -39,7 +39,7 @@ class WhoisApiTestCase(TestCase):
             .create(name='localhost', country='un')
             .ip_set.create(range_from=utils.force_ipy('127.0.0.0').int(), range_to=utils.force_ipy('127.0.0.255').int())
         )
-        self.server = models.Server.objects.create(ip='127.0.0.1', port=10480, key='12345', enabled=True, streamed=True)
+        self.server = models.Server.objects.create(ip='127.0.0.1', port=10480, enabled=True, streamed=True)
 
     def test_valid_data(self):
         client = test.Client()
@@ -72,7 +72,7 @@ class WhoisApiTestCase(TestCase):
             cache.clear()
 
     def test_unstreamed_server(self):
-        models.Server.objects.create(ip='127.0.0.2', port=10480, key='12345', enabled=True, streamed=False)
+        models.Server.objects.create(ip='127.0.0.2', port=10480, enabled=True, streamed=False)
 
         client = test.Client()
         for qs in self.valid_qs:

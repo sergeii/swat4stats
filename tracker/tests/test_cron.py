@@ -26,7 +26,7 @@ class UpdateProfileCase(TestCase):
             .create(name='localhost', country='un')
             .ip_set.create(range_from=utils.force_ipy('127.0.0.0').int(), range_to=utils.force_ipy('127.0.0.255').int())
         )
-        self.server = models.Server.objects.create(ip='127.0.0.100', port=10480, key='12345', enabled=True)
+        self.server = models.Server.objects.create(ip='127.0.0.100', port=10480, enabled=True)
 
     def test_profile_field_is_not_updated_if_empty(self):
         profile = models.Profile.objects.create(

@@ -36,11 +36,6 @@ class ServerTestCase(TestCase):
         with self.assertRaises(exceptions.ValidationError):
             models.Server.objects.create_server('127.0.0.1', 10480)
 
-    def test_create_server_streamed_requires_key(self):
-        models.Server.objects.create_server('127.0.0.1', 11111, streamed=True, key='foo')
-        with self.assertRaises(exceptions.ValidationError):
-            models.Server.objects.create_server('127.0.0.1', 22222, streamed=True)
-
 
 class LoadoutTestCase(TestCase):
 
@@ -741,8 +736,8 @@ class ProfileMatchTestCase(TestCase):
     def setUp(self):
         super(ProfileMatchTestCase, self).setUp()
         with patch('tracker.models.whois.whois', return_value={'country': 'un', 'orgname': 'foo', 'ipv4range': ('127.255.255.0', '127.255.255.255')}):
-            self.server1 = models.Server.objects.create(ip='127.0.0.1', port=10480, key='123')
-            self.server2 = models.Server.objects.create(ip='127.0.0.1', port=10580, key='secret')
+            self.server1 = models.Server.objects.create(ip='127.0.0.1', port=10480)
+            self.server2 = models.Server.objects.create(ip='127.0.0.1', port=10580)
         
         self.isp1 = models.ISP.objects.create(name='foo', country='jp')
         self.isp2 = models.ISP.objects.create(name='bar', country='uk')
