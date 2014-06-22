@@ -207,7 +207,7 @@ class StreamView(generic.View):
             .format(request.stream_source.ip, request.stream_source.port)
         )
         # emit a signal
-        stream_data_received.send(
+        stream_data_received.send_robust(
             sender=None, 
             data=request.stream_data, 
             server=request.stream_source, 
