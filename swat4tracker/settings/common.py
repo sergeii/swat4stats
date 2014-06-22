@@ -30,6 +30,7 @@ INSTALLED_APPS = (
     'django_countries',
     'compressor',
     'django_markdown',
+    'django_nose',
     
     'tracker',
 )
@@ -167,3 +168,5 @@ COMPRESS_PRECOMPILERS = (
 COMPRESS_DATA_URI_MAX_SIZE = 1024*5
 
 MARKDOWN_PROTECT_PREVIEW = True
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
