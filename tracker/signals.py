@@ -59,11 +59,11 @@ def unlist_dead_servers(sender, servers, **kwargs):
 
 @receiver(stream_data_saved)
 def relist_streaming_server(sender, data, server, game, players, **kwargs):
-    """Attemp to relist a server that has sent data to the tracker."""
+    """Enable status querying for a streaming server."""
     if not server.listed:
         server.listed = True
         server.save(update_fields=['listed'])
-        logger.debug('Sucessfully relisted a streaming server (%s)' % server)
+        logger.debug('Relisted a streaming server (%s)' % server)
 
 
 @receiver(stream_data_saved)
