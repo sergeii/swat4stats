@@ -4,7 +4,7 @@
 {% block title %}{{ game.mapname|mapname }}, {{ game.date_finished }}{% endblock %}
 
 {% block swat_header_upper %}
-{{ block.super }}<div id="swat-server-title">{{ game.server.name }}</div>
+{{ block.super }}<div id="swat-server-title">{{ game.server }}</div>
 {% endblock %}
 
 {% block swat_status %}{{ game.date_finished }}{% endblock %}

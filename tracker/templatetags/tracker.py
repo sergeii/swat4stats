@@ -29,6 +29,7 @@ from tracker import definitions, utils
 register = template.Library()
 trans = _
 
+
 @register.filter
 def highlight(text, word):
     word = re.escape(html.escape(word))
@@ -303,6 +304,16 @@ def valueformat(value, format):
         'percent': percent,
     # return the value as if the specified format is not present
     }.get(format, lambda value: value)(value)
+
+
+@register.filter
+def clean_name(value):
+    return utils.force_clean_name(value)
+
+
+@register.filter
+def format_name(value):
+    return utils.format_name(value)
 
 
 # credits: http://stackoverflow.com/questions/5749075/django-get-generic-view-class-from-url-name

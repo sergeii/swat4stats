@@ -11,7 +11,7 @@ import six
 
 from django.core.urlresolvers import reverse
 from django.utils.encoding import force_bytes, force_text
-from django.utils import timezone
+from django.utils import timezone, html
 from django.db import connection
 import julia
 
@@ -193,6 +193,20 @@ def force_valid_name(name, ip_address):
 def force_name(name, ip_address):
     """Return a non-empty tagless name."""
     return force_valid_name(force_clean_name(name), ip_address)
+
+
+def format_name(name):
+    name = html.escape(name)
+    # replace [c=xxxxxx] tags with html span tags
+    name = re.sub(
+        r'\[c=([a-f0-9]{6})\](.*?)(?=\[c=([a-f0-9]{6})\]|\[\\c\]|$)', 
+        r'<span style="color:#\1;">\2</span>', 
+        name, 
+        flags=re.I
+    )
+    # remove [b], [\b], [u], [\u], [\c] tags
+    name = re.sub(r'\[(?:\\)?[buc]\]', '', name, flags=re.I)
+    return html.mark_safe(name)
 
 
 def sort_key(*comparable):

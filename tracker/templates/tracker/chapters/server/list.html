@@ -63,7 +63,7 @@ $(document).ready(function(){
         {% for status in object_list %}
             <div class="table-row swat-player-row" onclick="window.location='{% server_url status.server %}';">
                 <div{% if status.passworded %} class="server-cell-locked" title="{% trans "Locked" %}"{% endif %}>&nbsp;</div>
-                <div><a href="{% server_url status.server %}">{{ status.hostname_colored }}</a></div>
+                <div><a href="{% server_url status.server %}">{{ status.hostname|format_name }}</a></div>
                 <div>{{ status.player_num|default:0 }}/{{ status.player_max|default:0 }}</div>
                 <div>{{ status.gametype|gametype }}</div>
                 <div>{{ status.mapname|mapname }}</div>

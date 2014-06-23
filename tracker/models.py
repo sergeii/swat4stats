@@ -13,7 +13,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text, python_2_unicode_compatible
-from django.utils import html
 from django.utils.decorators import method_decorator
 from django.core.cache import cache as redis
 
@@ -273,26 +272,6 @@ class ServerStatus(GameMixin):
             setattr(self, attr, None)
         # query the server
         self.query()
-
-    @property
-    def hostname_clean(self):
-        """
-        Return the colorless server name.
-        """
-        return utils.force_clean_name(self.hostname)
-
-    def hostname_colored(self):
-        hostname = html.escape(self.hostname)
-        # replace [c=xxxxxx] tags with html span tags
-        hostname = re.sub(
-            r'\[c=([a-f0-9]{6})\](.*?)(?=\[c=([a-f0-9]{6})\]|\[\\c\]|$)', 
-            r'<span style="color:#\1;">\2</span>', 
-            self.hostname, 
-            flags=re.I
-        )
-        # remove [b], [\b], [u], [\u], [\c] tags
-        hostname = re.sub(r'\[(?:\\)?[buc]\]', '', hostname, flags=re.I)
-        return html.mark_safe(hostname)
 
     @property
     def is_empty(self):

@@ -17,7 +17,7 @@
                     <div class="block left title underlined">{{ status.gamename|gamename }} {{ status.gamever }}</div>
                 {% endifchanged %}
                 <div>
-                    <div class="center title undecorated">{{ status.hostname_clean|truncatechars:28 }}</div>
+                    <div class="center title undecorated">{{ status.hostname|clean_name|truncatechars:28 }}</div>
                     <div><a class="hoverable block" href="{% server_url status.server %}">{% spaceless %}{% show_game_picture_light status %}{% endspaceless %}</a></div>
                     <div class="space-top float">
                         <div class="left">{{ status.gametype|gametype }}</div>

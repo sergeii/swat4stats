@@ -27,7 +27,7 @@ $(document).ready(function(){
 
 {% block swat_status %}{{ status.gamename|gamename }} {{ status.gamever }}{% endblock %}
 
-{% block swat_header_upper %}{{ block.super }}<div id="swat-server-title">{{ status.hostname_clean }}</div>{% endblock %}
+{% block swat_header_upper %}{{ block.super }}<div id="swat-server-title">{{ status.hostname|clean_name }}</div>{% endblock %}
 
 {% block swat_header_lower %}
 {{ block.super }}
