@@ -49,7 +49,7 @@ Deployment
 
 Prerequisites:
 
-* python3 *(using python2 is supported by highly disouraged)*
+* python3 *(using python2 is supported but highly disouraged)*
 * PostgreSQL
 * redis
 * `CoffeeScript <http://coffeescript.org/>`_
