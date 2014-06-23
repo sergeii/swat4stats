@@ -23,7 +23,7 @@ $(document).ready(function(){
 });
 {% endblock %}
 
-{% block title %}{{ status.hostname_clean }}{% endblock %}
+{% block title %}{{ status.hostname|clean_name }}{% endblock %}
 
 {% block swat_status %}{{ status.gamename|gamename }} {{ status.gamever }}{% endblock %}
 
