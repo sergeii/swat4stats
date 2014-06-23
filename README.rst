@@ -25,6 +25,8 @@ Leaderboard
 Game Reports
 ^^^^^^^^^^^^
 
+.. image:: https://raw.githubusercontent.com/sergeii/swat4stats.com/master/docs/screenshots/games.png
+
 .. image:: https://raw.githubusercontent.com/sergeii/swat4stats.com/master/docs/screenshots/game.png
 
 
