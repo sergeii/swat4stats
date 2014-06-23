@@ -294,12 +294,6 @@ class ServerStatus(GameMixin):
             definitions.stream_pattern_node, 'gamename', force_text(self.gamename)
         )
 
-    @property
-    def time_remaining(self):
-        if self.date_updated and self.player_num and self.time:
-            return self.time - (timezone.now() - self.date_updated).seconds
-        return self.time
-
     def query(self):
         """
         Query the server using gamespy1 protocol and sanitize the response. 
