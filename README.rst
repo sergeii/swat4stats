@@ -205,4 +205,112 @@ This plain and simple guide will help you to get your server connected to `swat4
 
    In case you have not found any of the games played on the server at the `game report <http://swat4stats.com/games/history/>`_ page  within a reasonable amount of time (~10 min), then please carefully read the message displayed in admin chat upon a round end and attempt to fix the issue. If it does report nothing, then there is no streaming issues or you have not correctly installed the `swat-julia-tracker <https://github.com/sergeii/swat-julia-tracker>`_ package (step 3).
 
-Feel free to contact me with either e-mail (kh.sergei@gmail.com) or xfire (`mytserge <http://classic.xfire.com/profile/mytserge/>`_).
+API
+===
+`swat4stats.com <http://swat4stats.com/>`_ provides API for the following services:
+
+
+* `swat-motd <https://github.com/sergeii/swat-motd>`_
+
+  * weekly/monthly summary - displays summary stats
+
+      .. image:: https://raw.githubusercontent.com/sergeii/swat4stats.com/master/docs/screenshots/api_summary.png
+
+    To display summary you have to configure `swat-motd <https://github.com/sergeii/swat-motd>`_ the following way::
+
+        [MOTD.Core]
+        Enabled=True
+        URL=http://swat4stats.com/api/motd/summary/
+
+    By default summary will be displayed in 60 seconds after a map start. Summary is displayed line by line with a delay of 1 second.
+
+    To configure the way summary is displayed, use the following parameters:
+
+    * **initial** controls the time (in seconds) after a map start summary is displayed (defaults to 60 seconds)
+    * **repeat** controls interval (in seconds) between repetitions (defaults to 0, i.e. no repetition)
+    * **delay**/**nodelay** controls whether summary lines are displayed with a 1 second delay or instantly (defaults to delay)
+
+    Example:
+
+    Display summary with no delay::
+
+      URL=http://swat4stats.com/api/motd/summary/?nodelay
+
+    Display summary in 5 minutes after a map start::
+      
+      URL=http://swat4stats.com/api/motd/summary/?initial=300
+
+    Display summary in 2 minutes after a map start, then keep repeating the message every 10 minutes::
+
+      URL=http://swat4stats.com/api/motd/summary/?initial=120&repeat=600
+
+  * leaderboard - display top 5 players of the year from a specific leaderboard
+
+      .. image:: https://raw.githubusercontent.com/sergeii/swat4stats.com/master/docs/screenshots/api_leaderboard.png
+
+    The leadeboard API url has the following format::
+
+      http://swat4stats.com/api/motd/leaderboard/<leaderboard>/
+
+    where ``<leaderboard>`` may be any of the following::
+
+      score
+      time
+      wins
+      spm
+      top_score
+      kills
+      arrests
+      kdr
+      ammo_accuracy
+      kill_streak
+      arrest_streak
+      vip_escapes
+      vip_rescues
+      vip_captures
+      vip_kills_valid
+      coop_score
+      coop_time
+      coop_games
+      coop_wins
+      coop_enemy_arrests
+      coop_enemy_kills
+
+    The parameters ``initial``, ``repeat``, ``delay`` and ``nodelay`` (described above) are also available.
+
+    Example:
+
+    Display random leaderboard::
+     
+      URL=http://swat4stats.com/api/motd/leaderboard/
+
+    Display score leaderboard every 5 minutes::
+      
+      URL=http://swat4stats.com/api/motd/leaderboard/score/?repeat=300
+
+    Display CO-OP score leaderboard every 10 minutes starting 10 minutes after a map launch::
+      
+      URL=http://swat4stats.com/api/motd/leaderboard/coop_score/?initial=600&repeat=600
+
+    Display top 5 players by k/d ratio every 10 minutes (no delay)::
+
+      URL=http://swat4stats.com/api/motd/leaderboard/kill_streak/?repeat=600&nodelay
+
+    Display top 5 players by kills and arrests in 3 and 6 minutes respectively after a map start (no repetition)::
+
+      URL=http://swat4stats.com/api/motd/leaderboard/kills/?initial=180
+      URL=http://swat4stats.com/api/motd/leaderboard/arrests/?initial=360
+
+* `swat-julia-whois <https://github.com/sergeii/swat-julia-whois>`_
+
+  `swat4stats.com <http://swat4stats.com>`_ may be used as a source for a ``!whois`` command response.
+
+     .. image:: https://raw.githubusercontent.com/sergeii/swat4stats.com/master/docs/screenshots/api_whois.png
+
+  In order to use `swat4stats.com <http://swat4stats.com>`_ as a ``!whois`` command source you must to connect the server to the stats tracker. Then configure `swat-julia-whois <https://github.com/sergeii/swat-julia-whois>`_ the following way::
+
+     [JuliaWhois.Extension]
+     Enabled=True
+     URL=http://swat4stats.com/api/whois/
+     Key=swat4stats
+     Auto=True
