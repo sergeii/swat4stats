@@ -46,6 +46,15 @@ def update_server_hostname(sender, servers, **kwargs):
             pass
 
 
+@receiver(live_servers_detected)
+def enable_server_data_streaming(sender, servers, **kwargs):
+    """Enable data streaming for live servers."""
+    (models.Server.objects
+        .filter(pk__in=list(map(lambda server: server.pk, servers)))
+        .update(streamed=True)
+    )
+
+
 @receiver(dead_servers_detected)
 def unlist_dead_servers(sender, servers, **kwargs):
     """Remove dead servers from the query list."""
