@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django import test
 from cacheops import invalidation
 from django.core.cache import cache
+from django.utils.encoding import force_text
 
 from mock import patch
 
@@ -41,44 +42,36 @@ class WhoisApiTestCase(TestCase):
         )
         self.server = models.Server.objects.create(ip='127.0.0.1', port=10480, enabled=True, streamed=True)
 
-    def test_valid_data(self):
-        client = test.Client()
+    def test_valid_data_passed_to_whois_api_is_validated(self):
         for qs in self.valid_qs:
-            response = client.get('/api/whois/?%s' % qs)
+            response = self.client.get('/api/whois/?%s' % qs, REMOTE_ADDR='127.0.0.1')
             self.assertEqual(response.status_code, 200)
             self.assertTrue(response.content)
-            self.assertEqual(chr(response.content[0]), '0', qs)
+            self.assertEqual(force_text(response.content)[0], '0', qs)
 
             cache.clear()
 
-    def test_invalid_data(self):
-        client = test.Client()
+    def test_invalid_data_passed_to_whois_api_is_not_validated(self):
         for qs in self.invalid_qs:
-            response = client.get('/api/whois/?%s' % qs)
+            response = self.client.get('/api/whois/?%s' % qs, REMOTE_ADDR='127.0.0.1')
             self.assertEqual(response.status_code, 200)
             self.assertTrue(response.content)
-            self.assertNotEqual(chr(response.content[0]), '0', qs)
+            self.assertEqual(force_text(response.content)[0], '1', qs)
 
             cache.clear()
 
-    def test_invalid_server(self):
-        client = test.Client()
+    def test_unregistered_server_is_not_permitted_to_use_whois_api(self):
         for qs in self.valid_qs:
-            response = client.get('/api/whois/?%s' % qs, REMOTE_ADDR='127.0.0.2')
-            self.assertEqual(response.status_code, 200)
-            self.assertTrue(response.content)
-            self.assertNotEqual(chr(response.content[0]), '0', qs)
+            response = self.client.get('/api/whois/?%s' % qs, REMOTE_ADDR='192.168.1.125')
+            self.assertEqual(force_text(response.content)[0], '1', qs)
 
             cache.clear()
 
-    def test_unstreamed_server(self):
-        models.Server.objects.create(ip='127.0.0.2', port=10480, enabled=True, streamed=False)
+    def test_unstreamed_server_is_not_permitted_to_use_whois_api(self):
+        models.Server.objects.create(ip='127.0.0.5', port=10480, enabled=True, streamed=False)
 
-        client = test.Client()
         for qs in self.valid_qs:
-            response = client.get('/api/whois/?%s' % qs, REMOTE_ADDR='127.0.0.2')
-            self.assertEqual(response.status_code, 200)
-            self.assertTrue(response.content)
-            self.assertNotEqual(chr(response.content[0]), '0', qs)
+            response = self.client.get('/api/whois/?%s' % qs, REMOTE_ADDR='127.0.0.5')
+            self.assertEqual(force_text(response.content)[0], '1', qs)
 
             cache.clear()
