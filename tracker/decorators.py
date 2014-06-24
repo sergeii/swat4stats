@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import)
 
+import datetime
 import logging
 from functools import wraps
 
 from django.http import Http404
 from django.utils.translation import ugettext as _
 from django.utils.encoding import force_text, force_bytes
+from django.utils import timezone
 
 from julia.node import ValueNodeError
 from julia.parse import QueryString
@@ -135,3 +137,37 @@ def requires_valid_source(view):
         # return error status view instead
         return StreamView.status(request, StreamView.STATUS_ERROR, _('The server is not registered.'))
     return wrapped
+
+
+def requires_streaming_source(**timedelta_kwargs):
+    """
+    Decorate a view with with a wrapper that will fail to validate a request from
+    a source that has not streamed data to the tracker since `timedelta(**timedelta_kwargs)` ago.
+
+    Args:
+        **timedelta_kwargs - kwargs acceptable by the datetime.timedelta constructor (days=n, hours=m, etc)
+    """
+    def decorator(view):
+        @wraps(view)
+        def wrapped(request, *args, **kwargs):
+            from .views import StreamView
+            # calculate min required date
+            min_date = timezone.now()-datetime.timedelta(**timedelta_kwargs)
+
+            qs = (models.Game.objects
+                .filter(
+                    server=request.stream_source,
+                    date_finished__gte=min_date
+                )[:1]
+            )
+            # return an error status view in case the server
+            # has not streamed for quite a long time
+            if not qs.exists():
+                return StreamView.status(
+                    request,
+                    StreamView.STATUS_ERROR,
+                    _('The server has been inactive since at least %(date)s.') % {'date': min_date}
+                )
+            return view(request, *args, **kwargs)
+        return wrapped
+    return decorator

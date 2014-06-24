@@ -1614,6 +1614,7 @@ class APIWhoisView(generic.View):
     @method_decorator(ratelimit(rate='5/m', block=False))
     @method_decorator(decorators.requires_valid_source)
     @method_decorator(decorators.requires_valid_request(pattern_node))
+    @method_decorator(decorators.requires_streaming_source(days=1))
     def dispatch(self, *args, **kwargs):
         return super(APIWhoisView, self).dispatch(*args, **kwargs)
 
