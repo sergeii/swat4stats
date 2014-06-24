@@ -21,7 +21,7 @@ class ForceNameTestCase(unittest.TestCase):
         (('', '1394165668'), '_aa548b03'),
         (('', '83.25.71.164'), '_aa548b03'),
         ((r'[c=FFFF00]', '201.78.244.55'), '_3c8dde09'),
-        ((r'[b][u] [\u]', '201.78.244.55'), '_3c8dde09'),
+        (('[b][u] [\\u]', '201.78.244.55'), '_3c8dde09'),
     )
 
     def test_known_values(self):
@@ -39,10 +39,10 @@ class ForceCleanNameTestCase(unittest.TestCase):
         (r'[c]Serge[\c]', 'Serge'),
         (r' [c=FF0000]Serge', 'Serge'),
         (r'[c=FF0001][u]Serge[b]', 'Serge'),
-        (r'[c=FF[u]003[\u]0][u]Serge[b][c=FF00]', 'Serge'),
+        ('[c=FF[u]003[\\u]0][u]Serge[b][c=FF00]', 'Serge'),
         (r'[c=FFFF00]', ''),
-        (r'[b][u][\u]', ''),
-        (r'[b] [u]  [\u] ', ''),
+        ('[b][u][\\u]', ''),
+        ('[b] [u]  [\\u] ', ''),
         (r'[c=704070][b]M[c=A080A0]a[c=D0C0D0]i[c=FFFFFF]n', 'Main'),
         (r'[c=F4F4F4][b]Kee[c=E9E9E9]p u[c=DEDEDE]r h[c=D3D3D3]ead[c=C8C8C8] do[c=BDBDBD]wn', 'Keep ur head down'),
     )
