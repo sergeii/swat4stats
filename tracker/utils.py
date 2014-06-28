@@ -8,6 +8,7 @@ import datetime
 from functools import partial, reduce
 
 import six
+from IPy import IP
 
 from django.core.urlresolvers import reverse
 from django.utils.encoding import force_bytes, force_text
@@ -157,7 +158,6 @@ def calc_ratio(divident, divisor, min_divident=None, min_divisor=None):
 
 
 def force_ipy(ip_address):
-    from IPy import IP
     # no conversion is needed
     if isinstance(ip_address, IP):
         return ip_address
