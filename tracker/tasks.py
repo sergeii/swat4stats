@@ -100,7 +100,7 @@ def update_server_list():
         fetch_server_list.apply_async(kwargs=locals())
 
 
-@app.task(ignore_result=True)
+@app.task(ignore_result=True, expires=5)
 def query_listed_servers(time_delta, interval):
     """
     Attempt to query listed servers every ``interval`` for a total of ``time``.
