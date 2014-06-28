@@ -22,12 +22,15 @@ class TestCase(test.TestCase):
 
 class ServerTestCase(TestCase):
 
+    valid_port_values = (1, '2', 1023, '1024', 10468, 24511, 65535)
+    invalid_port_values = (-1000, -1, '0', 0, 65536, 100000)
+
     def test_create_server_valid_port_number(self):
-        for port in (1, '2', 1023, '1024', 10468, 24511, 65535):
+        for port in self.valid_port_values:
             models.Server.objects.create_server('127.0.0.1', port)
 
     def test_create_server_invalid_port_number(self):
-        for port in (-1000, -1, '0', 0, 65536, 100000):
+        for port in self.invalid_port_values:
             with self.assertRaises(exceptions.ValidationError):
                 models.Server.objects.create_server('127.0.0.1', port)
 
@@ -35,6 +38,23 @@ class ServerTestCase(TestCase):
         models.Server.objects.create(ip='127.0.0.1', port=10480)
         with self.assertRaises(exceptions.ValidationError):
             models.Server.objects.create_server('127.0.0.1', 10480)
+
+    def test_server_manager_create_doesnt_raise_exception_on_valid_port_number(self):
+        for port in self.valid_port_values:
+            models.Server.objects.create(ip='127.0.0.1', port=port)
+
+    def test_server_manager_create_raises_validation_error_on_invalid_port_number(self):
+        for port in self.invalid_port_values:
+            with self.assertRaises(exceptions.ValidationError):
+                models.Server.objects.create(ip='127.0.0.1', port=port)
+
+    def test_server_instance_save_raises_validation_error_on_invalid_port_number(self):
+        instance = models.Server.objects.create(ip='127.0.0.1', port=10480)
+
+        for port in self.invalid_port_values:
+            with self.assertRaises(exceptions.ValidationError):
+                instance.port = port
+                instance.save()
 
 
 class LoadoutTestCase(TestCase):

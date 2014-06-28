@@ -396,11 +396,7 @@ class ServerManager(models.Manager):
         else:
             raise ValidationError(_('The server has already been registered.'))
 
-        options.update({'ip': ip, 'port': port})
-        obj = self.model(**options)
-        obj.clean()
-        obj.save()
-        return obj
+        return self.create(**dict(ip=ip, port=port, **options))
 
     def enabled(self):
         return self.get_queryset().filter(enabled=True)
