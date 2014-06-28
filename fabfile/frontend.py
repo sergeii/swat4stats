@@ -66,10 +66,10 @@ def nginx_setup():
 
 
 @task 
-def uwsgi_setup():
-    """Set up a supervisor program for uwsgi."""
+def supervisor_setup():
+    """Set up supervisor."""
     # copy the conf file
-    sudo('cp %s /etc/supervisor/conf.d/%s.conf' % (env.uwsgi['conf'], env.uwsgi['name']))
+    sudo('cp %s /etc/supervisor/conf.d/%s.conf' % (env.supervisor['conf'], env.project['name']))
     # reload
     supervisorctl('reread')
     supervisorctl('update')

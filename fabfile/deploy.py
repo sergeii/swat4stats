@@ -14,6 +14,8 @@ def reload():
     execute(invalidate)
     execute(collectstatic)
     execute(uwsgi)
+    execute(celeryd)
+    execute(celerybeat)
     execute(nginx)
     execute(crontab)
 
@@ -26,6 +28,8 @@ def reinstall():
     execute(invalidate)
     execute(collectstatic)
     execute(uwsgi)
+    execute(celeryd)
+    execute(celerybeat)
     execute(nginx)
     execute(crontab)
 
@@ -128,9 +132,25 @@ def nginx():
 @roles('frontend')
 def uwsgi():
     """Deploy a uwsgi server."""
-    frontend.uwsgi_setup()
+    frontend.supervisor_setup()
     frontend.supervisorctl('restart', env.uwsgi['name'])
 
+
+@task
+@roles('frontend')
+def celeryd():
+    """Deploy celery workers."""
+    frontend.supervisor_setup()
+    # control the whole group
+    frontend.supervisorctl('restart', '%s:*' % env.celeryd['name'])
+
+
+@task
+@roles('frontend')
+def celerybeat():
+    """Deploy celery beat."""
+    frontend.supervisor_setup()
+    frontend.supervisorctl('restart', env.celerybeat['name'])
 
 @task
 @roles('backend')

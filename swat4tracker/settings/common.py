@@ -2,7 +2,10 @@
 from __future__ import unicode_literals, absolute_import
 
 import os
+from datetime import timedelta
+
 from unipath import Path
+from celery.schedules import crontab
 
 # swat4tracker project package
 PATH_PROJECT = Path(os.path.dirname(__file__)).parent
@@ -165,3 +168,55 @@ COMPRESS_DATA_URI_MAX_SIZE = 1024*5
 MARKDOWN_PROTECT_PREVIEW = True
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+# celery
+BROKER_URL = 'redis://localhost/3'
+CELERY_RESULT_BACKEND = 'redis://localhost/4'
+
+CELERYBEAT_SCHEDULE = {
+    # fetch new servers from various sources every 10 min
+    'update-servers': {
+        'task': 'tracker.tasks.update_server_list',
+        'schedule': timedelta(minutes=10),
+    },
+    # query servers for 60 seconds with an interval of 5 seconds
+    'query-servers': {
+        'task': 'tracker.tasks.query_listed_servers',
+        'schedule': timedelta(seconds=60),
+        'kwargs': {'time_delta': 60, 'interval': 5},
+    },
+    # update the profile popular fields (name, team, etc) every 30 min
+    'update-popular': {
+        'task': 'tracker.tasks.update_popular',
+        'schedule': timedelta(minutes=30),
+        'kwargs': {'time_delta': timedelta(hours=1)},
+    },
+    # update profile ranks every 2 hours 5 min
+    'update-ranks': {
+        'task': 'tracker.tasks.update_ranks',
+        'schedule': timedelta(hours=2, minutes=5),
+        'kwargs': {'time_delta': timedelta(hours=4)},
+    },
+    # update positions every 12 hours 10 min
+    'update-ranks': {
+        'task': 'tracker.tasks.update_positions',
+        'schedule': timedelta(hours=12, minutes=10),
+    },
+    # update past year positions on the new year's jan 1st 6 am
+    'update-ranks-past-year': {
+        'task': 'tracker.tasks.update_positions',
+        'schedule': crontab(minute='0', hour='6', day_of_month='1', month_of_year='1', day_of_week='*'),
+        'args': (-1,),
+    },
+}
+
+CELERY_ROUTES = {
+    # use a dedicated queue for server queries
+    'tracker.tasks.query_listed_servers': {
+        'queue': 'serverquery',
+    },
+}
+
+CELERY_TASK_RESULT_EXPIRES = 60*60
+CELERY_TASK_SERIALIZER = 'pickle'
+CELERY_ACCEPT_CONTENT = ['pickle']

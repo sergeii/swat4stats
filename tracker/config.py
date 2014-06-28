@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import)
 
-import re
-
 from . import definitions
 
 # list pf case insensitive regex patterns used to describe a popular name
@@ -38,18 +36,18 @@ POPULAR_NAMES = (
     r'^sniper$',
 )
 
-# a list of (url, regex pattern for extracting ip and port) tuple
-# used by cron_fetch_servers manage.py command to refresh the server list
-SERVER_URLS = (
+# a list of (url, regex pattern (for extracting ip and port)) tuples
+# used by the tasks.update_server_list task to keep the server list up to date
+SERVER_LIST_URLS = {
     # mark server list
-    (r'http://www.markmods.com/swat4serverlist/', 
-       re.compile(r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT))
+    ('http://www.markmods.com/swat4serverlist/',
+       r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
     ),
     # gametracker/gsc server list
-    (r'http://api.getgsc.com/?command=get_gameservers_csv&search_by=game_abbrev&search_term=swat4&limit=1000',
-        re.compile(r'^(?P<addr>%s),(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT), flags=re.M)
+    ('http://api.getgsc.com/?command=get_gameservers_csv&search_by=game_abbrev&search_term=swat4&limit=1000',
+        r'^(?P<addr>%s),(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
     ),
-)
+}
 
 # max number of concurrent server status requests
 MAX_STATUS_CONNECTIONS = 30

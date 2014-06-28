@@ -164,6 +164,17 @@ def force_ipy(ip_address):
     return IP(ip_address)
 
 
+def force_timedelta(value):
+    """
+    Pass `value` to the datetime.timedelta constructor 
+    as number of seconds unless `value` is a timedelta instance itself
+    then return the instance.
+    """
+    if isinstance(value, datetime.timedelta):
+        return value
+    return datetime.timedelta(seconds=int(value))
+
+
 def force_clean_name(name):
     """Return a name free of SWAT text tags and leading/trailing whitespace."""
     while True:

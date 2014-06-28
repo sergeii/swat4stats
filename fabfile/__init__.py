@@ -65,7 +65,18 @@ env.uwsgi = {
     'binary': env.paths['base'].child('bin', 'uwsgi'),
     # supervisorctl program name
     'name': '%s_uwsgi' % env.project['name'],
-    'conf': env.paths['conf'].child('supervisor.conf'),
+}
+
+env.supervisor = {
+    'conf': env.paths['conf'].child('supervisor.conf')
+}
+
+env.celeryd = {
+    'name': '%s_celeryd' % env.project['name'],
+}
+
+env.celerybeat = {
+    'name': '%s_celerybeat' % env.project['name'],
 }
 
 env.secrets = {
