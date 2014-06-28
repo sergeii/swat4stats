@@ -100,9 +100,7 @@ ADMINS = (
     ('Sergei', 'kh.sergei@gmail.com'),
 )
 
-MANAGERS = (
-    ('Sergei', 'kh.sergei@gmail.com'),
-)
+MANAGERS = ADMINS
 
 CACHES = {
     'default': {
