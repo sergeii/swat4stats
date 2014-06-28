@@ -28,25 +28,6 @@ def uwsgi(cmd, name=None):
     supervisorctl(cmd, name)
 
 
-@task
-def uwsgi_pip(cmd=None, binary=None, pidfile=None, ini=None):
-    """
-    Emit a uwsgi signal.
-
-    If no cmd is provided, attempt to start the server.
-    """
-    pidfile = pidfile or env.uwsgi['pidfile']
-    binary = binary or env.uwsgi['binary']
-
-    with utils.virtualenv(env.paths['base']):
-        with cd(env.paths['project']):
-            # bin/uwsgi --reload /tmp/pidfile.pid
-            if cmd:
-                sudo('%s --%s %s' % (binary, cmd, pidfile))
-            else:
-                sudo('%s --ini %s --pidfile %s' % (binary, env.uwsgi['ini'], pidfile))
-
-
 @task 
 def nginx_setup():
     """
