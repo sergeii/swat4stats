@@ -142,9 +142,6 @@ LOGGING = {
 }
 
 CACHEOPS = {
-    #'auth.user': ('get', 60*15),
-    #'auth.*': ('all', 60*60),
-    #'*.*': ('count', 60*15),
     'tracker.*': ('just_enable', None),
 }
 
