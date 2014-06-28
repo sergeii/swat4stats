@@ -164,38 +164,38 @@ BROKER_URL = 'redis://localhost/3'
 CELERY_RESULT_BACKEND = 'redis://localhost/4'
 
 CELERYBEAT_SCHEDULE = {
-    # fetch new servers from various sources every 10 min
+    # fetch new servers from various sources every 30 min
     'update-servers': {
         'task': 'tracker.tasks.update_server_list',
-        'schedule': timedelta(minutes=10),
+        'schedule': timedelta(minutes=30),
     },
-    # query servers for 60 seconds with an interval of 5 seconds
+    # query servers for 90 seconds with an interval of 5 seconds
     'query-servers': {
         'task': 'tracker.tasks.query_listed_servers',
-        'schedule': timedelta(seconds=60),
-        'kwargs': {'time_delta': 60, 'interval': 5},
+        'schedule': timedelta(seconds=90),
+        'kwargs': {'time_delta': 90, 'interval': 5},
     },
-    # update the profile popular fields (name, team, etc) every 30 min
+    # update the profile popular fields (name, team, etc) every hour
     'update-popular': {
         'task': 'tracker.tasks.update_popular',
-        'schedule': timedelta(minutes=30),
-        'kwargs': {'time_delta': timedelta(hours=1)},
+        'schedule': crontab(minute='10'),
+        'kwargs': {'time_delta': timedelta(hours=2)},
     },
-    # update profile ranks every 2 hours 5 min
+    # update profile ranks every 2 hours
     'update-ranks': {
         'task': 'tracker.tasks.update_ranks',
-        'schedule': timedelta(hours=2, minutes=5),
+        'schedule': crontab(minute='20', hour='*/2'),
         'kwargs': {'time_delta': timedelta(hours=4)},
     },
-    # update positions every 12 hours 10 min
+    # update positions every 6 hours
     'update-ranks': {
         'task': 'tracker.tasks.update_positions',
-        'schedule': timedelta(hours=12, minutes=10),
+        'schedule': crontab(minute='30', hour='*/6'),
     },
     # update past year positions on the new year's jan 1st 6 am
     'update-ranks-past-year': {
         'task': 'tracker.tasks.update_positions',
-        'schedule': crontab(minute='0', hour='6', day_of_month='1', month_of_year='1', day_of_week='*'),
+        'schedule': crontab(minute='0', hour='6', day_of_month='1', month_of_year='1'),
         'args': (-1,),
     },
 }
