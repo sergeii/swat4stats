@@ -9,6 +9,7 @@ from . import backend, frontend, cache
 @task
 def reload():
     execute(code)
+    execute(dependencies)
     execute(contrib)
     execute(migrate)
     execute(invalidate)
@@ -22,22 +23,16 @@ def reload():
 
 @task
 def reinstall():
-    """Deploy everything."""
-    execute(project)
-    execute(migrate)
-    execute(invalidate)
-    execute(collectstatic)
-    execute(uwsgi)
-    execute(celeryd)
-    execute(celerybeat)
-    execute(nginx)
-    execute(crontab)
+    """Reinstall everything from scratch."""
+    execute(virtualenv)
+    reload()
 
 
 @task
 @roles('backend')
-def base():
+def virtualenv():
     """Deploy virtualenv."""
+    # rm -rf && virtualenv
     backend.base()
 
 
@@ -86,22 +81,6 @@ def invalidate():
 def contrib():
     """Deploy additional application specific files."""
     put(env.secrets['local'], env.secrets['remote'], use_sudo=True)
-
-
-@task
-@roles('backend')
-def project():
-    """
-    Deploy a backend environment along with the project source code.
-
-    * Deploy a virtual environment
-    * Deploy the application source code
-    * Satisfy the application dependencies
-    """
-    backend.base()
-    code()
-    contrib()
-    dependencies()
 
 
 @task
