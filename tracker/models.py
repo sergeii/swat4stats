@@ -346,7 +346,7 @@ class ServerStatus(GameMixin):
                             'status_translated': obj_status,
                         })
             except Exception as e:
-                logger.warning('failed to parse %s from %s (%s, %s)' % (response, self.server, type(e).__name__, e))
+                logger.debug('failed to parse %s from %s (%s, %s)' % (response, self.server, type(e).__name__, e))
             else:
                 self.date_updated = timezone.now()
                 return response

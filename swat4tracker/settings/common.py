@@ -123,22 +123,12 @@ LOGGING = {
         },
     },
     'handlers': {
-        # implement django and stream handlers
+        # implement stream handler
     },
     'loggers': {
-        'django': {
-            'handlers': ['django'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'tracker': {
-            'handlers': ['django'],
-            'level': 'DEBUG',
-            'propagate': True
-        },
         'stream': {
             'handlers': ['stream'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False
         },
     },

@@ -12,5 +12,8 @@ MIDDLEWARE_CLASSES = ('debug_toolbar.middleware.DebugToolbarMiddleware',) + MIDD
 
 LOGGING['handlers']['django']['level'] = 'DEBUG'
 LOGGING['handlers']['sql']['level'] = 'DEBUG'
+LOGGING['loggers']['django']['level'] = 'DEBUG'
+LOGGING['loggers']['tracker']['level'] = 'DEBUG'
+LOGGING['loggers']['django.db.backends']['level'] = 'DEBUG'
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False

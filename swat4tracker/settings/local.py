@@ -46,9 +46,19 @@ LOGGING['handlers'].update({
 })
 
 LOGGING['loggers'].update({
+    'django': {
+        'handlers': ['django'],
+        'level': 'WARNING',
+        'propagate': True,
+    },
+    'tracker': {
+        'handlers': ['django'],
+        'level': 'WARNING',
+        'propagate': True
+    },
     'django.db.backends': {
         'handlers': ['sql'],
-        'level': 'DEBUG',
+        'level': 'WARNING',
         'propagate': False,
     },
 })

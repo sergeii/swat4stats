@@ -35,6 +35,19 @@ LOGGING['handlers'].update({
     },
 })
 
+LOGGING['loggers'].update({
+    'django': {
+        'handlers': ['django'],
+        'level': 'ERROR',
+        'propagate': True,
+    },
+    'tracker': {
+        'handlers': ['django'],
+        'level': 'WARNING',
+        'propagate': True
+    },
+})
+
 STATIC_ROOT = Path('/var/www/static/swat4tracker/')
 MEDIA_ROOT = Path('/var/www/media/swat4tracker/')
 
