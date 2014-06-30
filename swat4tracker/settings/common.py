@@ -188,7 +188,7 @@ CELERYBEAT_SCHEDULE = {
         'kwargs': {'time_delta': timedelta(hours=4)},
     },
     # update positions every 6 hours
-    'update-ranks': {
+    'update-positions': {
         'task': 'tracker.tasks.update_positions',
         'schedule': crontab(minute='30', hour='*/6'),
     },
