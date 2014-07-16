@@ -1,7 +1,7 @@
 Django>=1.6,<1.7
 IPy==0.81
 Markdown==2.4.1
-South==1.0
+South==0.8.4
 Unipath==1.0
 django-aggregate-if==0.4
 django-appconf==0.6
