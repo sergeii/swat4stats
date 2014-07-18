@@ -1230,7 +1230,12 @@ class Profile(models.Model):
     SET_STATS_RD = 16
     SET_STATS_SG = 32
     SET_STATS_COOP = 64
-    SET_STATS_ALL = 127
+    SET_STATS_BS = 128
+
+    SET_STATS_ALL = (
+        SET_STATS_COMMON | SET_STATS_KILLS | SET_STATS_WEAPONS |
+        SET_STATS_BS | SET_STATS_VIP | SET_STATS_RD | SET_STATS_SG | SET_STATS_COOP
+    )
 
     name = models.CharField(max_length=64, null=True)
     team = models.SmallIntegerField(null=True)
@@ -1358,9 +1363,17 @@ class Profile(models.Model):
                 # STAT.AMMO_ACCURACY,  # calculated manually
                 # STAT.KDR,
             ])
+        # BS stats
+        if options & Profile.SET_STATS_BS:
+            categories.extend([
+                STAT.BS_SCORE,
+                STAT.BS_TIME,
+            ])
         # VIP Escort stats
         if options & Profile.SET_STATS_VIP:
             categories.extend([
+                STAT.VIP_SCORE,
+                STAT.VIP_TIME,
                 STAT.VIP_ESCAPES,
                 STAT.VIP_CAPTURES,
                 STAT.VIP_RESCUES,
@@ -1371,11 +1384,15 @@ class Profile(models.Model):
         # Rapid Deployment stats
         if options & Profile.SET_STATS_RD:
             categories.extend([
+                STAT.RD_SCORE,
+                STAT.RD_TIME,
                 STAT.RD_BOMBS_DEFUSED,
             ])
         # Smash and Grab stats
         if options & Profile.SET_STATS_SG:
             categories.extend([
+                STAT.SG_SCORE,
+                STAT.SG_TIME,
                 STAT.SG_ESCAPES,
                 STAT.SG_KILLS,
             ])
@@ -1505,7 +1522,34 @@ class Profile(models.Model):
                         only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
                     )
                 ),
+                # Barricaded Suspects stats
+                STAT.BS_SCORE: (
+                    aggregate_if.Sum(
+                        'score', 
+                        models.Q(game__gametype=definitions.MODE_BS)
+                    )
+                ),
+                STAT.BS_TIME: (
+                    aggregate_if.Sum(
+                        'time', 
+                        models.Q(game__gametype=definitions.MODE_BS)
+                    )
+                ),
                 # VIP Escort stats
+                # Score earned in VIP Escort
+                STAT.VIP_SCORE: (
+                    aggregate_if.Sum(
+                        'score', 
+                        models.Q(game__gametype=definitions.MODE_VIP)
+                    )
+                ),
+                # Time played in VIP Escort
+                STAT.VIP_TIME: (
+                    aggregate_if.Sum(
+                        'time', 
+                        models.Q(game__gametype=definitions.MODE_VIP)
+                    )
+                ),
                 STAT.VIP_ESCAPES: models.Sum('vip_escapes'),
                 STAT.VIP_CAPTURES: models.Sum('vip_captures'),
                 STAT.VIP_RESCUES: models.Sum('vip_rescues'),
@@ -1515,8 +1559,32 @@ class Profile(models.Model):
                     aggregate_if.Count('pk', only=models.Q(vip=True), distinct=True)
                 ),
                 # Rapid Deployment stats
+                STAT.RD_SCORE: (
+                    aggregate_if.Sum(
+                        'score', 
+                        models.Q(game__gametype=definitions.MODE_RD)
+                    )
+                ),
+                STAT.RD_TIME: (
+                    aggregate_if.Sum(
+                        'time', 
+                        models.Q(game__gametype=definitions.MODE_RD)
+                    )
+                ),
                 STAT.RD_BOMBS_DEFUSED: models.Sum('rd_bombs_defused'),
                 # Smash and Grab stats
+                STAT.SG_SCORE: (
+                    aggregate_if.Sum(
+                        'score', 
+                        models.Q(game__gametype=definitions.MODE_SG)
+                    )
+                ),
+                STAT.SG_TIME: (
+                    aggregate_if.Sum(
+                        'time', 
+                        models.Q(game__gametype=definitions.MODE_SG)
+                    )
+                ),
                 STAT.SG_ESCAPES: models.Sum('sg_escapes'),
                 STAT.SG_KILLS: models.Sum('sg_kills'),
                 # COOP stats

@@ -90,6 +90,15 @@ STAT = Enum(
     'AMMO_HITS',
     'AMMO_ACCURACY',
     'AMMO_DISTANCE',
+
+    'BS_SCORE',
+    'BS_TIME',
+    'VIP_SCORE',
+    'VIP_TIME',
+    'RD_SCORE',
+    'RD_TIME',
+    'SG_SCORE',
+    'SG_TIME',
 )
 
 # list of (rank name, points required to earn the rank) tuples

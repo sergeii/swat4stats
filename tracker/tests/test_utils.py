@@ -134,6 +134,15 @@ class StatEnumTestCase(unittest.TestCase):
         'AMMO_HITS': 49,
         'AMMO_ACCURACY': 50,
         'AMMO_DISTANCE': 51,
+
+        'BS_SCORE': 52,
+        'BS_TIME': 53,
+        'VIP_SCORE': 54,
+        'VIP_TIME': 55,
+        'RD_SCORE': 56,
+        'RD_TIME': 57,
+        'SG_SCORE': 58,
+        'SG_TIME': 59,
     }
 
     def test_stat_enum_members_are_in_correct_order(self):
