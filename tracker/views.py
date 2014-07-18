@@ -148,7 +148,7 @@ class SummaryViewMixin(object):
         elif weekday >= 4:
             return (_('Weekly Summary'), week, now)
         # display past week summary
-        elif weekday <= 1:
+        elif weekday <= 2:
             return (_('Weekly Summary'), week-datetime.timedelta(days=7), now)
         else:
             return None
