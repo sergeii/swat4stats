@@ -9,6 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 from julia import node, shortcuts
 
 from . import const
+from .utils import Enum
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,74 @@ except node.PatternNodeError as e:
     raise
 
 unmap = partial(shortcuts.unmap, coerce=int)
+
+# Stat categories enum
+# SCORE is 0, TIME is 1 and so on
+#
+# no member should ever be removed
+# new members are added at the bottom of the member definition list
+STAT = Enum(
+    # main stats
+    'SCORE',
+    'TIME',  # dont count time played in coop
+    'GAMES',  # same
+    'WINS',  # versus mode wins
+    'LOSSES',  # versus mode losses
+    'DRAWS',  # versus mode draws
+    # good stats
+    'KILLS',
+    'ARRESTS',
+    # bad stats
+    'DEATHS',
+    'ARRESTED',
+    'TEAMKILLS',
+    # top stats
+    'TOP_SCORE',
+    'KILL_STREAK',
+    'ARREST_STREAK',
+    'DEATH_STREAK',
+    # mode specific stats
+    'VIP_ESCAPES',
+    'VIP_CAPTURES',
+    'VIP_RESCUES',
+    'VIP_KILLS_VALID',
+    'VIP_KILLS_INVALID',
+    'VIP_TIMES',
+    'RD_BOMBS_DEFUSED',
+    'SG_ESCAPES',
+    'SG_KILLS',
+    # ratio stats
+    'SPM',
+    'SPR',
+    'KDR',
+
+    'COOP_GAMES',     # total number of coop rounds played
+    'COOP_TIME',      # total time spent playing in coop modes
+    'COOP_WINS',      # completed missions
+    'COOP_LOSSES',    # failed missions
+    'COOP_HOSTAGE_ARRESTS',
+    'COOP_HOSTAGE_HITS',
+    'COOP_HOSTAGE_INCAPS',
+    'COOP_HOSTAGE_KILLS',
+    'COOP_ENEMY_ARRESTS',
+    'COOP_ENEMY_HITS',
+    'COOP_ENEMY_INCAPS',
+    'COOP_ENEMY_KILLS',
+    'COOP_ENEMY_INCAPS_INVALID',
+    'COOP_ENEMY_KILLS_INVALID',
+    'COOP_TOC_REPORTS',
+    'COOP_SCORE',
+    'COOP_TEAMKILLS',
+    'COOP_DEATHS',
+
+    'SUICIDES',
+    'TOP_KILLS',
+    'TOP_ARRESTS',
+    'AMMO_SHOTS',
+    'AMMO_HITS',
+    'AMMO_ACCURACY',
+    'AMMO_DISTANCE',
+)
 
 # list of (rank name, points required to earn the rank) tuples
 RANKS = (
@@ -44,59 +114,59 @@ RANKS = (
 # stat id -> human readable name mapping
 # used everywhere across the app
 STATS = {
-    const.STATS_SCORE: 'score',
-    const.STATS_TIME: 'time',
-    const.STATS_KILLS: 'kills',
-    const.STATS_TEAMKILLS: 'teamkills',
-    const.STATS_DEATHS: 'deaths',
-    const.STATS_SUICIDES: 'suicides',
-    const.STATS_ARRESTS: 'arrests',
-    const.STATS_ARRESTED: 'arrested',
-    const.STATS_KILL_STREAK: 'kill_streak',
-    const.STATS_ARREST_STREAK: 'arrest_streak',
-    const.STATS_DEATH_STREAK: 'death_streak',
-    const.STATS_VIP_CAPTURES: 'vip_captures',
-    const.STATS_VIP_RESCUES: 'vip_rescues',
-    const.STATS_VIP_ESCAPES: 'vip_escapes',
-    const.STATS_VIP_KILLS_VALID: 'vip_kills_valid',
-    const.STATS_VIP_KILLS_INVALID: 'vip_kills_invalid',
-    const.STATS_RD_BOMBS_DEFUSED: 'rd_bombs_defused',
-    const.STATS_SG_ESCAPES: 'sg_escapes',
-    const.STATS_SG_KILLS: 'sg_kills',
-    const.STATS_COOP_HOSTAGE_ARRESTS: 'coop_hostage_arrests',
-    const.STATS_COOP_HOSTAGE_HITS: 'coop_hostage_hits',
-    const.STATS_COOP_HOSTAGE_INCAPS: 'coop_hostage_incaps',
-    const.STATS_COOP_HOSTAGE_KILLS: 'coop_hostage_kills',
-    const.STATS_COOP_ENEMY_ARRESTS: 'coop_enemy_arrests',
-    const.STATS_COOP_ENEMY_INCAPS: 'coop_enemy_incaps',
-    const.STATS_COOP_ENEMY_KILLS: 'coop_enemy_kills',
-    const.STATS_COOP_ENEMY_INCAPS_INVALID: 'coop_enemy_incaps_invalid',
-    const.STATS_COOP_ENEMY_KILLS_INVALID: 'coop_enemy_kills_invalid',
-    const.STATS_COOP_TOC_REPORTS: 'coop_toc_reports',
+    STAT.SCORE: 'score',
+    STAT.TIME: 'time',
+    STAT.KILLS: 'kills',
+    STAT.TEAMKILLS: 'teamkills',
+    STAT.DEATHS: 'deaths',
+    STAT.SUICIDES: 'suicides',
+    STAT.ARRESTS: 'arrests',
+    STAT.ARRESTED: 'arrested',
+    STAT.KILL_STREAK: 'kill_streak',
+    STAT.ARREST_STREAK: 'arrest_streak',
+    STAT.DEATH_STREAK: 'death_streak',
+    STAT.VIP_CAPTURES: 'vip_captures',
+    STAT.VIP_RESCUES: 'vip_rescues',
+    STAT.VIP_ESCAPES: 'vip_escapes',
+    STAT.VIP_KILLS_VALID: 'vip_kills_valid',
+    STAT.VIP_KILLS_INVALID: 'vip_kills_invalid',
+    STAT.RD_BOMBS_DEFUSED: 'rd_bombs_defused',
+    STAT.SG_ESCAPES: 'sg_escapes',
+    STAT.SG_KILLS: 'sg_kills',
+    STAT.COOP_HOSTAGE_ARRESTS: 'coop_hostage_arrests',
+    STAT.COOP_HOSTAGE_HITS: 'coop_hostage_hits',
+    STAT.COOP_HOSTAGE_INCAPS: 'coop_hostage_incaps',
+    STAT.COOP_HOSTAGE_KILLS: 'coop_hostage_kills',
+    STAT.COOP_ENEMY_ARRESTS: 'coop_enemy_arrests',
+    STAT.COOP_ENEMY_INCAPS: 'coop_enemy_incaps',
+    STAT.COOP_ENEMY_KILLS: 'coop_enemy_kills',
+    STAT.COOP_ENEMY_INCAPS_INVALID: 'coop_enemy_incaps_invalid',
+    STAT.COOP_ENEMY_KILLS_INVALID: 'coop_enemy_kills_invalid',
+    STAT.COOP_TOC_REPORTS: 'coop_toc_reports',
     # extra
-    const.STATS_TOP_SCORE: 'top_score',
-    const.STATS_TOP_KILLS: 'top_kills',
-    const.STATS_TOP_ARRESTS: 'top_arrests',
-    const.STATS_SPM: 'spm',
-    const.STATS_SPR: 'spr',
-    const.STATS_KDR: 'kdr',
-    const.STATS_GAMES: 'games',
-    const.STATS_WINS: 'wins',
-    const.STATS_LOSSES: 'losses',
-    const.STATS_DRAWS: 'draws',
+    STAT.TOP_SCORE: 'top_score',
+    STAT.TOP_KILLS: 'top_kills',
+    STAT.TOP_ARRESTS: 'top_arrests',
+    STAT.SPM: 'spm',
+    STAT.SPR: 'spr',
+    STAT.KDR: 'kdr',
+    STAT.GAMES: 'games',
+    STAT.WINS: 'wins',
+    STAT.LOSSES: 'losses',
+    STAT.DRAWS: 'draws',
     # weapons
-    const.STATS_AMMO_SHOTS: 'ammo_shots',
-    const.STATS_AMMO_HITS: 'ammo_hits',
-    const.STATS_AMMO_ACCURACY: 'ammo_accuracy',
-    const.STATS_AMMO_DISTANCE: 'ammo_distance',
+    STAT.AMMO_SHOTS: 'ammo_shots',
+    STAT.AMMO_HITS: 'ammo_hits',
+    STAT.AMMO_ACCURACY: 'ammo_accuracy',
+    STAT.AMMO_DISTANCE: 'ammo_distance',
     # coop extra
-    const.STATS_COOP_SCORE: 'coop_score',
-    const.STATS_COOP_TEAMKILLS: 'coop_teamkills',
-    const.STATS_COOP_DEATHS: 'coop_deaths',
-    const.STATS_COOP_GAMES: 'coop_games',
-    const.STATS_COOP_TIME: 'coop_time',
-    const.STATS_COOP_WINS: 'coop_wins',
-    const.STATS_COOP_LOSSES: 'coop_losses',
+    STAT.COOP_SCORE: 'coop_score',
+    STAT.COOP_TEAMKILLS: 'coop_teamkills',
+    STAT.COOP_DEATHS: 'coop_deaths',
+    STAT.COOP_GAMES: 'coop_games',
+    STAT.COOP_TIME: 'coop_time',
+    STAT.COOP_WINS: 'coop_wins',
+    STAT.COOP_LOSSES: 'coop_losses',
 }
 
 # inverse the mapping (e.g. score -> 0)

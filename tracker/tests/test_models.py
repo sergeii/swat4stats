@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.db import connection, IntegrityError
 
 from tracker import models, utils, const
+from tracker.definitions import STAT
 
 
 class TestCase(test.TestCase):
@@ -101,16 +102,16 @@ class RankTestCase(TestCase):
         self.year = 2014
 
         self.cats = (
-            const.STATS_SCORE, 
-            const.STATS_TIME, 
-            const.STATS_SPM,
-            const.STATS_SPR,
-            const.STATS_GAMES,
+            STAT.SCORE,
+            STAT.TIME,
+            STAT.SPM,
+            STAT.SPR,
+            STAT.GAMES,
         )
 
     def test_challenge_existing_profile_same_board(self):
         attrs = {
-            'category': const.STATS_SCORE, 'year': self.year, 'profile': self.profiles[0]
+            'category': STAT.SCORE, 'year': self.year, 'profile': self.profiles[0]
         }
 
         models.Rank.objects.store(points=77, **attrs)
@@ -156,33 +157,33 @@ class RankCacheTestCase(TestCase):
 
         self.year = 2014
 
-        models.Rank.objects.store(const.STATS_TIME, self.year, self.profiles[0], 1023)
-        models.Rank.objects.store(const.STATS_TIME, self.year, self.profiles[1], 475)
-        models.Rank.objects.store(const.STATS_TIME, self.year, self.profiles[2], 1575)
-        models.Rank.objects.store(const.STATS_TIME, self.year, self.profiles[3], 2575)
-        models.Rank.objects.store(const.STATS_TIME, self.year, self.profiles[4], 6575)
+        models.Rank.objects.store(STAT.TIME, self.year, self.profiles[0], 1023)
+        models.Rank.objects.store(STAT.TIME, self.year, self.profiles[1], 475)
+        models.Rank.objects.store(STAT.TIME, self.year, self.profiles[2], 1575)
+        models.Rank.objects.store(STAT.TIME, self.year, self.profiles[3], 2575)
+        models.Rank.objects.store(STAT.TIME, self.year, self.profiles[4], 6575)
 
-        models.Rank.objects.store(const.STATS_SCORE, self.year, self.profiles[0], 452)
-        models.Rank.objects.store(const.STATS_SCORE, self.year, self.profiles[1], 473)
-        models.Rank.objects.store(const.STATS_SCORE, self.year, self.profiles[2], 21)
+        models.Rank.objects.store(STAT.SCORE, self.year, self.profiles[0], 452)
+        models.Rank.objects.store(STAT.SCORE, self.year, self.profiles[1], 473)
+        models.Rank.objects.store(STAT.SCORE, self.year, self.profiles[2], 21)
 
     def test_rank__cache_same_score_sorts_by_id(self):
         for profile in self.profiles:
-            models.Rank.objects.store(const.STATS_SPM, self.year, profile, 77)
+            models.Rank.objects.store(STAT.SPM, self.year, profile, 77)
 
         models.Rank.objects.rank(self.year)
 
         for i, profile in enumerate(self.profiles):
-            self.assertEqual(models.Rank.objects.get(category=const.STATS_SPM, profile=profile.pk).position, i+1)
+            self.assertEqual(models.Rank.objects.get(category=STAT.SPM, profile=profile.pk).position, i+1)
 
     def test_rank_cache_stores_positions_year(self):
         another_year = self.year - 13
 
-        models.Rank.objects.store(const.STATS_TIME, another_year, self.profiles[0], 1123)
-        models.Rank.objects.store(const.STATS_TIME, another_year, self.profiles[1], 2457)
-        models.Rank.objects.store(const.STATS_TIME, another_year, self.profiles[2], 9827)
-        models.Rank.objects.store(const.STATS_TIME, another_year, self.profiles[3], 4571)
-        models.Rank.objects.store(const.STATS_TIME, another_year, self.profiles[4], 2524)
+        models.Rank.objects.store(STAT.TIME, another_year, self.profiles[0], 1123)
+        models.Rank.objects.store(STAT.TIME, another_year, self.profiles[1], 2457)
+        models.Rank.objects.store(STAT.TIME, another_year, self.profiles[2], 9827)
+        models.Rank.objects.store(STAT.TIME, another_year, self.profiles[3], 4571)
+        models.Rank.objects.store(STAT.TIME, another_year, self.profiles[4], 2524)
 
         models.Rank.objects.rank(self.year)
 

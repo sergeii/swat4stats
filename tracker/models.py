@@ -25,6 +25,7 @@ from whois import whois
 
 from .utils import lock, force_ipy, calc_ratio
 from . import definitions, const, utils, config
+from .definitions import STAT
 
 logger = logging.getLogger(__name__)
 
@@ -1327,114 +1328,114 @@ class Profile(models.Model):
         # common stats
         if options & Profile.SET_STATS_COMMON:
             categories.extend([
-                const.STATS_SCORE, 
-                const.STATS_TOP_SCORE,
-                const.STATS_TIME,
-                const.STATS_GAMES,
-                const.STATS_WINS,
-                const.STATS_LOSSES,
-                const.STATS_DRAWS,
-                # const.STATS_SPM,  # calculated manually at the bottom of the method
-                # const.STATS_SPR,
+                STAT.SCORE, 
+                STAT.TOP_SCORE,
+                STAT.TIME,
+                STAT.GAMES,
+                STAT.WINS,
+                STAT.LOSSES,
+                STAT.DRAWS,
+                # STAT.SPM,  # calculated manually at the bottom of the method
+                # STAT.SPR,
             ])
         if options & Profile.SET_STATS_KILLS:
             categories.extend([
-                const.STATS_KILLS,
-                const.STATS_TOP_KILLS,
-                const.STATS_TEAMKILLS,
-                const.STATS_ARRESTS,
-                const.STATS_TOP_ARRESTS,
-                const.STATS_DEATHS,
-                const.STATS_SUICIDES,
-                const.STATS_ARRESTED,
-                const.STATS_KILL_STREAK,
-                const.STATS_ARREST_STREAK,
-                const.STATS_DEATH_STREAK,
+                STAT.KILLS,
+                STAT.TOP_KILLS,
+                STAT.TEAMKILLS,
+                STAT.ARRESTS,
+                STAT.TOP_ARRESTS,
+                STAT.DEATHS,
+                STAT.SUICIDES,
+                STAT.ARRESTED,
+                STAT.KILL_STREAK,
+                STAT.ARREST_STREAK,
+                STAT.DEATH_STREAK,
                 # ammo bases stats
-                const.STATS_AMMO_SHOTS,
-                const.STATS_AMMO_HITS,
-                const.STATS_AMMO_DISTANCE,
-                # const.STATS_AMMO_ACCURACY,  # calculated manually
-                # const.STATS_KDR,
+                STAT.AMMO_SHOTS,
+                STAT.AMMO_HITS,
+                STAT.AMMO_DISTANCE,
+                # STAT.AMMO_ACCURACY,  # calculated manually
+                # STAT.KDR,
             ])
         # VIP Escort stats
         if options & Profile.SET_STATS_VIP:
             categories.extend([
-                const.STATS_VIP_ESCAPES,
-                const.STATS_VIP_CAPTURES,
-                const.STATS_VIP_RESCUES,
-                const.STATS_VIP_KILLS_VALID,
-                const.STATS_VIP_KILLS_INVALID,
-                #const.STATS_VIP_TIMES,
+                STAT.VIP_ESCAPES,
+                STAT.VIP_CAPTURES,
+                STAT.VIP_RESCUES,
+                STAT.VIP_KILLS_VALID,
+                STAT.VIP_KILLS_INVALID,
+                #STAT.VIP_TIMES,
             ])
         # Rapid Deployment stats
         if options & Profile.SET_STATS_RD:
             categories.extend([
-                const.STATS_RD_BOMBS_DEFUSED,
+                STAT.RD_BOMBS_DEFUSED,
             ])
         # Smash and Grab stats
         if options & Profile.SET_STATS_SG:
             categories.extend([
-                const.STATS_SG_ESCAPES,
-                const.STATS_SG_KILLS,
+                STAT.SG_ESCAPES,
+                STAT.SG_KILLS,
             ])
         # COOP stats
         if options & Profile.SET_STATS_COOP:
             categories.extend([
-                const.STATS_COOP_SCORE,
-                const.STATS_COOP_TIME,
-                const.STATS_COOP_GAMES,
-                const.STATS_COOP_WINS,
-                const.STATS_COOP_LOSSES,
-                const.STATS_COOP_TEAMKILLS,
-                const.STATS_COOP_DEATHS,
-                const.STATS_COOP_HOSTAGE_ARRESTS,
-                const.STATS_COOP_HOSTAGE_HITS,
-                const.STATS_COOP_HOSTAGE_INCAPS,
-                const.STATS_COOP_HOSTAGE_KILLS,
-                const.STATS_COOP_ENEMY_ARRESTS,
-                const.STATS_COOP_ENEMY_INCAPS,
-                const.STATS_COOP_ENEMY_KILLS,
-                const.STATS_COOP_ENEMY_INCAPS_INVALID,
-                const.STATS_COOP_ENEMY_KILLS_INVALID,
-                const.STATS_COOP_TOC_REPORTS,
+                STAT.COOP_SCORE,
+                STAT.COOP_TIME,
+                STAT.COOP_GAMES,
+                STAT.COOP_WINS,
+                STAT.COOP_LOSSES,
+                STAT.COOP_TEAMKILLS,
+                STAT.COOP_DEATHS,
+                STAT.COOP_HOSTAGE_ARRESTS,
+                STAT.COOP_HOSTAGE_HITS,
+                STAT.COOP_HOSTAGE_INCAPS,
+                STAT.COOP_HOSTAGE_KILLS,
+                STAT.COOP_ENEMY_ARRESTS,
+                STAT.COOP_ENEMY_INCAPS,
+                STAT.COOP_ENEMY_KILLS,
+                STAT.COOP_ENEMY_INCAPS_INVALID,
+                STAT.COOP_ENEMY_KILLS_INVALID,
+                STAT.COOP_TOC_REPORTS,
             ])
         aggregated = self.aggregate_player_stats(categories, start, end)
         # Calculate SPM and SPR manually
         if options & Profile.SET_STATS_COMMON:
             # score per minute
-            aggregated[const.STATS_SPM] = calc_ratio(
-                aggregated[const.STATS_SCORE], aggregated[const.STATS_TIME], min_divisor=Profile.MIN_TIME
+            aggregated[STAT.SPM] = calc_ratio(
+                aggregated[STAT.SCORE], aggregated[STAT.TIME], min_divisor=Profile.MIN_TIME
             ) * 60
             # score per round
-            aggregated[const.STATS_SPR] = calc_ratio(
-                aggregated[const.STATS_SCORE], aggregated[const.STATS_GAMES], min_divisor=Profile.MIN_GAMES
+            aggregated[STAT.SPR] = calc_ratio(
+                aggregated[STAT.SCORE], aggregated[STAT.GAMES], min_divisor=Profile.MIN_GAMES
             )
         if options & Profile.SET_STATS_KILLS:
             # calculate kills/deaths manually
-            aggregated[const.STATS_KDR] = calc_ratio(
-                aggregated[const.STATS_KILLS], aggregated[const.STATS_DEATHS], min_divident=self.MIN_KILLS
+            aggregated[STAT.KDR] = calc_ratio(
+                aggregated[STAT.KILLS], aggregated[STAT.DEATHS], min_divident=self.MIN_KILLS
             )
             # calculate accuracy
-            aggregated[const.STATS_AMMO_ACCURACY] = calc_ratio(
-                aggregated[const.STATS_AMMO_HITS], aggregated[const.STATS_AMMO_SHOTS], min_divisor=self.MIN_AMMO
+            aggregated[STAT.AMMO_ACCURACY] = calc_ratio(
+                aggregated[STAT.AMMO_HITS], aggregated[STAT.AMMO_SHOTS], min_divisor=self.MIN_AMMO
             )
         return aggregated
 
     def aggregate_player_stats(self, stats, start, end):
         aggregates = {
             'game': {
-                const.STATS_SCORE: models.Sum('score'),
-                const.STATS_TOP_SCORE: models.Max('score'),
+                STAT.SCORE: models.Sum('score'),
+                STAT.TOP_SCORE: models.Max('score'),
                 # non-COOP time
-                const.STATS_TIME: (
+                STAT.TIME: (
                     aggregate_if.Sum(
                         'time',  
                         only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
                     )
                 ),
                 # non-coop games
-                const.STATS_GAMES: (
+                STAT.GAMES: (
                     aggregate_if.Count(
                         'game',  
                         only=models.Q(game__gametype__in=definitions.MODES_VERSUS),
@@ -1442,7 +1443,7 @@ class Profile(models.Model):
                     )
                 ),
                 # non-coop wins
-                const.STATS_WINS: (
+                STAT.WINS: (
                     aggregate_if.Count(
                         'game',  
                         only=(models.Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SWAT_GAMES) |
@@ -1451,7 +1452,7 @@ class Profile(models.Model):
                     )
                 ),
                 # non-coop losses
-                const.STATS_LOSSES: (
+                STAT.LOSSES: (
                     aggregate_if.Count(
                         'game',  
                         only=(models.Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SUS_GAMES) |
@@ -1460,7 +1461,7 @@ class Profile(models.Model):
                     )
                 ),
                 # non-coop draws
-                const.STATS_DRAWS: (
+                STAT.DRAWS: (
                     aggregate_if.Count(
                         'game',
                         only=models.Q(
@@ -1470,113 +1471,114 @@ class Profile(models.Model):
                         distinct=True
                     )
                 ),
-                const.STATS_KILLS: models.Sum('kills'),
-                const.STATS_TOP_KILLS: models.Max('kills'),
+                STAT.KILLS: models.Sum('kills'),
+                STAT.TOP_KILLS: models.Max('kills'),
                 # non-coop teamkills
-                const.STATS_TEAMKILLS: (
+                STAT.TEAMKILLS: (
                     aggregate_if.Sum(
                         'teamkills',
                         only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
                     )
                 ),
-                const.STATS_ARRESTS: models.Sum('arrests'),
-                const.STATS_TOP_ARRESTS: models.Max('arrests'),
-                const.STATS_ARRESTED: models.Sum('arrested'),
+                STAT.ARRESTS: models.Sum('arrests'),
+                STAT.TOP_ARRESTS: models.Max('arrests'),
+                STAT.ARRESTED: models.Sum('arrested'),
                 # non-coop deaths
-                const.STATS_DEATHS: (
+                STAT.DEATHS: (
                     aggregate_if.Sum(
                         'deaths',
                         only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
                     )
                 ),
                 # non-coop suicides
-                const.STATS_SUICIDES: (
+                STAT.SUICIDES: (
                     aggregate_if.Sum(
                         'suicides',
                         only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
                     )
                 ),
-                const.STATS_KILL_STREAK: models.Max('kill_streak'),
-                const.STATS_ARREST_STREAK: models.Max('arrest_streak'),
-                const.STATS_DEATH_STREAK: (
+                STAT.KILL_STREAK: models.Max('kill_streak'),
+                STAT.ARREST_STREAK: models.Max('arrest_streak'),
+                STAT.DEATH_STREAK: (
                     aggregate_if.Max(
                         'death_streak',
                         only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
                     )
                 ),
                 # VIP Escort stats
-                const.STATS_VIP_ESCAPES: models.Sum('vip_escapes'),
-                const.STATS_VIP_CAPTURES: models.Sum('vip_captures'),
-                const.STATS_VIP_RESCUES: models.Sum('vip_rescues'),
-                const.STATS_VIP_KILLS_VALID: models.Sum('vip_kills_valid'),
-                const.STATS_VIP_KILLS_INVALID: models.Sum('vip_kills_invalid'),
-                const.STATS_VIP_TIMES: (
+                STAT.VIP_ESCAPES: models.Sum('vip_escapes'),
+                STAT.VIP_CAPTURES: models.Sum('vip_captures'),
+                STAT.VIP_RESCUES: models.Sum('vip_rescues'),
+                STAT.VIP_KILLS_VALID: models.Sum('vip_kills_valid'),
+                STAT.VIP_KILLS_INVALID: models.Sum('vip_kills_invalid'),
+                STAT.VIP_TIMES: (
                     aggregate_if.Count('pk', only=models.Q(vip=True), distinct=True)
                 ),
                 # Rapid Deployment stats
-                const.STATS_RD_BOMBS_DEFUSED: models.Sum('rd_bombs_defused'),
-                const.STATS_SG_ESCAPES: models.Sum('sg_escapes'),
-                const.STATS_SG_KILLS: models.Sum('sg_kills'),
+                STAT.RD_BOMBS_DEFUSED: models.Sum('rd_bombs_defused'),
+                # Smash and Grab stats
+                STAT.SG_ESCAPES: models.Sum('sg_escapes'),
+                STAT.SG_KILLS: models.Sum('sg_kills'),
                 # COOP stats
-                const.STATS_COOP_SCORE: (
+                STAT.COOP_SCORE: (
                     aggregate_if.Sum(
                         'game__coop_score', 
                         models.Q(game__gametype__in=definitions.MODES_COOP)
                     )
                 ),
-                const.STATS_COOP_TIME: (
+                STAT.COOP_TIME: (
                     aggregate_if.Sum(
                         'time', 
                         only=models.Q(game__gametype__in=definitions.MODES_COOP)
                     )
                 ),
-                const.STATS_COOP_GAMES: (
+                STAT.COOP_GAMES: (
                     aggregate_if.Count(
                         'game', 
                         only=models.Q(game__gametype__in=definitions.MODES_COOP),
                         distinct=True
                     )
                 ),
-                const.STATS_COOP_WINS: (
+                STAT.COOP_WINS: (
                     aggregate_if.Count(
                         'game', 
                         only=models.Q(game__outcome__in=definitions.COMPLETED_MISSIONS),
                         distinct=True
                     )
                 ),
-                const.STATS_COOP_LOSSES: (
+                STAT.COOP_LOSSES: (
                     aggregate_if.Count(
                         'game', 
                         only=models.Q(game__outcome__in=definitions.FAILED_MISSIONS),
                         distinct=True
                     )
                 ),
-                const.STATS_COOP_TEAMKILLS: (
+                STAT.COOP_TEAMKILLS: (
                     aggregate_if.Sum(
                         'teamkills', 
                         only=models.Q(game__gametype__in=definitions.MODES_COOP)
                     )
                 ),
-                const.STATS_COOP_DEATHS: (
+                STAT.COOP_DEATHS: (
                     aggregate_if.Sum(
                         'deaths', 
                         only=models.Q(game__gametype__in=definitions.MODES_COOP)
                     )
                 ),
-                const.STATS_COOP_HOSTAGE_ARRESTS: models.Sum('coop_hostage_arrests'),
-                const.STATS_COOP_HOSTAGE_HITS: models.Sum('coop_hostage_hits'),
-                const.STATS_COOP_HOSTAGE_INCAPS: models.Sum('coop_hostage_incaps'),
-                const.STATS_COOP_HOSTAGE_KILLS: models.Sum('coop_hostage_kills'),
-                const.STATS_COOP_ENEMY_ARRESTS: models.Sum('coop_enemy_arrests'),
-                const.STATS_COOP_ENEMY_INCAPS: models.Sum('coop_enemy_incaps'),
-                const.STATS_COOP_ENEMY_KILLS: models.Sum('coop_enemy_kills'),
-                const.STATS_COOP_ENEMY_INCAPS_INVALID: models.Sum('coop_enemy_incaps_invalid'),
-                const.STATS_COOP_ENEMY_KILLS_INVALID: models.Sum('coop_enemy_kills_invalid'),
-                const.STATS_COOP_TOC_REPORTS: models.Sum('coop_toc_reports'),
+                STAT.COOP_HOSTAGE_ARRESTS: models.Sum('coop_hostage_arrests'),
+                STAT.COOP_HOSTAGE_HITS: models.Sum('coop_hostage_hits'),
+                STAT.COOP_HOSTAGE_INCAPS: models.Sum('coop_hostage_incaps'),
+                STAT.COOP_HOSTAGE_KILLS: models.Sum('coop_hostage_kills'),
+                STAT.COOP_ENEMY_ARRESTS: models.Sum('coop_enemy_arrests'),
+                STAT.COOP_ENEMY_INCAPS: models.Sum('coop_enemy_incaps'),
+                STAT.COOP_ENEMY_KILLS: models.Sum('coop_enemy_kills'),
+                STAT.COOP_ENEMY_INCAPS_INVALID: models.Sum('coop_enemy_incaps_invalid'),
+                STAT.COOP_ENEMY_KILLS_INVALID: models.Sum('coop_enemy_kills_invalid'),
+                STAT.COOP_TOC_REPORTS: models.Sum('coop_toc_reports'),
             },
             'weapon': {
                 # ammo based stats
-                const.STATS_AMMO_SHOTS: (
+                STAT.AMMO_SHOTS: (
                     aggregate_if.Sum(
                         'weapon__shots',
                         only=models.Q(
@@ -1585,7 +1587,7 @@ class Profile(models.Model):
                         )
                     )
                 ),
-                const.STATS_AMMO_HITS: (
+                STAT.AMMO_HITS: (
                     aggregate_if.Sum(
                         'weapon__hits',
                         only=models.Q(
@@ -1594,7 +1596,7 @@ class Profile(models.Model):
                         )
                     )
                 ),
-                const.STATS_AMMO_DISTANCE: (
+                STAT.AMMO_DISTANCE: (
                     aggregate_if.Max(
                         'weapon__distance',
                         only=models.Q(

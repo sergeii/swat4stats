@@ -33,6 +33,7 @@ from brake.decorators import ratelimit
 
 from .signals import stream_data_received
 from . import decorators, models, forms, definitions, utils, const, templatetags
+from .definitions import STAT
 
 logger = logging.getLogger(__name__)
 
@@ -332,11 +333,10 @@ class TopListView(AnnualViewMixin, generic.ListView):
 
     # list of categories
     boards = (
-        (const.STATS_SCORE, _('Score'), 'int'),
-        (const.STATS_SPM, ('Score/Minute'), 'ratio'),
-        #(const.STATS_KDR, ('Kills/Deaths'), 'ratio'),
-        (const.STATS_TIME, ('Time Played'), 'time'),
-        (const.STATS_COOP_SCORE, ('CO-OP Score'), 'int'),
+        (STAT.SCORE, _('Score'), 'int'),
+        (STAT.SPM, ('Score/Minute'), 'ratio'),
+        (STAT.TIME, ('Time Played'), 'time'),
+        (STAT.COOP_SCORE, ('CO-OP Score'), 'int'),
     )
 
     # limit of players per category
@@ -384,44 +384,44 @@ class BoardListView(TopListView):
         #   
         # the url/context name is obtained with defitions.STATS dict
         [_('Score'), (
-            (const.STATS_SCORE, _('Score'), 'int'),
-            (const.STATS_TIME, _('Time Played'), 'hours'),
-            (const.STATS_WINS, _('Wins'), 'int'),
-            (const.STATS_SPM, _('Score/Minute'), 'ratio'),
-            (const.STATS_SPR, _('Score/Round'), 'ratio'),
-            (const.STATS_TOP_SCORE, _('Best Score'), 'int'),
+            (STAT.SCORE, _('Score'), 'int'),
+            (STAT.TIME, _('Time Played'), 'hours'),
+            (STAT.WINS, _('Wins'), 'int'),
+            (STAT.SPM, _('Score/Minute'), 'ratio'),
+            (STAT.SPR, _('Score/Round'), 'ratio'),
+            (STAT.TOP_SCORE, _('Best Score'), 'int'),
         )],
         [_('Kills'), (
-            (const.STATS_KILLS, _('Kills'), 'int'),
-            (const.STATS_ARRESTS, _('Arrests'), 'int'),
-            #(const.STATS_TOP_KILLS, _('Top Kills'), 'int'),
-            #(const.STATS_TOP_ARRESTS, _('Top Arrests'), 'int'),
-            (const.STATS_KDR, _('K/D Ratio'), 'ratio'),
-            (const.STATS_AMMO_ACCURACY, _('Accuracy'), 'percent'),
-            (const.STATS_KILL_STREAK, _('Best Kill Streak'), 'int'),
-            (const.STATS_ARREST_STREAK, _('Best Arrest Streak'), 'int'),
+            (STAT.KILLS, _('Kills'), 'int'),
+            (STAT.ARRESTS, _('Arrests'), 'int'),
+            #(STAT.TOP_KILLS, _('Top Kills'), 'int'),
+            #(STAT.TOP_ARRESTS, _('Top Arrests'), 'int'),
+            (STAT.KDR, _('K/D Ratio'), 'ratio'),
+            (STAT.AMMO_ACCURACY, _('Accuracy'), 'percent'),
+            (STAT.KILL_STREAK, _('Best Kill Streak'), 'int'),
+            (STAT.ARREST_STREAK, _('Best Arrest Streak'), 'int'),
         )],
         [_('VIP Escort'), (
-            (const.STATS_VIP_ESCAPES, _('VIP Escapes'), 'int'),
-            (const.STATS_VIP_CAPTURES, _('VIP Captures'), 'int'),
-            (const.STATS_VIP_RESCUES, _('VIP Rescues'), 'int'),
-            (const.STATS_VIP_KILLS_VALID, _('VIP Kills'), 'int'),
+            (STAT.VIP_ESCAPES, _('VIP Escapes'), 'int'),
+            (STAT.VIP_CAPTURES, _('VIP Captures'), 'int'),
+            (STAT.VIP_RESCUES, _('VIP Rescues'), 'int'),
+            (STAT.VIP_KILLS_VALID, _('VIP Kills'), 'int'),
         )],
         # [_('Rapid Deployment'), (
-        #     (const.STATS_RD_BOMBS_DEFUSED, _('Bombs Disarmed'), 'int'),
+        #     (STAT.RD_BOMBS_DEFUSED, _('Bombs Disarmed'), 'int'),
         # )],
         # [_('Smash and Grab'), (
-        #     (const.STATS_SG_ESCAPES, _('Case Escapes'), 'int'),
-        #     (const.STATS_SG_KILLS, _('Case Carrier Kills'), 'int'),
+        #     (STAT.SG_ESCAPES, _('Case Escapes'), 'int'),
+        #     (STAT.SG_KILLS, _('Case Carrier Kills'), 'int'),
         # )],
         [_('CO-OP'), (
-            (const.STATS_COOP_SCORE, _('Score'), 'int'),
-            (const.STATS_COOP_TIME, _('Time Played'), 'hours'),
-            (const.STATS_COOP_GAMES, _('Missions Attempted'), 'int'),
-            (const.STATS_COOP_WINS, _('Missions Completed'), 'int'),
-            (const.STATS_COOP_ENEMY_ARRESTS, _('Suspects Arrested'), 'int'),
-            (const.STATS_COOP_ENEMY_KILLS, _('Suspects Neutralized'), 'int'),
-            #(const.STATS_COOP_HOSTAGE_ARRESTS, _('Civilians Arrested'), 'int'),
+            (STAT.COOP_SCORE, _('Score'), 'int'),
+            (STAT.COOP_TIME, _('Time Played'), 'hours'),
+            (STAT.COOP_GAMES, _('Missions Attempted'), 'int'),
+            (STAT.COOP_WINS, _('Missions Completed'), 'int'),
+            (STAT.COOP_ENEMY_ARRESTS, _('Suspects Arrested'), 'int'),
+            (STAT.COOP_ENEMY_KILLS, _('Suspects Neutralized'), 'int'),
+            #(STAT.COOP_HOSTAGE_ARRESTS, _('Civilians Arrested'), 'int'),
         )],
     )
     board_name_default = 'score'
@@ -844,112 +844,112 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
     RECENT_MAX_MAPS = 5
 
     award_list = (
-        (const.STATS_SPM, 
+        (STAT.SPM,
             ngettext_lazy(
                 'Best score/minute ratio in %(year)s',
                 '%(ordinal)s best score/minute ratio in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_SPR, 
+        (STAT.SPR,
             ngettext_lazy(
                 'Best score/round ratio in %(year)s',
                 '%(ordinal)s best score/round ratio in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_KDR, 
+        (STAT.KDR,
             ngettext_lazy(
                 'Best kills/deaths ratio in %(year)s',
                 '%(ordinal)s best kills/deaths ratio in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_AMMO_ACCURACY, 
+        (STAT.AMMO_ACCURACY,
             ngettext_lazy(
                 'Highest accuracy in %(year)s',
                 '%(ordinal)s highest accuracy in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_SCORE, 
+        (STAT.SCORE,
             ngettext_lazy(
                 'Highest score in %(year)s',
                 '%(ordinal)s highest score in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_TOP_SCORE, 
+        (STAT.TOP_SCORE,
             ngettext_lazy(
                 'Highest round score in %(year)s',
                 '%(ordinal)s highest round score in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_TIME, 
+        (STAT.TIME,
             ngettext_lazy(
                 'Highest playtime in %(year)s',
                 '%(ordinal)s highest playtime in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_KILLS, 
+        (STAT.KILLS,
             ngettext_lazy(
                 'Most kills in %(year)s',
                 '%(ordinal)s most kills in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_ARRESTS, 
+        (STAT.ARRESTS,
             ngettext_lazy(
                 'Most arrests in %(year)s',
                 '%(ordinal)s most arrests in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_KILL_STREAK, 
+        (STAT.KILL_STREAK,
             ngettext_lazy(
                 'Highest kill streak in %(year)s',
                 '%(ordinal)s highest kill streak in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_VIP_ESCAPES, 
+        (STAT.VIP_ESCAPES,
             ngettext_lazy(
                 'Most VIP escapes in %(year)s',
                 '%(ordinal)s most VIP escapes in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_VIP_CAPTURES, 
+        (STAT.VIP_CAPTURES,
             ngettext_lazy(
                 'Most VIP captures in %(year)s',
                 '%(ordinal)s most VIP captures in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_VIP_RESCUES, 
+        (STAT.VIP_RESCUES,
             ngettext_lazy(
                 'Most VIP rescues in %(year)s',
                 '%(ordinal)s most VIP rescues in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_COOP_SCORE, 
+        (STAT.COOP_SCORE,
             ngettext_lazy(
                 'Highest CO-OP score in %(year)s',
                 '%(ordinal)s highest CO-OP score in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_COOP_WINS, 
+        (STAT.COOP_WINS,
             ngettext_lazy(
                 'Most CO-OP missions completed in %(year)s',
                 '%(ordinal)s most CO-OP missions completed in %(year)s',
                 'position'
             )
         ),
-        (const.STATS_COOP_TIME, 
+        (STAT.COOP_TIME,
             ngettext_lazy(
                 'Highest CO-OP playtime in %(year)s',
                 '%(ordinal)s highest CO-OP playtime in %(year)s',
@@ -1237,8 +1237,8 @@ class ProfileDetailView(ProfileBaseView):
             return (models.Rank.objects
                 .filter(year=self.year)
                 .aggregate(
-                    spm=aggregate_if.Max('points', only=Q(category=const.STATS_SPM)),
-                    kdr=aggregate_if.Max('points', only=Q(category=const.STATS_KDR))
+                    spm=aggregate_if.Max('points', only=Q(category=STAT.SPM)),
+                    kdr=aggregate_if.Max('points', only=Q(category=STAT.KDR))
                 )
             )
         return _get_max()
