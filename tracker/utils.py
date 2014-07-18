@@ -16,7 +16,6 @@ from django.utils import timezone, html
 from django.db import connection
 import julia
 
-from . import definitions
 
 logger = logging.getLogger(__name__)
 
@@ -123,20 +122,19 @@ def calc_coop_score(procedures):
                 score += procedure.score
     return score
 
-def calc_accuracy(weapons, min_ammo=None, interested=None):
+def calc_accuracy(weapons, interested, min_ammo=None):
     """
     Calculate average accuracy of a list (or any other iterable) of Weapon model instances.
 
     Args:
         weapons - Weapon instance iterable
-        min_ammo - min number of ammo required to calculate accuracy
         interested - list of weapon ids accuracy should be counted against 
-                     (definitions.WEAPONS_FIRED by default)
+        min_ammo - min number of ammo required to calculate accuracy
     """
     hits = 0
     shots = 0
     for weapon in weapons:
-        if weapon.name in (interested or definitions.WEAPONS_FIRED):
+        if weapon.name in interested:
             hits += weapon.hits
             shots += weapon.shots
     return int(calc_ratio(hits, shots, min_divisor=min_ammo) * 100)

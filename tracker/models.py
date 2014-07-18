@@ -876,7 +876,7 @@ class Player(models.Model):
 
     @property
     def ammo_accuracy(self):
-        return utils.calc_accuracy(self.weapon_set.all(), self.MIN_AMMO)
+        return utils.calc_accuracy(self.weapon_set.all(), definitions.WEAPONS_FIRED, self.MIN_AMMO)
 
     def __str__(self):
         return '{0.name}, {0.ip}'.format(self)
