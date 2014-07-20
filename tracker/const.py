@@ -488,6 +488,7 @@ STREAM_PATTERN = {
                     'table': {
                         '0': 'swat',
                         '1': 'suspects',
+                        '2': 'swat_red',  # CO-OP Team Red
                     },
                 },
                 '7': {

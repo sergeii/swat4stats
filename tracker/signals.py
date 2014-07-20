@@ -186,7 +186,7 @@ def save_game(sender, data, server, **kwargs):
                     )[0],
                     ip=raw_player['ip'].value,
                     # team is a mapping, insert a raw value (0 or 1)
-                    team=int(raw_player['team'].raw),
+                    team=definitions.TEAM_BLUE if game.coop_game else int(raw_player['team'].raw),
                     vip=raw_player['vip'].value,
                     admin=raw_player['admin'].value,
                     dropped=raw_player['dropped'].value,
