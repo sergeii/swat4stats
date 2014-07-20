@@ -32,7 +32,7 @@
                     {% url 'tracker:player' name=player.name as player_url %}
                     <div class="table-row spaceless swat-player-row" onclick="window.location.href='{{ player_url }}';">
                         <div class="table-cell-small space-left space-right">{{ player.ping }}</div>
-                        <div class="{% ifequal player.team 1 %}swat-red{% else %}swat-blue{% endifequal %} left"><a href="{{ player_url }}">{{ player.name }}</a></div>
+                        <div class="left"><a href="{{ player_url }}">{{ player.name }}</a></div>
                         <div class="player-cell-status left status-{{ player.coop_status_translated|default:'not_ready' }}">{{ player.coop_status|default:0|coop_status }}</div>
                     </div>
                     {% endfor %}
