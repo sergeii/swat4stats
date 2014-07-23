@@ -12,7 +12,7 @@ from django.db import transaction, IntegrityError
 from django.utils import timezone
 from django.utils.encoding import force_text
 
-from . import models, utils
+from . import models, utils, definitions
 from .definitions import STATS, MODE_VIP, MODE_BS, MODE_RD, MODE_SG, MODES_COOP
 
 logger = logging.getLogger(__name__)
