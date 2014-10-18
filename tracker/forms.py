@@ -8,9 +8,11 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone, dates
 from django.utils.translation import ugettext_lazy as _
+from django.template.defaultfilters import truncatechars
 
 from . import models
 from .definitions import stream_pattern_node
+from .utils import force_clean_name
 
 
 class FilterFormMixin(object):
@@ -34,9 +36,10 @@ class FilterFormMixin(object):
 
 
 class ServerChoiceField(forms.ModelChoiceField):
-    
+    MAX_NAME_CHARS = 30
+
     def label_from_instance(self, obj):
-        return obj.name
+        return truncatechars(force_clean_name(obj.name), self.MAX_NAME_CHARS)
 
 
 class GameFilterForm(FilterFormMixin, forms.Form):
