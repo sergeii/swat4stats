@@ -34,3 +34,4 @@ kombu==3.0.23
 -e git+https://github.com/sergeii/python-julia.git#egg=python-julia
 -e git+https://github.com/sergeii/python-serverquery.git#egg=python-serverquery
 -e git+https://github.com/sergeii/python-whois.git@#egg=python-whois
+pip==1.5.6
