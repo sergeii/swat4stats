@@ -1,4 +1,2 @@
 # -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import)
-
-from . import signals
+default_app_config = 'tracker.apps.AppConfig'

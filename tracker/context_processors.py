@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
 
-from django.contrib.sites.models import Site
-
 
 def current_view(request):
     if getattr(request, 'resolver_match', None):
@@ -16,4 +14,4 @@ def current_view(request):
 
 
 def current_site(request):
-    return {'current_site': Site.objects.get_current()}
+    return {'current_site': request.site}

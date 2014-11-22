@@ -28,7 +28,6 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.sitemaps',
 
-    'south',
     'cacheops',
     'django_countries',
     'compressor',
@@ -45,6 +44,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.sites.middleware.CurrentSiteMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

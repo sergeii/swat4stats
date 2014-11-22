@@ -52,15 +52,15 @@ def migrate():
 
 @task
 @roles('backend')
-def syncdb():
-    backend.managepy('syncdb --noinput')
+def migrate_fake():
+    for app in env.project['apps']:
+        backend.managepy('migrate %s --fake' % app)
 
 
 @task
 @roles('backend')
-def convert_to_south():
-    for app in env.project['apps']:
-        backend.managepy('migrate %s --fake' % app)
+def syncdb():
+    backend.managepy('migrate --noinput')
 
 
 @task
@@ -142,6 +142,7 @@ def memcached():
 @task
 def everything():
     execute(reinstall)
+
 
 @task
 def restart():

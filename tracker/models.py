@@ -1869,8 +1869,7 @@ class RankManager(models.Manager):
 
     def rank(self, year):
         with transaction.atomic(), lock('EXCLUSIVE', self.model):
-            cursor = connection.cursor()
-            try:
+            with connection.cursor() as cursor:
                 cursor.execute("""
                     UPDATE {table} AS t1 SET position = t2.row_number
                     FROM 
@@ -1882,8 +1881,6 @@ class RankManager(models.Manager):
                     """.format('category', 'year', 'points', 'id', table=self.model._meta.db_table), 
                     {'year': year}
                 )
-            finally:
-                cursor.close()
 
 
 @python_2_unicode_compatible
