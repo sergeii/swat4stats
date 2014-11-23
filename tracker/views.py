@@ -813,8 +813,8 @@ class ServerDetailView(generic.DetailView):
             'FETCH_INTERVAL': self.FETCH_INTERVAL,
             'status': self.status,
             'players': players,
-            'players_blue': [player for player in players if player['team'] == definitions.TEAM_BLUE],
-            'players_red': [player for player in players if player['team'] == definitions.TEAM_RED],
+            'players_blue': [player for player in players if player.get('team', 0) == definitions.TEAM_BLUE],
+            'players_red': [player for player in players if player.get('team', 0) == definitions.TEAM_RED],
         })
         return context_data
 

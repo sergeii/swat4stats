@@ -235,7 +235,6 @@ class ServerStatus(GameMixin):
         'name': ('player', force_text),
         'score': ('score', int),
         'ping': ('ping', lambda n: max(0, min(999, int(n)))),
-        'team': ('team', int),
     }
     vars_player_optional = {
         'coop_status': ('coopstatus', int),
@@ -248,6 +247,7 @@ class ServerStatus(GameMixin):
         'arrests': ('arrests', int),
         'arrested': ('arrested', int),
         'vip': ('vip', lambda value: bool(int(value))),
+        'team': ('team', int),
     }
 
     # combine requried and optional params
