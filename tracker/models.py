@@ -19,7 +19,7 @@ from django.core.cache import cache as redis
 import six
 import IPy
 import julia
-import serverquery
+from serverquery.protocol import gamespy1
 import aggregate_if
 from whois import whois
 
@@ -361,7 +361,7 @@ class ServerStatus(GameMixin):
 
         If successful, attempt to parse players and COOP objectives.
         """
-        response = serverquery.gamespy1.Server(ip_addr, port, timeout).status()
+        response = gamespy1.Server(ip_addr, port, timeout).status()
         if response:
             response['objectives'] = {}
             response['players'] = {}
