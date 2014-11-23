@@ -141,6 +141,9 @@ STREAM_PATTERN = {
         'table': {
             '0': 'SWAT 4',
             '1': 'SWAT 4X',
+            '2': 'SAS',
+            '3': 'SSF Realism Mod',
+            '4': 'H.S.M.E',
         }
     },
     # Game version
