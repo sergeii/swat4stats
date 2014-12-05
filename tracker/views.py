@@ -735,7 +735,7 @@ class ServerListView(FilterViewMixin, generic.ListView):
         if self.form.cleaned_data.get('gametype', None) is not None:
             filters['gametype'] = utils.escape_cache_key(self.form.cleaned_data['gametype'])
         # then apply them
-        return self.model.objects.status.filter(**filters).sort('-player_num')
+        return self.model.objects.status.filter(**filters).sort('-pinned', '-player_num')
 
     def get_context_data(self, *args, **kwargs):
         context_data = super(ServerListView, self).get_context_data(*args, **kwargs)

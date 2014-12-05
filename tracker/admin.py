@@ -96,9 +96,9 @@ class ProfileAdmin(admin.ModelAdmin):
 
 
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'enabled', 'listed', 'streamed')
-    list_filter = ('enabled', 'listed', 'streamed')
-    search_fields = ('ip',)
+    list_display = ('__str__', 'enabled', 'listed', 'streamed', 'pinned')
+    list_filter = ('enabled', 'listed', 'streamed', 'pinned')
+    search_fields = ('ip', 'hostname')
     list_per_page = 50
 
     def has_delete_permission(self, request, obj=None):

@@ -60,6 +60,7 @@ class ServerStatusManager(object):
         'is_empty', 
         'is_full', 
         'passworded',
+        'pinned',
     )
 
     def __init__(self):
@@ -275,6 +276,10 @@ class ServerStatus(GameMixin):
         self.query()
 
     @property
+    def pinned(self):
+        return int(self.server.pinned)
+
+    @property
     def is_empty(self):
         return not self.player_num
 
@@ -385,6 +390,9 @@ class ServerManager(models.Manager):
 
     status = ServerStatusManager()
 
+    def get_queryset(self, *args, **kwargs):
+        return super(ServerManager, self).get_queryset(*args, **kwargs).order_by('-pinned')
+
     def create_server(self, ip, port, **options):
         """
         Attempt to create a server.
@@ -417,6 +425,7 @@ class Server(models.Model):
     enabled = models.BooleanField(default=False)
     streamed = models.BooleanField(default=False)
     listed = models.BooleanField(default=False)
+    pinned = models.BooleanField(default=False)
     # query ports
     port_gs1 = models.PositiveIntegerField(null=True, blank=True)
     port_gs2 = models.PositiveIntegerField(null=True, blank=True)
