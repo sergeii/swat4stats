@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-08 06:30+0000\n"
+"POT-Creation-Date: 2014-12-15 17:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,1235 +17,231 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: decorators.py:51
+#: decorators.py:50
 #, python-format
-msgid "Failed to parse request data (%(message)s)."
+msgid "Unable to parse data (%(message)s)."
 msgstr ""
 
-#: decorators.py:92
-msgid "Failed to authenticate the server."
-msgstr ""
-
-#: decorators.py:99
-msgid "The server is not registered."
-msgstr ""
-
-#: decorators.py:129
+#: decorators.py:107
 msgid "Received duplicate request."
 msgstr ""
 
-#: definitions.py:25
+#: decorators.py:138
+msgid "The server is not registered."
+msgstr ""
+
+#: decorators.py:169
+#, python-format
+msgid "The server has been inactive since at least %(date)s."
+msgstr ""
+
+#: definitions.py:106
 msgid "Cadet"
 msgstr ""
 
-#: definitions.py:26 views.py:576
+#: definitions.py:107 views.py:682
 msgid "Patrol Officer"
 msgstr ""
 
-#: definitions.py:27 views.py:578
+#: definitions.py:108 views.py:684
 msgid "Reserve Officer"
 msgstr ""
 
-#: definitions.py:28
+#: definitions.py:109
 msgid "Lance Corporal"
 msgstr ""
 
-#: definitions.py:29
+#: definitions.py:110
 msgid "Corporal"
 msgstr ""
 
-#: definitions.py:30 views.py:574
+#: definitions.py:111 views.py:680
 msgid "Sergeant"
 msgstr ""
 
-#: definitions.py:31
+#: definitions.py:112
 msgid "First Sergeant"
 msgstr ""
 
-#: definitions.py:33 views.py:572
+#: definitions.py:114 views.py:678
 msgid "Lieutenant"
 msgstr ""
 
-#: definitions.py:34 views.py:570
+#: definitions.py:115 views.py:676
 msgid "Captain"
 msgstr ""
 
-#: definitions.py:35
+#: definitions.py:116
 msgid "Major"
 msgstr ""
 
-#: definitions.py:37
+#: definitions.py:118
 msgid "Deputy Chief"
 msgstr ""
 
-#: definitions.py:38
+#: definitions.py:119
 msgid "Assistant Chief"
 msgstr ""
 
-#: definitions.py:39
+#: definitions.py:120
 msgid "Chief of Police"
 msgstr ""
 
-#: forms.py:41
-#, fuzzy, python-format
-msgid "OUTCOME_LONG_%s"
-msgstr "Unknown"
-
-#: forms.py:47
+#: forms.py:81
 #, python-format
 msgid "%(min)s+ minutes"
 msgstr ""
 
-#: forms.py:51
+#: forms.py:85
 msgid "Year"
 msgstr ""
 
-#: forms.py:53 forms.py:58 forms.py:63 forms.py:69 forms.py:74 forms.py:79
-#: forms.py:84
+#: forms.py:87 forms.py:92 forms.py:97 forms.py:103
 msgid "Any"
 msgstr ""
 
-#: forms.py:56
+#: forms.py:90
 msgid "Month"
 msgstr ""
 
-#: forms.py:61
+#: forms.py:95
 msgid "Day"
 msgstr ""
 
-#: forms.py:66 templates/tracker/chapters/game/layout/base_detail.html:20
+#: forms.py:100 templates/tracker/chapters/game/layout/base_detail.html:20
 msgid "Server"
 msgstr ""
 
-#: forms.py:72 forms.py:128 templates/tracker/chapters/server/list.html:56
+#: forms.py:106 forms.py:174 templates/tracker/chapters/server/list.html:45
 msgid "Game Type"
 msgstr ""
 
-#: forms.py:77 templates/tracker/chapters/profile/coop.html:8
+#: forms.py:111 templates/tracker/chapters/profile/coop.html:8
 #: templates/tracker/chapters/profile/overview.html:124
 msgid "Map"
 msgstr ""
 
-#: forms.py:82
+#: forms.py:116
 msgid "Result"
 msgstr ""
 
-#: forms.py:87
+#: forms.py:121
 msgid "Round Time"
 msgstr ""
 
-#: forms.py:95
+#: forms.py:129
 msgid "Participated Players"
 msgstr ""
 
-#: forms.py:97
-msgid "Player1, Player2"
-msgstr ""
-
-#: forms.py:109
+#: forms.py:149
 msgid "Too many names specified."
 msgstr ""
 
-#: forms.py:127
+#: forms.py:173
 msgid "Game Label"
 msgstr ""
 
-#: forms.py:129
+#: forms.py:175
 msgid "Game Version"
 msgstr ""
 
-#: forms.py:131
-msgid "Filter by Game Label"
-msgstr ""
-
-#: forms.py:132
-msgid "Filter by Game Version"
-msgstr ""
-
-#: forms.py:133
-msgid "Filter by Game Type"
-msgstr ""
-
-#: forms.py:135
+#: forms.py:181
 msgid "Hide Empty Servers"
 msgstr ""
 
-#: forms.py:136
+#: forms.py:182
 msgid "Hide Full Servers"
 msgstr ""
 
-#: forms.py:137
+#: forms.py:183
 msgid "Hide Password Protected"
 msgstr ""
 
-#: forms.py:157
+#: forms.py:191
 msgid "Player Name"
 msgstr ""
 
-#: models.py:422
+#: models.py:406
 msgid "The server has already been registered."
 msgstr ""
 
-#: models.py:528
+#: models.py:501
 msgid "Port number must be between 1 and 65535 inclusive."
 msgstr ""
 
-#: models.py:530
-msgid "Server key must not be empty."
-msgstr ""
-
-#: translation.py:5
-msgid "PROCEDURE_0"
-msgstr "Suspects incapacitated"
-
-#: translation.py:6
-msgid "PROCEDURE_1"
-msgstr "Suspects arrested"
-
-#: translation.py:7
-msgid "PROCEDURE_2"
-msgstr "Mission completed"
-
-#: translation.py:8
-msgid "PROCEDURE_3"
-msgstr "Failed to report a downed officer"
-
-#: translation.py:9
-msgid "PROCEDURE_4"
-msgstr "Suspects neutralized"
-
-#: translation.py:10
-msgid "PROCEDURE_5"
-msgstr "No civilians injured"
-
-#: translation.py:11
-msgid "PROCEDURE_6"
-msgstr "Incapacitated a hostage"
-
-#: translation.py:12
-msgid "PROCEDURE_7"
-msgstr "Killed a hostage"
-
-#: translation.py:13
-msgid "PROCEDURE_8"
-msgstr "Incapacitated a fellow officer"
-
-#: translation.py:14
-msgid "PROCEDURE_9"
-msgstr "Injured a fellow officer"
-
-#: translation.py:15
-msgid "PROCEDURE_10"
-msgstr "No officers down"
-
-#: translation.py:16
-msgid "PROCEDURE_11"
-msgstr "No suspects neutralized"
-
-#: translation.py:17
-msgid "PROCEDURE_12"
-msgstr "Unauthorized use of deadly force"
-
-#: translation.py:18
-msgid "PROCEDURE_13"
-msgstr "Unauthorized use of force"
-
-#: translation.py:19
-msgid "PROCEDURE_14"
-msgstr "Player uninjured"
-
-#: translation.py:20
-msgid "PROCEDURE_15"
-msgstr "Failed to prevent destruction of evidence."
-
-#: translation.py:21
-msgid "PROCEDURE_16"
-msgstr "Failed to apprehend fleeing suspect."
-
-#: translation.py:22
-msgid "PROCEDURE_17"
-msgstr "Report status to TOC"
-
-#: translation.py:23
-msgid "PROCEDURE_18"
-msgstr "All evidence secured"
-
-#: translation.py:25
-msgid "OBJECTIVE_STATUS_0"
-msgstr "In Progress"
-
-#: translation.py:26
-msgid "OBJECTIVE_STATUS_1"
-msgstr "Completed"
-
-#: translation.py:27
-msgid "OBJECTIVE_STATUS_2"
-msgstr "Failed"
-
-#: translation.py:29
-msgid "OBJECTIVE_0"
-msgstr "Rendezvous with Jennings"
-
-#: translation.py:30
-msgid "OBJECTIVE_1"
-msgstr "Avoid civilian injuries"
-
-#: translation.py:31
-msgid "OBJECTIVE_2"
-msgstr "Avoid officer injuries"
-
-#: translation.py:32
-msgid "OBJECTIVE_3"
-msgstr "Avoid officer casualties"
-
-#: translation.py:33
-msgid "OBJECTIVE_4"
-msgstr "Avoid suspect casualties"
-
-#: translation.py:34
-msgid "OBJECTIVE_5"
-msgstr "Avoid injuries to yourself"
-
-#: translation.py:35
-msgid "OBJECTIVE_6"
-msgstr "Debrief before the timer expires"
-
-#: translation.py:36
-msgid "OBJECTIVE_7"
-msgstr "Find and deactivate the bombs"
-
-#: translation.py:37
-msgid "OBJECTIVE_8"
-msgstr "Find and disarm the bombs!"
-
-#: translation.py:38
-msgid "OBJECTIVE_9"
-msgstr "Investigate the laundromat"
-
-#: translation.py:39
-msgid "OBJECTIVE_10"
-msgstr "Neutralize Alice Jenkins"
-
-#: translation.py:40
-msgid "OBJECTIVE_11"
-msgstr "Bring order to chaos"
-
-#: translation.py:41
-msgid "OBJECTIVE_12"
-msgstr "Neutralize Javier Arias"
-
-#: translation.py:42
-msgid "OBJECTIVE_13"
-msgstr "Neutralize Andrew Taronne"
-
-#: translation.py:43
-msgid "OBJECTIVE_14"
-msgstr "Neutralize Anton Georgiev"
-
-#: translation.py:44
-msgid "OBJECTIVE_15"
-msgstr "Neutralize Simon Gowan"
-
-#: translation.py:45
-msgid "OBJECTIVE_16"
-msgstr "Neutralize Lian Niu"
-
-#: translation.py:46
-msgid "OBJECTIVE_17"
-msgstr "Neutralize Alex Jimenez"
-
-#: translation.py:47
-msgid "OBJECTIVE_18"
-msgstr "Neutralize Lawrence Fairfax"
-
-#: translation.py:48
-msgid "OBJECTIVE_19"
-msgstr "Neutralize Kiril Stetchkov"
-
-#: translation.py:49
-msgid "OBJECTIVE_20"
-msgstr "Neutralize Hadeon Koshka"
-
-#: translation.py:50
-msgid "OBJECTIVE_21"
-msgstr "Neutralize Allen Kruse"
-
-#: translation.py:51
-msgid "OBJECTIVE_22"
-msgstr "Neutralize Andrew Norman"
-
-#: translation.py:52
-msgid "OBJECTIVE_23"
-msgstr "Neutralize Jean Trouffant"
-
-#: translation.py:53
-msgid "OBJECTIVE_24"
-msgstr "Neutralize Todor Stetchkov"
-
-#: translation.py:54
-msgid "OBJECTIVE_25"
-msgstr "Rescue Lawrence Adams"
-
-#: translation.py:55
-msgid "OBJECTIVE_26"
-msgstr "Rescue all of the civilians"
-
-#: translation.py:56
-msgid "OBJECTIVE_27"
-msgstr "Rescue Gary Altman"
-
-#: translation.py:57
-msgid "OBJECTIVE_28"
-msgstr "Arrest Louie Baccus"
-
-#: translation.py:58
-msgid "OBJECTIVE_29"
-msgstr "Rescue James Betincourt"
-
-#: translation.py:59
-msgid "OBJECTIVE_30"
-msgstr "Rescue Oscar Bogard"
-
-#: translation.py:60
-msgid "OBJECTIVE_31"
-msgstr "Rescue Warren Rooney"
-
-#: translation.py:61
-msgid "OBJECTIVE_32"
-msgstr "Rescue Hyun-Jun Park"
-
-#: translation.py:62
-msgid "OBJECTIVE_33"
-msgstr "Rescue Willis Fischer"
-
-#: translation.py:63
-msgid "OBJECTIVE_34"
-msgstr "Rescue Melinda Kline"
-
-#: translation.py:64
-msgid "OBJECTIVE_35"
-msgstr "Rescue Lionel Macarthur"
-
-#: translation.py:65
-msgid "OBJECTIVE_36"
-msgstr "Rescue Heidi Rosenstein"
-
-#: translation.py:66
-msgid "OBJECTIVE_37"
-msgstr "Rescue Dr. Theodore Sturgeon"
-
-#: translation.py:67
-msgid "OBJECTIVE_38"
-msgstr "Rescue Kim Dong Yin"
-
-#: translation.py:68
-msgid "OBJECTIVE_39"
-msgstr "Rescue Detective Walsh"
-
-#: translation.py:69
-msgid "OBJECTIVE_40"
-msgstr "Locate Officer Wilkins"
-
-#: translation.py:70
-msgid "OBJECTIVE_41"
-msgstr "Rescue Rita Winston"
-
-#: translation.py:71
-msgid "OBJECTIVE_42"
-msgstr "Secure the briefcase"
-
-#: translation.py:72
-msgid "OBJECTIVE_43"
-msgstr "Secure the MAC-10"
-
-#: translation.py:74
-msgid "COOP_STATUS_0"
-msgstr "Not Ready"
-
-#: translation.py:75
-msgid "COOP_STATUS_1"
-msgstr "Ready"
-
-#: translation.py:76
-msgid "COOP_STATUS_2"
-msgstr "Healthy"
-
-#: translation.py:77
-msgid "COOP_STATUS_3"
-msgstr "Injured"
-
-#: translation.py:78
-msgid "COOP_STATUS_4"
-msgstr "Incapacitated"
-
-#: translation.py:80
-msgid "OUTCOME_0"
-msgstr "Unknown"
-
-#: translation.py:81
-msgid "OUTCOME_1"
-msgstr "SWAT has won the round!"
-
-#: translation.py:82
-msgid "OUTCOME_2"
-msgstr "The Suspects have won the round!"
-
-#: translation.py:83
-msgid "OUTCOME_3"
-msgstr "SWAT has disarmed all the bombs!"
-
-#: translation.py:84
-msgid "OUTCOME_4"
-msgstr "The Suspects have won the round!"
-
-#: translation.py:85
-msgid "OUTCOME_5"
-msgstr "The round has ended in a tie!"
-
-#: translation.py:86
-msgid "OUTCOME_6"
-msgstr "The VIP has escaped!"
-
-#: translation.py:87
-msgid "OUTCOME_7"
-msgstr "The Suspects have killed the VIP!"
-
-#: translation.py:88
-msgid "OUTCOME_8"
-msgstr "The Suspects have killed the VIP too soon!"
-
-#: translation.py:89
-msgid "OUTCOME_9"
-msgstr "SWAT has accidentally killed the VIP!"
-
-#: translation.py:90
-msgid "OUTCOME_10"
-msgstr "You have <span style=\"color:#00FF00;\">COMPLETED</span> the mission!"
-
-#: translation.py:91
-msgid "OUTCOME_11"
-msgstr "You have <span style=\"color:#FF0000;\">FAILED</span> the mission!"
-
-#: translation.py:92
-msgid "OUTCOME_12"
-msgstr "SWAT has defended the case!"
-
-#: translation.py:93
-msgid "OUTCOME_13"
-msgstr "The suspects have escaped with the case!"
-
-#: translation.py:95
-msgid "OUTCOME_LONG_0"
-msgstr "Unknown"
-
-#: translation.py:96
-msgid "OUTCOME_LONG_1"
-msgstr "Barricaded Suspects: SWAT victory"
-
-#: translation.py:97
-msgid "OUTCOME_LONG_2"
-msgstr "Barricaded Suspects: Suspects victory"
-
-#: translation.py:98
-msgid "OUTCOME_LONG_3"
-msgstr "Rapid Deployment: SWAT victory"
-
-#: translation.py:99
-msgid "OUTCOME_LONG_4"
-msgstr "Rapid Deployment: Suspects victory"
-
-#: translation.py:100
-msgid "OUTCOME_LONG_5"
-msgstr "Tie"
-
-#: translation.py:101
-msgid "OUTCOME_LONG_6"
-msgstr "VIP Escort: SWAT victory (the VIP has escaped)"
-
-#: translation.py:102
-msgid "OUTCOME_LONG_7"
-msgstr "VIP Escort: Suspects victory (Suspects have killed the VIP)"
-
-#: translation.py:103
-msgid "OUTCOME_LONG_8"
-msgstr "VIP Escort: SWAT victory (Suspects have killed the VIP too soon)"
-
-#: translation.py:104
-msgid "OUTCOME_LONG_9"
-msgstr "VIP Escort: Suspects victory (SWAT has killed the VIP)"
-
-#: translation.py:105
-msgid "OUTCOME_LONG_10"
-msgstr "CO-OP: Mission completed"
-
-#: translation.py:106
-msgid "OUTCOME_LONG_11"
-msgstr "CO-OP: Mission failed"
-
-#: translation.py:107
-msgid "OUTCOME_LONG_12"
-msgstr "Smash and Grab: SWAT victory"
-
-#: translation.py:108
-msgid "OUTCOME_LONG_13"
-msgstr "Smash and Grab: Suspects victory"
-
-#: translation.py:110
-msgid "MODE_SHORT_0"
-msgstr "BS"
-
-#: translation.py:111
-msgid "MODE_SHORT_1"
-msgstr "VIP"
-
-#: translation.py:112
-msgid "MODE_SHORT_2"
-msgstr "RD"
-
-#: translation.py:113
-msgid "MODE_SHORT_3"
-msgstr "COOP"
-
-#: translation.py:114
-msgid "MODE_SHORT_4"
-msgstr "SG"
-
-#: translation.py:115
-msgid "MODE_SHORT_5"
-msgstr "COOPQM"
-
-#: translation.py:117
-msgid "SWAT 4"
-msgstr ""
-
-#: translation.py:118
-msgid "SWAT 4X"
-msgstr ""
-
-#: translation.py:120
-msgid "Barricaded Suspects"
-msgstr ""
-
-#: translation.py:121 views.py:259
-msgid "VIP Escort"
-msgstr ""
-
-#: translation.py:122
-msgid "Rapid Deployment"
-msgstr ""
-
-#: translation.py:123 views.py:272
-msgid "CO-OP"
-msgstr ""
-
-#: translation.py:124
-msgid "Smash And Grab"
-msgstr ""
-
-#: translation.py:125
-msgid "CO-OP QMM"
-msgstr ""
-
-#: translation.py:127
-msgid "A-Bomb Nightclub"
-msgstr ""
-
-#: translation.py:128
-msgid "Brewer County Courthouse"
-msgstr ""
-
-#: translation.py:129
-msgid "Children of Taronne Tenement"
-msgstr ""
-
-#: translation.py:130
-msgid "DuPlessis Diamond Center"
-msgstr ""
-
-#: translation.py:131
-msgid "Enverstar Power Plant"
-msgstr ""
-
-#: translation.py:132
-msgid "Fairfax Residence"
-msgstr ""
-
-#: translation.py:133
-msgid "Food Wall Restaurant"
-msgstr ""
-
-#: translation.py:134
-msgid "Meat Barn Restaurant"
-msgstr ""
-
-#: translation.py:135
-msgid "Mt. Threshold Research Center"
-msgstr ""
-
-#: translation.py:136
-msgid "Northside Vending"
-msgstr ""
-
-#: translation.py:137
-msgid "Old Granite Hotel"
-msgstr ""
-
-#: translation.py:138
-msgid "Qwik Fuel Convenience Store"
-msgstr ""
-
-#: translation.py:139
-msgid "Red Library Offices"
-msgstr ""
-
-#: translation.py:140
-msgid "Riverside Training Facility"
-msgstr ""
-
-#: translation.py:141
-msgid "St. Michael's Medical Center"
-msgstr ""
-
-#: translation.py:142
-msgid "The Wolcott Projects"
-msgstr ""
-
-#: translation.py:143
-msgid "Victory Imports Auto Center"
-msgstr ""
-
-#: translation.py:144
-msgid "-EXP- Department of Agriculture"
-msgstr ""
-
-#: translation.py:145
-msgid "-EXP- Drug Lab"
-msgstr ""
-
-#: translation.py:146
-msgid "-EXP- Fresnal St. Station"
-msgstr ""
-
-#: translation.py:147
-msgid "-EXP- FunTime Amusements"
-msgstr ""
-
-#: translation.py:148
-msgid "-EXP- Sellers Street Auditorium"
-msgstr ""
-
-#: translation.py:149
-msgid "-EXP- Sisters of Mercy Hostel"
-msgstr ""
-
-#: translation.py:150
-msgid "-EXP- Stetchkov Warehouse"
-msgstr ""
-
-#: translation.py:152
-msgid "None"
-msgstr ""
-
-#: translation.py:153
-msgid "M4 Super90"
-msgstr ""
-
-#: translation.py:154
-msgid "Nova Pump"
-msgstr ""
-
-#: translation.py:155
-msgid "Shotgun"
-msgstr ""
-
-#: translation.py:156
-msgid "Less Lethal Shotgun"
-msgstr ""
-
-#: translation.py:157
-msgid "Pepper-ball"
-msgstr ""
-
-#: translation.py:158
-msgid "Colt M4A1 Carbine"
-msgstr ""
-
-#: translation.py:159
-msgid "AK-47 Machinegun"
-msgstr ""
-
-#: translation.py:160
-msgid "GB36s Assault Rifle"
-msgstr ""
-
-#: translation.py:161
-msgid "Gal Sub-machinegun"
-msgstr ""
-
-#: translation.py:162
-msgid "9mm SMG"
-msgstr ""
-
-#: translation.py:163
-msgid "Suppressed 9mm SMG"
-msgstr ""
-
-#: translation.py:164
-msgid ".45 SMG"
-msgstr ""
-
-#: translation.py:165
-msgid "M1911 Handgun"
-msgstr ""
-
-#: translation.py:166
-msgid "9mm Handgun"
-msgstr ""
-
-#: translation.py:167
-msgid "Colt Python"
-msgstr ""
-
-#: translation.py:168
-msgid "Taser Stun Gun"
-msgstr ""
-
-#: translation.py:169
-msgid "VIP Colt M1911 Handgun"
-msgstr ""
-
-#: translation.py:170 translation.py:176 translation.py:197
-msgid "CS Gas"
-msgstr ""
-
-#: translation.py:171
-msgid "Light Armor"
-msgstr ""
-
-#: translation.py:172
-msgid "Heavy Armor"
-msgstr ""
-
-#: translation.py:173
-msgid "Gas Mask"
-msgstr ""
-
-#: translation.py:174
-msgid "Helmet"
-msgstr ""
-
-#: translation.py:175 translation.py:198
-msgid "Flashbang"
-msgstr ""
-
-#: translation.py:177 translation.py:196
-msgid "Stinger"
-msgstr ""
-
-#: translation.py:178
-msgid "Pepper Spray"
-msgstr ""
-
-#: translation.py:179
-msgid "Optiwand"
-msgstr ""
-
-#: translation.py:180
-msgid "Toolkit"
-msgstr ""
-
-#: translation.py:181
-msgid "Door Wedge"
-msgstr ""
-
-#: translation.py:182
-msgid "C2 (x3)"
-msgstr ""
-
-#: translation.py:183
-msgid "The Detonator"
-msgstr ""
-
-#: translation.py:184
-msgid "Zip-cuffs"
-msgstr ""
-
-#: translation.py:185
-msgid "IAmCuffed"
-msgstr ""
-
-#: translation.py:186
-msgid "Colt Accurized Rifle"
-msgstr ""
-
-#: translation.py:187
-msgid "40mm Grenade Launcher"
-msgstr ""
-
-#: translation.py:188
-msgid "5.56mm Light Machine Gun"
-msgstr ""
-
-#: translation.py:189
-msgid "5.7x28mm Submachine Gun"
-msgstr ""
-
-#: translation.py:190
-msgid "Mark 19 Semi-Automatic Pistol"
-msgstr ""
-
-#: translation.py:191
-msgid "9mm Machine Pistol"
-msgstr ""
-
-#: translation.py:192
-msgid "Cobra Stun Gun"
-msgstr ""
-
-#: translation.py:193
-msgid "Ammo Pouch"
-msgstr ""
-
-#: translation.py:194
-msgid "No Armor"
-msgstr ""
-
-#: translation.py:195
-msgid "Night Vision Goggles"
-msgstr ""
-
-#: translation.py:199
-msgid "Baton"
-msgstr ""
-
-#: views.py:72
-#, python-format
-msgid "%(year)s is not a valid year."
-msgstr ""
-
-#: views.py:190 views.py:241 views.py:242 views.py:273
-#: templates/tracker/chapters/profile/coop.html:45
-#: templates/tracker/chapters/profile/overview.html:125
-msgid "Score"
-msgstr ""
-
-#: views.py:243 views.py:274 templates/tracker/chapters/profile/coop.html:49
-#: templates/tracker/chapters/profile/overview.html:79
-#: templates/tracker/chapters/profile/overview.html:126
-#: templates/tracker/chapters/profile/overview.html:165
-msgid "Time Played"
-msgstr ""
-
-#: views.py:244 templates/tracker/chapters/profile/overview.html:127
-#: templates/tracker/chapters/profile/overview.html:181
-msgid "Wins"
-msgstr ""
-
-#: views.py:245 templates/tracker/chapters/profile/overview.html:91
-#: templates/tracker/chapters/profile/overview.html:173
-msgid "Score/Minute"
-msgstr ""
-
-#: views.py:246 templates/tracker/chapters/profile/overview.html:177
-msgid "Score/Round"
-msgstr ""
-
-#: views.py:247 views.py:1013 templates/tracker/chapters/profile/coop.html:9
-#: templates/tracker/chapters/profile/overview.html:161
-msgid "Best Score"
-msgstr ""
-
-#: views.py:249 views.py:250
-#: templates/tracker/chapters/profile/overview.html:129
-#: templates/tracker/chapters/profile/overview.html:197
-#: templates/tracker/chapters/profile/includes/weapons.html:5
-msgid "Kills"
-msgstr ""
-
-#: views.py:251 templates/tracker/chapters/profile/overview.html:209
-msgid "Arrests"
-msgstr ""
-
-#: views.py:254 templates/tracker/chapters/profile/overview.html:205
-msgid "K/D Ratio"
-msgstr ""
-
-#: views.py:255 templates/tracker/chapters/profile/equipment.html:24
-#: templates/tracker/chapters/profile/overview.html:283
-#: templates/tracker/chapters/profile/includes/weapons.html:8
-msgid "Accuracy"
-msgstr ""
-
-#: views.py:256 views.py:1034
-#: templates/tracker/chapters/profile/overview.html:221
-msgid "Best Kill Streak"
-msgstr ""
-
-#: views.py:257 templates/tracker/chapters/profile/overview.html:225
-msgid "Best Arrest Streak"
-msgstr ""
-
-#: views.py:260 templates/tracker/chapters/profile/overview.html:238
-msgid "VIP Escapes"
-msgstr ""
-
-#: views.py:261 templates/tracker/chapters/profile/overview.html:242
-msgid "VIP Captures"
-msgstr ""
-
-#: views.py:262 templates/tracker/chapters/profile/overview.html:246
-msgid "VIP Rescues"
-msgstr ""
-
-#: views.py:263 templates/tracker/chapters/profile/overview.html:250
-msgid "VIP Kills"
-msgstr ""
-
-#: views.py:275 templates/tracker/chapters/profile/coop.html:53
-msgid "Missions Attempted"
-msgstr ""
-
-#: views.py:276 templates/tracker/chapters/profile/coop.html:57
-msgid "Missions Completed"
-msgstr ""
-
-#: views.py:277 templates/tracker/chapters/profile/coop.html:78
-msgid "Suspects Arrested"
-msgstr ""
-
-#: views.py:278 templates/tracker/chapters/profile/coop.html:86
-msgid "Suspects Neutralized"
-msgstr ""
-
-#: views.py:441
-msgid "Highest Score"
-msgstr ""
-
-#: views.py:441
-#, python-format
-msgid "%d point"
-msgid_plural "%d points"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:443
-msgid "Highest Accuracy"
-msgstr ""
-
-#: views.py:443
-#, python-format
-msgid "%d%%"
-msgstr ""
-
-#: views.py:566
-msgid "Chief Inspector"
-msgstr ""
-
-#: views.py:568
-msgid "Inspector"
-msgstr ""
-
-#: views.py:580
-msgid "Non-sworn Officer"
-msgstr ""
-
-#: views.py:582
-msgid "Recruit"
-msgstr ""
-
-#: views.py:584
-msgid "Washout"
-msgstr ""
-
-#: views.py:586
-msgid "Vigilante"
-msgstr ""
-
-#: views.py:588
-msgid "Menace"
-msgstr ""
-
-#: views.py:589
-msgid "Cheater"
-msgstr ""
-
-#: views.py:739
-#, python-format
-msgid "Best score/minute ratio in %(year)s"
-msgid_plural "%(ordinal)s best score/minute ratio in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:746
-#, python-format
-msgid "Best score/round ratio in %(year)s"
-msgid_plural "%(ordinal)s best score/round ratio in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:753
-#, python-format
-msgid "Best kills/deaths ratio in %(year)s"
-msgid_plural "%(ordinal)s best kills/deaths ratio in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:760
-#, python-format
-msgid "Highest accuracy in %(year)s"
-msgid_plural "%(ordinal)s highest accuracy in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:767
-#, python-format
-msgid "Highest score in %(year)s"
-msgid_plural "%(ordinal)s highest score in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:774
-#, python-format
-msgid "Highest round score in %(year)s"
-msgid_plural "%(ordinal)s highest round score in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:781
-#, python-format
-msgid "Highest playtime in %(year)s"
-msgid_plural "%(ordinal)s highest playtime in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:788
-#, python-format
-msgid "Most kills in %(year)s"
-msgid_plural "%(ordinal)s most kills in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:795
-#, python-format
-msgid "Most arrests in %(year)s"
-msgid_plural "%(ordinal)s most arrests in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:802
-#, python-format
-msgid "Highest kill streak in %(year)s"
-msgid_plural "%(ordinal)s highest kill streak in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:809
-#, python-format
-msgid "Most VIP escapes in %(year)s"
-msgid_plural "%(ordinal)s most VIP escapes in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:816
-#, python-format
-msgid "Most VIP captures in %(year)s"
-msgid_plural "%(ordinal)s most VIP captures in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:823
-#, python-format
-msgid "Most VIP rescues in %(year)s"
-msgid_plural "%(ordinal)s most VIP rescues in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:830
-#, python-format
-msgid "Highest CO-OP score in %(year)s"
-msgid_plural "%(ordinal)s highest CO-OP score in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:837
-#, python-format
-msgid "Most CO-OP missions completed in %(year)s"
-msgid_plural "%(ordinal)s most CO-OP missions completed in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:844
-#, python-format
-msgid "Highest CO-OP playtime in %(year)s"
-msgid_plural "%(ordinal)s highest CO-OP playtime in %(year)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:1008
-msgid "First Appearance"
-msgstr ""
-
-#: views.py:1015
-#, python-format
-msgid "%(points)s point"
-msgid_plural "%(points)s points"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:1020
-msgid "Top Kills"
-msgstr ""
-
-#: views.py:1022
-#, python-format
-msgid "%(points)d kill"
-msgid_plural "%(points)d kills"
-msgstr[0] ""
-msgstr[1] ""
-
-#: views.py:1036
-#, python-format
-msgid "%(points)d kill in a row"
-msgid_plural "%(points)d kills in a row"
-msgstr[0] ""
-msgstr[1] ""
-
 #: templates/404.html:4
-msgid "The requested page does not exist."
+msgid "Page not found"
 msgstr ""
 
-#: templates/tracker/chapters/game/detail.html:17
-msgid "Player of the Round"
+#: templates/404.html:6
+msgid "The requested page does not exist"
 msgstr ""
 
-#: templates/tracker/chapters/game/detail.html:52
+#: templates/tracker/api/motd/leaderboard.html:2
+#, python-format
+msgid "Best player by %(category)s"
+msgid_plural "TOP %(limit)s by %(category)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/tracker/api/motd/leaderboard.html:8
+#: templates/tracker/api/motd/summary.html:8
+#, python-format
+msgid "Feel free to visit %(domain)s to see more"
+msgstr ""
+
+#: templates/tracker/api/whois/whois.html:1
+msgid "Unknown ISP"
+msgstr ""
+
+#: templates/tracker/api/whois/whois.html:1
+#, python-format
+msgid ""
+"[c=00FF00][b]%(ip)s[\\b][\\c] belongs to [c=00FF00]%(country)s[\\c] (%(isp)s)"
+msgstr ""
+
+#: templates/tracker/api/whois/whois.html:2
+#, python-format
+msgid ""
+"[c=00FF00][b]%(player)s[\\b][\\c] is better known as [c=00FF00]"
+"[b]%(profile)s[\\b][\\c]"
+msgstr ""
+
+#: templates/tracker/api/whois/whois.html:3
+#, python-format
+msgid ""
+"[c=00FF00][b]%(name)s[\\b][\\c] was last seen on [c=00FF00]%(server)s[\\c] "
+"%(date)s"
+msgstr ""
+
+#: templates/tracker/chapters/game/detail.html:36
 #: templates/tracker/chapters/server/detail.html:15
 msgid "SWAT"
 msgstr ""
 
-#: templates/tracker/chapters/game/detail.html:52
-#: templates/tracker/chapters/game/detail.html:84
+#: templates/tracker/chapters/game/detail.html:36
+#: templates/tracker/chapters/game/detail.html:66
 #: templates/tracker/chapters/server/detail.html:15
 #: templates/tracker/chapters/server/detail.html:44
 #, python-format
 msgid " %(team)s: %(score)s"
 msgstr ""
 
-#: templates/tracker/chapters/game/detail.html:53
-#: templates/tracker/chapters/game/detail.html:85
+#: templates/tracker/chapters/game/detail.html:37
+#: templates/tracker/chapters/game/detail.html:67
 #: templates/tracker/chapters/server/detail.html:16
 #: templates/tracker/chapters/server/detail.html:45
 #, python-format
 msgid " Rounds won: %(number)s"
 msgstr ""
 
-#: templates/tracker/chapters/game/detail.html:70
+#: templates/tracker/chapters/game/detail.html:52
 #: templates/tracker/chapters/server/detail.html:32
 #, python-format
 msgid "Mode: %(mode)s"
 msgstr ""
 
-#: templates/tracker/chapters/game/detail.html:84
+#: templates/tracker/chapters/game/detail.html:66
 #: templates/tracker/chapters/server/detail.html:44
 msgid "Suspects"
 msgstr ""
@@ -1274,16 +270,6 @@ msgstr ""
 
 #: templates/tracker/chapters/game/detail_mode3.html:69
 msgid "Ranking:"
-msgstr ""
-
-#: templates/tracker/chapters/game/list_history.html:14
-#: templates/tracker/chapters/game/list_online.html:26
-#: templates/tracker/chapters/game/search.html:71
-msgid "No games found."
-msgstr ""
-
-#: templates/tracker/chapters/game/search.html:55
-msgid "Submit"
 msgstr ""
 
 #: templates/tracker/chapters/game/includes/dropped.html:3
@@ -1336,34 +322,48 @@ msgstr ""
 
 #: templates/tracker/chapters/game/layout/base_list.html:4
 #: templates/tracker/chapters/game/layout/base_list.html:5
-#: templates/tracker/chapters/main/main.html:40
+#: templates/tracker/chapters/main/main.html:21
 msgid "Games"
 msgstr ""
 
-#: templates/tracker/chapters/game/layout/base_list.html:15
+#: templates/tracker/chapters/game/layout/base_list.html:13
+#: templates/tracker/chapters/game/list_history.html:4
 #: templates/tracker/chapters/profile/layout/base.html:50
 #: templates/tracker/chapters/server/layout/base_detail.html:50
 msgid "History"
 msgstr ""
 
-#: templates/tracker/chapters/game/layout/base_list.html:16
+#: templates/tracker/chapters/game/layout/base_list.html:14
+#: templates/tracker/chapters/game/list_online.html:4
 msgid "Online"
 msgstr ""
 
-#: templates/tracker/chapters/game/layout/base_list.html:17
-#: templates/tracker/chapters/main/main.html:47
-#: templates/tracker/chapters/search/search.html:4
-#: templates/tracker/layout/nonmain.html:18
-msgid "Search"
+#: templates/tracker/chapters/game/layout/base_list.html:29
+#: templates/tracker/chapters/main/main.html:76
+msgid "Featured Games"
 msgstr ""
 
 #: templates/tracker/chapters/game/layout/base_list.html:36
-msgid "Week Summary"
+#: templates/tracker/chapters/game/list_history.html:28
+#: templates/tracker/chapters/game/list_online.html:28
+#: templates/tracker/chapters/profile/history.html:13
+msgid "No games found."
+msgstr ""
+
+#: templates/tracker/chapters/game/list_history.html:18
+#, python-format
+msgid "%(count)s game found"
+msgid_plural "%(count)s games found"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/tracker/chapters/game/list_history.html:18
+msgid "Filter"
 msgstr ""
 
 #: templates/tracker/chapters/leaderboard/leaderboard.html:4
 #: templates/tracker/chapters/leaderboard/leaderboard.html:5
-#: templates/tracker/chapters/main/main.html:35
+#: templates/tracker/chapters/main/main.html:16
 #: templates/tracker/chapters/profile/ranking.html:14
 msgid "Leaderboard"
 msgstr ""
@@ -1383,61 +383,71 @@ msgid "Points"
 msgstr ""
 
 #: templates/tracker/chapters/leaderboard/leaderboard.html:71
+#: templates/tracker/chapters/profile/layout/base.html:79
 #: templates/tracker/chapters/top/top.html:45
 msgid "No data available."
 msgstr ""
 
 #: templates/tracker/chapters/main/main.html:4
-msgctxt "chapters"
+#: templates/tracker/layout/nonmain.html:14
 msgid "Main"
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:30
+#: templates/tracker/chapters/main/main.html:11
 msgid "Player Chart"
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:32
+#: templates/tracker/chapters/main/main.html:13
 #: templates/tracker/chapters/top/top.html:4
 #: templates/tracker/chapters/top/top.html:5
 msgid "TOP 20"
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:33
+#: templates/tracker/chapters/main/main.html:14
 msgid "Praise the most notable players of the year."
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:36
+#: templates/tracker/chapters/main/main.html:17
 msgid "See the current year player standings."
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:38
+#: templates/tracker/chapters/main/main.html:19
 msgid "Multiplayer Game"
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:41
+#: templates/tracker/chapters/main/main.html:22
 msgid "Check out game report history."
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:43
-#: templates/tracker/chapters/server/list.html:42
-#: templates/tracker/chapters/server/list.html:46
+#: templates/tracker/chapters/main/main.html:24
+#: templates/tracker/chapters/server/list.html:31
+#: templates/tracker/chapters/server/list.html:35
 msgid "Servers"
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:44
+#: templates/tracker/chapters/main/main.html:25
 msgid "Join a multiplayer game."
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:57
-msgid "Welcome aboard!"
+#: templates/tracker/chapters/main/main.html:28
+#: templates/tracker/chapters/search/search.html:4
+#: templates/tracker/layout/nonmain.html:18
+msgid "Search"
 msgstr ""
 
-#: templates/tracker/chapters/main/main.html:65
-msgid "Featured Games"
+#: templates/tracker/chapters/main/main.html:47
+msgid "No news so far."
 msgstr ""
 
 #: templates/tracker/chapters/profile/cap.html:4
-msgid "The player profile is not available."
+#: templates/tracker/chapters/profile/cap.html:6
+msgid "The player profile is not available"
+msgstr ""
+
+#: templates/tracker/chapters/profile/coop.html:9
+#: templates/tracker/chapters/profile/overview.html:161 views.py:392
+#: views.py:1116
+msgid "Best Score"
 msgstr ""
 
 #: templates/tracker/chapters/profile/coop.html:10
@@ -1455,6 +465,28 @@ msgstr ""
 msgid "n/a"
 msgstr ""
 
+#: templates/tracker/chapters/profile/coop.html:45
+#: templates/tracker/chapters/profile/overview.html:125 views.py:336
+#: views.py:386 views.py:387 views.py:418
+msgid "Score"
+msgstr ""
+
+#: templates/tracker/chapters/profile/coop.html:49
+#: templates/tracker/chapters/profile/overview.html:79
+#: templates/tracker/chapters/profile/overview.html:126
+#: templates/tracker/chapters/profile/overview.html:165 views.py:388
+#: views.py:419
+msgid "Time Played"
+msgstr ""
+
+#: templates/tracker/chapters/profile/coop.html:53 views.py:420
+msgid "Missions Attempted"
+msgstr ""
+
+#: templates/tracker/chapters/profile/coop.html:57 views.py:421
+msgid "Missions Completed"
+msgstr ""
+
 #: templates/tracker/chapters/profile/coop.html:61
 msgid "Missions Failed"
 msgstr ""
@@ -1469,9 +501,17 @@ msgstr ""
 msgid "Civilians Arrested"
 msgstr ""
 
+#: templates/tracker/chapters/profile/coop.html:78 views.py:422
+msgid "Suspects Arrested"
+msgstr ""
+
 #: templates/tracker/chapters/profile/coop.html:82
 #: templates/tracker/chapters/profile/coop.html:115
 msgid "Suspects Incapacitated"
+msgstr ""
+
+#: templates/tracker/chapters/profile/coop.html:86 views.py:423
+msgid "Suspects Neutralized"
 msgstr ""
 
 #: templates/tracker/chapters/profile/coop.html:90
@@ -1524,6 +564,12 @@ msgstr ""
 msgid "Hits"
 msgstr ""
 
+#: templates/tracker/chapters/profile/equipment.html:24
+#: templates/tracker/chapters/profile/includes/weapons.html:8
+#: templates/tracker/chapters/profile/overview.html:283 views.py:400
+msgid "Accuracy"
+msgstr ""
+
 #: templates/tracker/chapters/profile/equipment.html:25
 #: templates/tracker/chapters/profile/includes/weapons.html:9
 msgid "Team Hits"
@@ -1558,6 +604,46 @@ msgstr ""
 msgid "%(name)s has never equipped anything."
 msgstr ""
 
+#: templates/tracker/chapters/profile/includes/weapons.html:4
+msgid "Weapon"
+msgstr ""
+
+#: templates/tracker/chapters/profile/includes/weapons.html:5
+#: templates/tracker/chapters/profile/overview.html:129
+#: templates/tracker/chapters/profile/overview.html:197 views.py:394
+#: views.py:395
+msgid "Kills"
+msgstr ""
+
+#: templates/tracker/chapters/profile/includes/weapons.html:6
+msgid "Shots"
+msgstr ""
+
+#: templates/tracker/chapters/profile/includes/weapons.html:10
+#: templates/tracker/chapters/profile/overview.html:287
+msgid "Longest Kill"
+msgstr ""
+
+#: templates/tracker/chapters/profile/layout/base.html:42
+msgid "Overview"
+msgstr ""
+
+#: templates/tracker/chapters/profile/layout/base.html:44
+msgid "Equipment"
+msgstr ""
+
+#: templates/tracker/chapters/profile/layout/base.html:46
+msgid "COOP"
+msgstr ""
+
+#: templates/tracker/chapters/profile/layout/base.html:48
+msgid "Ranking"
+msgstr ""
+
+#: templates/tracker/chapters/profile/layout/base.html:64
+msgid "Latest Activity"
+msgstr ""
+
 #: templates/tracker/chapters/profile/overview.html:49
 msgid "Unranked"
 msgstr ""
@@ -1576,8 +662,18 @@ msgstr ""
 msgid "Games Played"
 msgstr ""
 
+#: templates/tracker/chapters/profile/overview.html:91
+#: templates/tracker/chapters/profile/overview.html:173 views.py:390
+msgid "Score/Minute"
+msgstr ""
+
 #: templates/tracker/chapters/profile/overview.html:96
 msgid "Kills/Deaths"
+msgstr ""
+
+#: templates/tracker/chapters/profile/overview.html:127
+#: templates/tracker/chapters/profile/overview.html:181 views.py:389
+msgid "Wins"
 msgstr ""
 
 #: templates/tracker/chapters/profile/overview.html:128
@@ -1593,8 +689,20 @@ msgstr ""
 msgid "Overall Score"
 msgstr ""
 
+#: templates/tracker/chapters/profile/overview.html:177 views.py:391
+msgid "Score/Round"
+msgstr ""
+
 #: templates/tracker/chapters/profile/overview.html:189
 msgid "Draws"
+msgstr ""
+
+#: templates/tracker/chapters/profile/overview.html:205 views.py:399
+msgid "K/D Ratio"
+msgstr ""
+
+#: templates/tracker/chapters/profile/overview.html:209 views.py:396
+msgid "Arrests"
 msgstr ""
 
 #: templates/tracker/chapters/profile/overview.html:213
@@ -1605,8 +713,34 @@ msgstr ""
 msgid "Team Kills"
 msgstr ""
 
+#: templates/tracker/chapters/profile/overview.html:221 views.py:401
+#: views.py:1137
+msgid "Best Kill Streak"
+msgstr ""
+
+#: templates/tracker/chapters/profile/overview.html:225 views.py:402
+#: views.py:1144
+msgid "Best Arrest Streak"
+msgstr ""
+
 #: templates/tracker/chapters/profile/overview.html:229
 msgid "Best Death Streak"
+msgstr ""
+
+#: templates/tracker/chapters/profile/overview.html:238 views.py:405
+msgid "VIP Escapes"
+msgstr ""
+
+#: templates/tracker/chapters/profile/overview.html:242 views.py:406
+msgid "VIP Captures"
+msgstr ""
+
+#: templates/tracker/chapters/profile/overview.html:246 views.py:407
+msgid "VIP Rescues"
+msgstr ""
+
+#: templates/tracker/chapters/profile/overview.html:250 views.py:408
+msgid "VIP Kills"
 msgstr ""
 
 #: templates/tracker/chapters/profile/overview.html:254
@@ -1633,41 +767,8 @@ msgstr ""
 msgid "Enemy Hits"
 msgstr ""
 
-#: templates/tracker/chapters/profile/overview.html:287
-#: templates/tracker/chapters/profile/includes/weapons.html:10
-msgid "Longest Kill"
-msgstr ""
-
 #: templates/tracker/chapters/profile/ranking.html:15
 msgid "Position"
-msgstr ""
-
-#: templates/tracker/chapters/profile/includes/weapons.html:4
-msgid "Weapon"
-msgstr ""
-
-#: templates/tracker/chapters/profile/includes/weapons.html:6
-msgid "Shots"
-msgstr ""
-
-#: templates/tracker/chapters/profile/layout/base.html:42
-msgid "Overview"
-msgstr ""
-
-#: templates/tracker/chapters/profile/layout/base.html:44
-msgid "Equipment"
-msgstr ""
-
-#: templates/tracker/chapters/profile/layout/base.html:46
-msgid "COOP"
-msgstr ""
-
-#: templates/tracker/chapters/profile/layout/base.html:48
-msgid "Ranking"
-msgstr ""
-
-#: templates/tracker/chapters/profile/layout/base.html:64
-msgid "Latest Activity"
 msgstr ""
 
 #: templates/tracker/chapters/search/search.html:16
@@ -1688,7 +789,8 @@ msgid "Last Played"
 msgstr ""
 
 #: templates/tracker/chapters/server/cap.html:4
-msgid "The connection to the server has failed."
+#: templates/tracker/chapters/server/cap.html:6
+msgid "The connection to the server has failed"
 msgstr ""
 
 #: templates/tracker/chapters/server/detail_mode3.html:58
@@ -1701,46 +803,6 @@ msgstr ""
 
 #: templates/tracker/chapters/server/detail_mode3.html:66
 msgid "All weapons secured"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:54
-msgid "Server Name"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:55
-msgid "Players"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:57
-msgid "Map Name"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:58
-msgid "IP Address"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:59
-msgid "Mod"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:60
-msgid "Ver"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:65
-msgid "Locked"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:95
-msgid "Add Server"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:100
-msgid "Update"
-msgstr ""
-
-#: templates/tracker/chapters/server/list.html:101
-msgid "Filters"
 msgstr ""
 
 #: templates/tracker/chapters/server/layout/base_detail.html:35
@@ -1758,6 +820,46 @@ msgstr ""
 
 #: templates/tracker/chapters/server/layout/base_detail.html:61
 msgid "Time remaining:"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:43
+msgid "Server Name"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:44
+msgid "Players"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:46
+msgid "Map Name"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:47
+msgid "IP Address"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:48
+msgid "Mod"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:49
+msgid "Ver"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:54
+msgid "Locked"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:84
+msgid "Add Server"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:89
+msgid "Update"
+msgstr ""
+
+#: templates/tracker/chapters/server/list.html:90
+msgid "Filters"
 msgstr ""
 
 #: templates/tracker/includes/maps.html:5
@@ -2462,30 +1564,1774 @@ msgid ""
 "the case stays where it is dropped. Officers cannot pickup the briefcase."
 msgstr ""
 
-#: templates/tracker/layout/black.html:9
-msgid "OK"
+#: templates/tracker/layout/base.html:12
+msgid "Undefined"
 msgstr ""
 
-#: templates/tracker/layout/nonmain.html:14
-msgid "Main"
+#: templates/tracker/layout/base.html:12
+msgid "SWAT4 Stats Tracker"
+msgstr ""
+
+#: templates/tracker/layout/black.html:9
+msgid "OK"
 msgstr ""
 
 #: templates/tracker/layout/nonmain.html:29
 msgid "Please Enter Player Name Here:"
 msgstr ""
 
-#: templatetags/tracker.py:169 templatetags/tracker.py:177
-#: templatetags/tracker.py:195 templatetags/tracker.py:203
+#: templatetags/tracker.py:170 templatetags/tracker.py:178
+#: templatetags/tracker.py:196 templatetags/tracker.py:204
 msgid "Unknown"
 msgstr ""
 
-#: templatetags/tracker.py:270
+#: templatetags/tracker.py:271
 #, python-format
 msgid "%d hour"
 msgid_plural "%d hours"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templatetags/tracker.py:283
+#: templatetags/tracker.py:284
 msgid "Terra Incognita"
+msgstr ""
+
+#: translation.py:5
+msgid "PROCEDURE_0"
+msgstr "Suspects incapacitated"
+
+#: translation.py:6
+msgid "PROCEDURE_1"
+msgstr "Suspects arrested"
+
+#: translation.py:7
+msgid "PROCEDURE_2"
+msgstr "Mission completed"
+
+#: translation.py:8
+msgid "PROCEDURE_3"
+msgstr "Failed to report a downed officer"
+
+#: translation.py:9
+msgid "PROCEDURE_4"
+msgstr "Suspects neutralized"
+
+#: translation.py:10
+msgid "PROCEDURE_5"
+msgstr "No civilians injured"
+
+#: translation.py:11
+msgid "PROCEDURE_6"
+msgstr "Incapacitated a hostage"
+
+#: translation.py:12
+msgid "PROCEDURE_7"
+msgstr "Killed a hostage"
+
+#: translation.py:13
+msgid "PROCEDURE_8"
+msgstr "Incapacitated a fellow officer"
+
+#: translation.py:14
+msgid "PROCEDURE_9"
+msgstr "Injured a fellow officer"
+
+#: translation.py:15
+msgid "PROCEDURE_10"
+msgstr "No officers down"
+
+#: translation.py:16
+msgid "PROCEDURE_11"
+msgstr "No suspects neutralized"
+
+#: translation.py:17
+msgid "PROCEDURE_12"
+msgstr "Unauthorized use of deadly force"
+
+#: translation.py:18
+msgid "PROCEDURE_13"
+msgstr "Unauthorized use of force"
+
+#: translation.py:19
+msgid "PROCEDURE_14"
+msgstr "Player uninjured"
+
+#: translation.py:20
+msgid "PROCEDURE_15"
+msgstr "Failed to prevent destruction of evidence."
+
+#: translation.py:21
+msgid "PROCEDURE_16"
+msgstr "Failed to apprehend fleeing suspect."
+
+#: translation.py:22
+msgid "PROCEDURE_17"
+msgstr "Report status to TOC"
+
+#: translation.py:23
+msgid "PROCEDURE_18"
+msgstr "All evidence secured"
+
+#: translation.py:25
+msgid "OBJECTIVE_STATUS_0"
+msgstr "In Progress"
+
+#: translation.py:26
+msgid "OBJECTIVE_STATUS_1"
+msgstr "Completed"
+
+#: translation.py:27
+msgid "OBJECTIVE_STATUS_2"
+msgstr "Failed"
+
+#: translation.py:29
+msgid "OBJECTIVE_0"
+msgstr "Rendezvous with Jennings"
+
+#: translation.py:30
+msgid "OBJECTIVE_1"
+msgstr "Avoid civilian injuries"
+
+#: translation.py:31
+msgid "OBJECTIVE_2"
+msgstr "Avoid officer injuries"
+
+#: translation.py:32
+msgid "OBJECTIVE_3"
+msgstr "Avoid officer casualties"
+
+#: translation.py:33
+msgid "OBJECTIVE_4"
+msgstr "Avoid suspect casualties"
+
+#: translation.py:34
+msgid "OBJECTIVE_5"
+msgstr "Avoid injuries to yourself"
+
+#: translation.py:35
+msgid "OBJECTIVE_6"
+msgstr "Debrief before the timer expires"
+
+#: translation.py:36
+msgid "OBJECTIVE_7"
+msgstr "Find and deactivate the bombs"
+
+#: translation.py:37
+msgid "OBJECTIVE_8"
+msgstr "Find and disarm the bombs!"
+
+#: translation.py:38
+msgid "OBJECTIVE_9"
+msgstr "Investigate the laundromat"
+
+#: translation.py:39
+msgid "OBJECTIVE_10"
+msgstr "Neutralize Alice Jenkins"
+
+#: translation.py:40
+msgid "OBJECTIVE_11"
+msgstr "Bring order to chaos"
+
+#: translation.py:41
+msgid "OBJECTIVE_12"
+msgstr "Neutralize Javier Arias"
+
+#: translation.py:42
+msgid "OBJECTIVE_13"
+msgstr "Neutralize Andrew Taronne"
+
+#: translation.py:43
+msgid "OBJECTIVE_14"
+msgstr "Neutralize Anton Georgiev"
+
+#: translation.py:44
+msgid "OBJECTIVE_15"
+msgstr "Neutralize Simon Gowan"
+
+#: translation.py:45
+msgid "OBJECTIVE_16"
+msgstr "Neutralize Lian Niu"
+
+#: translation.py:46
+msgid "OBJECTIVE_17"
+msgstr "Neutralize Alex Jimenez"
+
+#: translation.py:47
+msgid "OBJECTIVE_18"
+msgstr "Neutralize Lawrence Fairfax"
+
+#: translation.py:48
+msgid "OBJECTIVE_19"
+msgstr "Neutralize Kiril Stetchkov"
+
+#: translation.py:49
+msgid "OBJECTIVE_20"
+msgstr "Neutralize Hadeon Koshka"
+
+#: translation.py:50
+msgid "OBJECTIVE_21"
+msgstr "Neutralize Allen Kruse"
+
+#: translation.py:51
+msgid "OBJECTIVE_22"
+msgstr "Neutralize Andrew Norman"
+
+#: translation.py:52
+msgid "OBJECTIVE_23"
+msgstr "Neutralize Jean Trouffant"
+
+#: translation.py:53
+msgid "OBJECTIVE_24"
+msgstr "Neutralize Todor Stetchkov"
+
+#: translation.py:54
+msgid "OBJECTIVE_25"
+msgstr "Rescue Lawrence Adams"
+
+#: translation.py:55
+msgid "OBJECTIVE_26"
+msgstr "Rescue all of the civilians"
+
+#: translation.py:56
+msgid "OBJECTIVE_27"
+msgstr "Rescue Gary Altman"
+
+#: translation.py:57
+msgid "OBJECTIVE_28"
+msgstr "Arrest Louie Baccus"
+
+#: translation.py:58
+msgid "OBJECTIVE_29"
+msgstr "Rescue James Betincourt"
+
+#: translation.py:59
+msgid "OBJECTIVE_30"
+msgstr "Rescue Oscar Bogard"
+
+#: translation.py:60
+msgid "OBJECTIVE_31"
+msgstr "Rescue Warren Rooney"
+
+#: translation.py:61
+msgid "OBJECTIVE_32"
+msgstr "Rescue Hyun-Jun Park"
+
+#: translation.py:62
+msgid "OBJECTIVE_33"
+msgstr "Rescue Willis Fischer"
+
+#: translation.py:63
+msgid "OBJECTIVE_34"
+msgstr "Rescue Melinda Kline"
+
+#: translation.py:64
+msgid "OBJECTIVE_35"
+msgstr "Rescue Lionel Macarthur"
+
+#: translation.py:65
+msgid "OBJECTIVE_36"
+msgstr "Rescue Heidi Rosenstein"
+
+#: translation.py:66
+msgid "OBJECTIVE_37"
+msgstr "Rescue Dr. Theodore Sturgeon"
+
+#: translation.py:67
+msgid "OBJECTIVE_38"
+msgstr "Rescue Kim Dong Yin"
+
+#: translation.py:68
+msgid "OBJECTIVE_39"
+msgstr "Rescue Detective Walsh"
+
+#: translation.py:69
+msgid "OBJECTIVE_40"
+msgstr "Locate Officer Wilkins"
+
+#: translation.py:70
+msgid "OBJECTIVE_41"
+msgstr "Rescue Rita Winston"
+
+#: translation.py:71
+msgid "OBJECTIVE_42"
+msgstr "Secure the briefcase"
+
+#: translation.py:72
+msgid "OBJECTIVE_43"
+msgstr "Secure the MAC-10"
+
+#: translation.py:74
+msgid "COOP_STATUS_0"
+msgstr "Not Ready"
+
+#: translation.py:75
+msgid "COOP_STATUS_1"
+msgstr "Ready"
+
+#: translation.py:76
+msgid "COOP_STATUS_2"
+msgstr "Healthy"
+
+#: translation.py:77
+msgid "COOP_STATUS_3"
+msgstr "Injured"
+
+#: translation.py:78
+msgid "COOP_STATUS_4"
+msgstr "Incapacitated"
+
+#: translation.py:80
+msgid "OUTCOME_0"
+msgstr "Unknown"
+
+#: translation.py:81
+msgid "OUTCOME_1"
+msgstr "SWAT has won the round!"
+
+#: translation.py:82
+msgid "OUTCOME_2"
+msgstr "The Suspects have won the round!"
+
+#: translation.py:83
+msgid "OUTCOME_3"
+msgstr "SWAT has disarmed all the bombs!"
+
+#: translation.py:84
+msgid "OUTCOME_4"
+msgstr "The Suspects have won the round!"
+
+#: translation.py:85
+msgid "OUTCOME_5"
+msgstr "The round has ended in a tie!"
+
+#: translation.py:86
+msgid "OUTCOME_6"
+msgstr "The VIP has escaped!"
+
+#: translation.py:87
+msgid "OUTCOME_7"
+msgstr "The Suspects have killed the VIP!"
+
+#: translation.py:88
+msgid "OUTCOME_8"
+msgstr "The Suspects have killed the VIP too soon!"
+
+#: translation.py:89
+msgid "OUTCOME_9"
+msgstr "SWAT has accidentally killed the VIP!"
+
+#: translation.py:90
+msgid "OUTCOME_10"
+msgstr "You have <span style=\"color:#00FF00;\">COMPLETED</span> the mission!"
+
+#: translation.py:91
+msgid "OUTCOME_11"
+msgstr "You have <span style=\"color:#FF0000;\">FAILED</span> the mission!"
+
+#: translation.py:92
+msgid "OUTCOME_12"
+msgstr "SWAT has defended the case!"
+
+#: translation.py:93
+msgid "OUTCOME_13"
+msgstr "The suspects have escaped with the case!"
+
+#: translation.py:95
+msgid "OUTCOME_LONG_0"
+msgstr "Unknown"
+
+#: translation.py:96
+msgid "OUTCOME_LONG_1"
+msgstr "Barricaded Suspects: SWAT victory"
+
+#: translation.py:97
+msgid "OUTCOME_LONG_2"
+msgstr "Barricaded Suspects: Suspects victory"
+
+#: translation.py:98
+msgid "OUTCOME_LONG_3"
+msgstr "Rapid Deployment: SWAT victory"
+
+#: translation.py:99
+msgid "OUTCOME_LONG_4"
+msgstr "Rapid Deployment: Suspects victory"
+
+#: translation.py:100
+msgid "OUTCOME_LONG_5"
+msgstr "Tie"
+
+#: translation.py:101
+msgid "OUTCOME_LONG_6"
+msgstr "VIP Escort: SWAT victory (the VIP has escaped)"
+
+#: translation.py:102
+msgid "OUTCOME_LONG_7"
+msgstr "VIP Escort: Suspects victory (Suspects have killed the VIP)"
+
+#: translation.py:103
+msgid "OUTCOME_LONG_8"
+msgstr "VIP Escort: SWAT victory (Suspects have killed the VIP too soon)"
+
+#: translation.py:104
+msgid "OUTCOME_LONG_9"
+msgstr "VIP Escort: Suspects victory (SWAT has killed the VIP)"
+
+#: translation.py:105
+msgid "OUTCOME_LONG_10"
+msgstr "CO-OP: Mission completed"
+
+#: translation.py:106
+msgid "OUTCOME_LONG_11"
+msgstr "CO-OP: Mission failed"
+
+#: translation.py:107
+msgid "OUTCOME_LONG_12"
+msgstr "Smash and Grab: SWAT victory"
+
+#: translation.py:108
+msgid "OUTCOME_LONG_13"
+msgstr "Smash and Grab: Suspects victory"
+
+#: translation.py:110
+msgid "MODE_SHORT_0"
+msgstr "BS"
+
+#: translation.py:111
+msgid "MODE_SHORT_1"
+msgstr "VIP"
+
+#: translation.py:112
+msgid "MODE_SHORT_2"
+msgstr "RD"
+
+#: translation.py:113
+msgid "MODE_SHORT_3"
+msgstr "COOP"
+
+#: translation.py:114
+msgid "MODE_SHORT_4"
+msgstr "SG"
+
+#: translation.py:115
+msgid "MODE_SHORT_5"
+msgstr "COOPQM"
+
+#: translation.py:117
+msgid "SWAT 4"
+msgstr ""
+
+#: translation.py:118
+msgid "SWAT 4X"
+msgstr ""
+
+#: translation.py:120
+msgid "Barricaded Suspects"
+msgstr ""
+
+#: translation.py:121 views.py:404
+msgid "VIP Escort"
+msgstr ""
+
+#: translation.py:122
+msgid "Rapid Deployment"
+msgstr ""
+
+#: translation.py:123 views.py:417
+msgid "CO-OP"
+msgstr ""
+
+#: translation.py:124
+msgid "Smash And Grab"
+msgstr ""
+
+#: translation.py:125
+msgid "CO-OP QMM"
+msgstr ""
+
+#: translation.py:127
+msgid "A-Bomb Nightclub"
+msgstr ""
+
+#: translation.py:128
+msgid "Brewer County Courthouse"
+msgstr ""
+
+#: translation.py:129
+msgid "Children of Taronne Tenement"
+msgstr ""
+
+#: translation.py:130
+msgid "DuPlessis Diamond Center"
+msgstr ""
+
+#: translation.py:131
+msgid "Enverstar Power Plant"
+msgstr ""
+
+#: translation.py:132
+msgid "Fairfax Residence"
+msgstr ""
+
+#: translation.py:133
+msgid "Food Wall Restaurant"
+msgstr ""
+
+#: translation.py:134
+msgid "Meat Barn Restaurant"
+msgstr ""
+
+#: translation.py:135
+msgid "Mt. Threshold Research Center"
+msgstr ""
+
+#: translation.py:136
+msgid "Northside Vending"
+msgstr ""
+
+#: translation.py:137
+msgid "Old Granite Hotel"
+msgstr ""
+
+#: translation.py:138
+msgid "Qwik Fuel Convenience Store"
+msgstr ""
+
+#: translation.py:139
+msgid "Red Library Offices"
+msgstr ""
+
+#: translation.py:140
+msgid "Riverside Training Facility"
+msgstr ""
+
+#: translation.py:141
+msgid "St. Michael's Medical Center"
+msgstr ""
+
+#: translation.py:142
+msgid "The Wolcott Projects"
+msgstr ""
+
+#: translation.py:143
+msgid "Victory Imports Auto Center"
+msgstr ""
+
+#: translation.py:144
+msgid "-EXP- Department of Agriculture"
+msgstr ""
+
+#: translation.py:145
+msgid "-EXP- Drug Lab"
+msgstr ""
+
+#: translation.py:146
+msgid "-EXP- Fresnal St. Station"
+msgstr ""
+
+#: translation.py:147
+msgid "-EXP- FunTime Amusements"
+msgstr ""
+
+#: translation.py:148
+msgid "-EXP- Sellers Street Auditorium"
+msgstr ""
+
+#: translation.py:149
+msgid "-EXP- Sisters of Mercy Hostel"
+msgstr ""
+
+#: translation.py:150
+msgid "-EXP- Stetchkov Warehouse"
+msgstr ""
+
+#: translation.py:151
+msgid "Unitiled"
+msgstr ""
+
+#: translation.py:152
+msgid "Fairfaxe Reloaded"
+msgstr ""
+
+#: translation.py:153
+msgid "Final Crack Down, COOP"
+msgstr ""
+
+#: translation.py:154
+msgid "ApartmentNew"
+msgstr ""
+
+#: translation.py:155
+msgid "Saint-Paul Asylum"
+msgstr ""
+
+#: translation.py:156
+msgid "[c=ffff00]ESA's [c=1e90ff]Foodwall Edit"
+msgstr ""
+
+#: translation.py:157
+msgid "La Mina v.1.5"
+msgstr ""
+
+#: translation.py:158
+msgid "Operation Apollo COOP 1.1 - FIX"
+msgstr ""
+
+#: translation.py:159
+msgid "Cave Complex"
+msgstr ""
+
+#: translation.py:160
+msgid "Predator2"
+msgstr ""
+
+#: translation.py:161
+#, python-brace-format
+msgid "{EP}Matt´s  Power Plant TSS"
+msgstr ""
+
+#: translation.py:162
+msgid "Qwik Fuel (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:163
+msgid "Black Water-TTC 1.1"
+msgstr ""
+
+#: translation.py:164
+msgid "The Watercrip"
+msgstr ""
+
+#: translation.py:165
+msgid "2940 Enemy Territory MP"
+msgstr ""
+
+#: translation.py:166
+msgid "Newfort (Revision 24) TSS"
+msgstr ""
+
+#: translation.py:167
+msgid "-EXP- Drug Lab-RMX"
+msgstr ""
+
+#: translation.py:168
+msgid "Riverside Training (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:169
+msgid "The Building"
+msgstr ""
+
+#: translation.py:170
+msgid "Newfort (Revision 24)"
+msgstr ""
+
+#: translation.py:171
+msgid "Wolcott (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:172
+msgid "Operation Apollo 1.1 - FIXED"
+msgstr ""
+
+#: translation.py:173
+msgid "Office Space V2.0"
+msgstr ""
+
+#: translation.py:174
+msgid "panic room"
+msgstr ""
+
+#: translation.py:175
+msgid "mistero18-byilmassacratore"
+msgstr ""
+
+#: translation.py:176
+msgid "The Phoenix Club"
+msgstr ""
+
+#: translation.py:177
+msgid "The Hive (VIP)"
+msgstr ""
+
+#: translation.py:178
+msgid "U-273"
+msgstr ""
+
+#: translation.py:179
+msgid "The Manor - 1.1 - 2013"
+msgstr ""
+
+#: translation.py:180
+msgid "-EXP- Newfort (Revision 27)"
+msgstr ""
+
+#: translation.py:181
+msgid "City Streets 1.0"
+msgstr ""
+
+#: translation.py:182
+msgid "LA City Hall"
+msgstr ""
+
+#: translation.py:183
+msgid "-MODv- California Security Bank - FIXED"
+msgstr ""
+
+#: translation.py:184
+msgid "Car's dealer v1.2"
+msgstr ""
+
+#: translation.py:185
+msgid "Mout McKenna 1.0"
+msgstr ""
+
+#: translation.py:186
+msgid "Desert ops -Village- 1.0"
+msgstr ""
+
+#: translation.py:187
+msgid "INTERVAL - 17 - Rmx"
+msgstr ""
+
+#: translation.py:188
+msgid "Ashes and Ghosts -Night-"
+msgstr ""
+
+#: translation.py:189
+msgid "Penthouse"
+msgstr ""
+
+#: translation.py:190
+msgid "Civil Unrest"
+msgstr ""
+
+#: translation.py:191
+msgid "Storm Front"
+msgstr ""
+
+#: translation.py:192
+msgid "Johnson Residence"
+msgstr ""
+
+#: translation.py:193
+msgid "Operation Prison Break"
+msgstr ""
+
+#: translation.py:194
+msgid "C-Block"
+msgstr ""
+
+#: translation.py:195
+msgid "The Hive 1.1"
+msgstr ""
+
+#: translation.py:196
+msgid "BattleShips"
+msgstr ""
+
+#: translation.py:197
+msgid "Children of Taronne (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:198
+msgid "Fast Break - Through"
+msgstr ""
+
+#: translation.py:199
+msgid "A-Bomb (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:200
+msgid "Ashes and Ghosts -Day-"
+msgstr ""
+
+#: translation.py:201
+msgid "ESA's 3or1"
+msgstr ""
+
+#: translation.py:202
+msgid "MP-Terminal"
+msgstr ""
+
+#: translation.py:203
+msgid "The Entrepot"
+msgstr ""
+
+#: translation.py:204
+msgid "E.T.E.R. Training Center"
+msgstr ""
+
+#: translation.py:205
+msgid "Subway Station v1.0"
+msgstr ""
+
+#: translation.py:206
+msgid "Stuck in the Woods"
+msgstr ""
+
+#: translation.py:207
+msgid "-EXP- Sisters of Mercy-RMX"
+msgstr ""
+
+#: translation.py:208
+msgid "Research Center (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:209
+msgid "Brewer County (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:210
+msgid "Stuck in the woods"
+msgstr ""
+
+#: translation.py:211
+#, python-brace-format
+msgid "{EP}Matt´s Drugs Deal TSS"
+msgstr ""
+
+#: translation.py:212
+msgid "Snake's loft"
+msgstr ""
+
+#: translation.py:213
+msgid "NewfortBeta"
+msgstr ""
+
+#: translation.py:214
+msgid "BLUES CLUB"
+msgstr ""
+
+#: translation.py:215
+msgid "Fairfax Residence (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:216
+msgid "Construction"
+msgstr ""
+
+#: translation.py:217
+msgid "Sky Tower"
+msgstr ""
+
+#: translation.py:218
+msgid "Food Wall (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:219
+msgid "California Security Bank"
+msgstr ""
+
+#: translation.py:220
+msgid "Dark Waters"
+msgstr ""
+
+#: translation.py:221
+msgid "Operation Apollo COOP 1.1"
+msgstr ""
+
+#: translation.py:222
+msgid "FAYA's REFUGEES v1.0"
+msgstr ""
+
+#: translation.py:223
+msgid "Victory Imports (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:224
+msgid "Residential Ops."
+msgstr ""
+
+#: translation.py:225
+msgid "2940 Enemy Territory"
+msgstr ""
+
+#: translation.py:226
+msgid "Clear - Room Service"
+msgstr ""
+
+#: translation.py:227
+msgid "Tantive IV"
+msgstr ""
+
+#: translation.py:228
+msgid "Red Library (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:229
+msgid "Dark Scarlet Restaurant"
+msgstr ""
+
+#: translation.py:230
+msgid "LA MINA"
+msgstr ""
+
+#: translation.py:231
+msgid "Precinct HQ 1.1"
+msgstr ""
+
+#: translation.py:232
+msgid "Novatech's Building"
+msgstr ""
+
+#: translation.py:233
+msgid "Mout McKenna Snow 1.0"
+msgstr ""
+
+#: translation.py:234
+msgid "(SEALMAP)Desert_Dust"
+msgstr ""
+
+#: translation.py:235
+msgid "Mogadishu Mile 1.0"
+msgstr ""
+
+#: translation.py:236
+msgid "ATL Convention Center"
+msgstr ""
+
+#: translation.py:237
+msgid "Gangster_Hangout"
+msgstr ""
+
+#: translation.py:238
+msgid "(SEALMAP)Renovate TSS"
+msgstr ""
+
+#: translation.py:239
+msgid "Brentwood Reloaded"
+msgstr ""
+
+#: translation.py:240
+msgid "Operation Apollo 1.1"
+msgstr ""
+
+#: translation.py:241
+msgid "The China Hotel"
+msgstr ""
+
+#: translation.py:242
+msgid "Mad Shopping"
+msgstr ""
+
+#: translation.py:243
+msgid "(SEALMAP)School"
+msgstr ""
+
+#: translation.py:244
+msgid "Diamond Center (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:245
+msgid "Newfort2xSus"
+msgstr ""
+
+#: translation.py:246
+msgid "Ocean Avenue 112"
+msgstr ""
+
+#: translation.py:247
+msgid "|ustt| Enemy Territory V2"
+msgstr ""
+
+#: translation.py:248
+msgid "Project -SERO- 1.0"
+msgstr ""
+
+#: translation.py:249
+msgid "C-Block Taronne is back"
+msgstr ""
+
+#: translation.py:250
+msgid "Reality Simulation Logistic V1.0"
+msgstr ""
+
+#: translation.py:251
+msgid "Power Plant (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:252
+msgid "5455, Carlton Way"
+msgstr ""
+
+#: translation.py:253
+msgid "Assault On City Hall"
+msgstr ""
+
+#: translation.py:254
+msgid "Fy_Iceworld2005"
+msgstr ""
+
+#: translation.py:255
+msgid "Art Center 1.0"
+msgstr ""
+
+#: translation.py:256
+msgid "Wainwright Offices"
+msgstr ""
+
+#: translation.py:257
+msgid "Children of Tenement-RMX"
+msgstr ""
+
+#: translation.py:258
+msgid "Police Station 1.0 - 2013"
+msgstr ""
+
+#: translation.py:259
+msgid "Hotel Carlyle 2005 v.2.0"
+msgstr ""
+
+#: translation.py:260
+msgid "The Asylum"
+msgstr ""
+
+#: translation.py:261
+msgid "Final Crack Down, Barricaded Suspects"
+msgstr ""
+
+#: translation.py:262
+msgid "New Library 1.0"
+msgstr ""
+
+#: translation.py:263
+msgid "Star Wars"
+msgstr ""
+
+#: translation.py:264
+msgid "-MODv- Johnson Residence - FIXED"
+msgstr ""
+
+#: translation.py:265
+msgid "-MODv- Hotel Carlyle 2005 - FIXED"
+msgstr ""
+
+#: translation.py:266
+msgid "Old Granite Hotel (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:267
+msgid "Section 8 Fairfax Massacre"
+msgstr ""
+
+#: translation.py:268
+msgid "Club ATL"
+msgstr ""
+
+#: translation.py:269
+msgid "DELTA CENTER"
+msgstr ""
+
+#: translation.py:270
+msgid "Mittelplate Alpha 1.1"
+msgstr ""
+
+#: translation.py:271
+msgid "panic room Coop"
+msgstr ""
+
+#: translation.py:272
+msgid "Mittelplate Alpha 1.2"
+msgstr ""
+
+#: translation.py:273
+msgid "Residential Ops VIP"
+msgstr ""
+
+#: translation.py:274
+msgid "Nova Corp."
+msgstr ""
+
+#: translation.py:275
+msgid "Flash Light Tag"
+msgstr ""
+
+#: translation.py:276
+msgid "Mad Butcher`s Shop"
+msgstr ""
+
+#: translation.py:277
+msgid "CREEPY HOTEL"
+msgstr ""
+
+#: translation.py:278
+msgid "SSF Night Rescue"
+msgstr ""
+
+#: translation.py:279
+msgid "Operation Prison Break TSS"
+msgstr ""
+
+#: translation.py:280
+msgid "Terminal"
+msgstr ""
+
+#: translation.py:281
+msgid "Paintball Madness"
+msgstr ""
+
+#: translation.py:282
+msgid "Madmap"
+msgstr ""
+
+#: translation.py:283
+msgid "[c=ffff00]ESA's [c=1e90ff]Riverside Edit"
+msgstr ""
+
+#: translation.py:284
+msgid "The Baths Of Anubis"
+msgstr ""
+
+#: translation.py:285
+msgid "DEAD_END"
+msgstr ""
+
+#: translation.py:286
+msgid "KEOWAREHOUSE"
+msgstr ""
+
+#: translation.py:287
+msgid "DeAdMaNs UsEd CaR LoT"
+msgstr ""
+
+#: translation.py:288
+msgid "Ventura Hotel"
+msgstr ""
+
+#: translation.py:289
+msgid "SP-UNDERGROUND"
+msgstr ""
+
+#: translation.py:290
+msgid "Medical Center (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:291
+msgid "The Metropol"
+msgstr ""
+
+#: translation.py:292
+msgid "MP-Le Camp"
+msgstr ""
+
+#: translation.py:293
+msgid "SubWay"
+msgstr ""
+
+#: translation.py:294
+msgid "The Killing House -Small-"
+msgstr ""
+
+#: translation.py:295
+msgid "Reaction: Ak/Colt"
+msgstr ""
+
+#: translation.py:296
+msgid "=HT=Operation Freedom"
+msgstr ""
+
+#: translation.py:297
+msgid "Genovese & Feinbloom"
+msgstr ""
+
+#: translation.py:298
+msgid "|ustt| Enemy Territory V2 CoOp"
+msgstr ""
+
+#: translation.py:299
+msgid "The Building v1.1"
+msgstr ""
+
+#: translation.py:300
+msgid "AssasinationRoom, Aupicia:Clan A-T"
+msgstr ""
+
+#: translation.py:301
+msgid "Department Of Criminal Justice V1"
+msgstr ""
+
+#: translation.py:302
+msgid "Combat Zone"
+msgstr ""
+
+#: translation.py:303
+msgid "Ventura Hotel v1r1"
+msgstr ""
+
+#: translation.py:304
+#, python-brace-format
+msgid "{EP}Matt´s Medical Center TSS"
+msgstr ""
+
+#: translation.py:305
+msgid "SSF TrainingCenter 1.0"
+msgstr ""
+
+#: translation.py:306
+msgid "Operation Dusk Till Dawn"
+msgstr ""
+
+#: translation.py:307
+msgid "MP Rush"
+msgstr ""
+
+#: translation.py:308
+msgid "SP-TRANSPORT"
+msgstr ""
+
+#: translation.py:309
+msgid "Parking Garage v1.0"
+msgstr ""
+
+#: translation.py:310
+msgid "Club -[*ATL*]-"
+msgstr ""
+
+#: translation.py:311
+msgid "TERRORISTA"
+msgstr ""
+
+#: translation.py:312
+msgid "Meat Barn (Desrat's SAG)"
+msgstr ""
+
+#: translation.py:313
+msgid "Gris Import Export"
+msgstr ""
+
+#: translation.py:314
+msgid "The Cinepark Conflict"
+msgstr ""
+
+#: translation.py:315
+msgid "Cabin Fever"
+msgstr ""
+
+#: translation.py:316
+msgid "Swanky Mansion"
+msgstr ""
+
+#: translation.py:317
+msgid "Apartment 525"
+msgstr ""
+
+#: translation.py:318
+msgid "Warehouse 5th Street"
+msgstr ""
+
+#: translation.py:319
+msgid "Operation DayBreak"
+msgstr ""
+
+#: translation.py:320
+msgid "Brewer County Courthouse COOP"
+msgstr ""
+
+#: translation.py:321
+msgid "Food Wall Restaurant butchered"
+msgstr ""
+
+#: translation.py:322
+msgid "Fede's Nightmare"
+msgstr ""
+
+#: translation.py:323
+msgid "(SEALMAP)Central_Base"
+msgstr ""
+
+#: translation.py:325
+msgid "None"
+msgstr ""
+
+#: translation.py:326
+msgid "M4 Super90"
+msgstr ""
+
+#: translation.py:327
+msgid "Nova Pump"
+msgstr ""
+
+#: translation.py:328
+msgid "Shotgun"
+msgstr ""
+
+#: translation.py:329
+msgid "Less Lethal Shotgun"
+msgstr ""
+
+#: translation.py:330
+msgid "Pepper-ball"
+msgstr ""
+
+#: translation.py:331
+msgid "Colt M4A1 Carbine"
+msgstr ""
+
+#: translation.py:332
+msgid "AK-47 Machinegun"
+msgstr ""
+
+#: translation.py:333
+msgid "GB36s Assault Rifle"
+msgstr ""
+
+#: translation.py:334
+msgid "Gal Sub-machinegun"
+msgstr ""
+
+#: translation.py:335
+msgid "9mm SMG"
+msgstr ""
+
+#: translation.py:336
+msgid "Suppressed 9mm SMG"
+msgstr ""
+
+#: translation.py:337
+msgid ".45 SMG"
+msgstr ""
+
+#: translation.py:338
+msgid "M1911 Handgun"
+msgstr ""
+
+#: translation.py:339
+msgid "9mm Handgun"
+msgstr ""
+
+#: translation.py:340
+msgid "Colt Python"
+msgstr ""
+
+#: translation.py:341
+msgid "Taser Stun Gun"
+msgstr ""
+
+#: translation.py:342
+msgid "VIP Colt M1911 Handgun"
+msgstr ""
+
+#: translation.py:343 translation.py:349 translation.py:370
+msgid "CS Gas"
+msgstr ""
+
+#: translation.py:344
+msgid "Light Armor"
+msgstr ""
+
+#: translation.py:345
+msgid "Heavy Armor"
+msgstr ""
+
+#: translation.py:346
+msgid "Gas Mask"
+msgstr ""
+
+#: translation.py:347
+msgid "Helmet"
+msgstr ""
+
+#: translation.py:348 translation.py:371
+msgid "Flashbang"
+msgstr ""
+
+#: translation.py:350 translation.py:369
+msgid "Stinger"
+msgstr ""
+
+#: translation.py:351
+msgid "Pepper Spray"
+msgstr ""
+
+#: translation.py:352
+msgid "Optiwand"
+msgstr ""
+
+#: translation.py:353
+msgid "Toolkit"
+msgstr ""
+
+#: translation.py:354
+msgid "Door Wedge"
+msgstr ""
+
+#: translation.py:355
+msgid "C2 (x3)"
+msgstr ""
+
+#: translation.py:356
+msgid "The Detonator"
+msgstr ""
+
+#: translation.py:357
+msgid "Zip-cuffs"
+msgstr ""
+
+#: translation.py:358
+msgid "IAmCuffed"
+msgstr ""
+
+#: translation.py:359
+msgid "Colt Accurized Rifle"
+msgstr ""
+
+#: translation.py:360
+msgid "40mm Grenade Launcher"
+msgstr ""
+
+#: translation.py:361
+msgid "5.56mm Light Machine Gun"
+msgstr ""
+
+#: translation.py:362
+msgid "5.7x28mm Submachine Gun"
+msgstr ""
+
+#: translation.py:363
+msgid "Mark 19 Semi-Automatic Pistol"
+msgstr ""
+
+#: translation.py:364
+msgid "9mm Machine Pistol"
+msgstr ""
+
+#: translation.py:365
+msgid "Cobra Stun Gun"
+msgstr ""
+
+#: translation.py:366
+msgid "Ammo Pouch"
+msgstr ""
+
+#: translation.py:367
+msgid "No Armor"
+msgstr ""
+
+#: translation.py:368
+msgid "Night Vision Goggles"
+msgstr ""
+
+#: translation.py:372
+msgid "Baton"
+msgstr ""
+
+#: views.py:77
+#, python-format
+msgid "%(year)s is not a valid year."
+msgstr ""
+
+#: views.py:143 views.py:146
+msgid "Monthly Summary"
+msgstr ""
+
+#: views.py:149 views.py:152
+msgid "Weekly Summary"
+msgstr ""
+
+#: views.py:236 views.py:564
+msgid "Highest Score"
+msgstr ""
+
+#: views.py:238
+#, python-format
+msgid "%d points"
+msgid_plural "%d points"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:241
+msgid "Highest Playtime"
+msgstr ""
+
+#: views.py:246
+msgid "Best Round Score"
+msgstr ""
+
+#: views.py:248 views.py:564
+#, python-format
+msgid "%d point"
+msgid_plural "%d points"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:251 views.py:565
+msgid "Most Kills"
+msgstr ""
+
+#: views.py:253 views.py:263 views.py:565 views.py:569
+#, python-format
+msgid "%d kill"
+msgid_plural "%d kills"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:256 views.py:566
+msgid "Most Arrests"
+msgstr ""
+
+#: views.py:258 views.py:566 views.py:570
+#, python-format
+msgid "%d arrest"
+msgid_plural "%d arrests"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:261 views.py:569
+msgid "Highest Kill Streak"
+msgstr ""
+
+#: views.py:567
+msgid "Highest Accuracy"
+msgstr ""
+
+#: views.py:567
+#, python-format
+msgid "%d%%"
+msgstr ""
+
+#: views.py:568
+msgid "Most Ammo Fired"
+msgstr ""
+
+#: views.py:568
+#, python-format
+msgid "%d bullet"
+msgid_plural "%d bullets"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:570
+msgid "Highest Arrest Streak"
+msgstr ""
+
+#: views.py:573
+msgid "Most VIP captures"
+msgstr ""
+
+#: views.py:573
+#, python-format
+msgid "%d capture"
+msgid_plural "%d captures"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:574
+msgid "Most VIP rescues"
+msgstr ""
+
+#: views.py:574
+#, python-format
+msgid "%d rescue"
+msgid_plural "%d rescues"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:672
+msgid "Chief Inspector"
+msgstr ""
+
+#: views.py:674
+msgid "Inspector"
+msgstr ""
+
+#: views.py:686
+msgid "Non-sworn Officer"
+msgstr ""
+
+#: views.py:688
+msgid "Recruit"
+msgstr ""
+
+#: views.py:690
+msgid "Washout"
+msgstr ""
+
+#: views.py:692
+msgid "Vigilante"
+msgstr ""
+
+#: views.py:694
+msgid "Menace"
+msgstr ""
+
+#: views.py:695
+msgid "Cheater"
+msgstr ""
+
+#: views.py:849
+#, python-format
+msgid "Best score/minute ratio in %(year)s"
+msgid_plural "%(ordinal)s best score/minute ratio in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:856
+#, python-format
+msgid "Best score/round ratio in %(year)s"
+msgid_plural "%(ordinal)s best score/round ratio in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:863
+#, python-format
+msgid "Best kills/deaths ratio in %(year)s"
+msgid_plural "%(ordinal)s best kills/deaths ratio in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:870
+#, python-format
+msgid "Highest accuracy in %(year)s"
+msgid_plural "%(ordinal)s highest accuracy in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:877
+#, python-format
+msgid "Highest score in %(year)s"
+msgid_plural "%(ordinal)s highest score in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:884
+#, python-format
+msgid "Highest round score in %(year)s"
+msgid_plural "%(ordinal)s highest round score in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:891
+#, python-format
+msgid "Highest playtime in %(year)s"
+msgid_plural "%(ordinal)s highest playtime in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:898
+#, python-format
+msgid "Most kills in %(year)s"
+msgid_plural "%(ordinal)s most kills in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:905
+#, python-format
+msgid "Most arrests in %(year)s"
+msgid_plural "%(ordinal)s most arrests in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:912
+#, python-format
+msgid "Highest kill streak in %(year)s"
+msgid_plural "%(ordinal)s highest kill streak in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:919
+#, python-format
+msgid "Most VIP escapes in %(year)s"
+msgid_plural "%(ordinal)s most VIP escapes in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:926
+#, python-format
+msgid "Most VIP captures in %(year)s"
+msgid_plural "%(ordinal)s most VIP captures in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:933
+#, python-format
+msgid "Most VIP rescues in %(year)s"
+msgid_plural "%(ordinal)s most VIP rescues in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:940
+#, python-format
+msgid "Highest CO-OP score in %(year)s"
+msgid_plural "%(ordinal)s highest CO-OP score in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:947
+#, python-format
+msgid "Most CO-OP missions completed in %(year)s"
+msgid_plural "%(ordinal)s most CO-OP missions completed in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:954
+#, python-format
+msgid "Highest CO-OP playtime in %(year)s"
+msgid_plural "%(ordinal)s highest CO-OP playtime in %(year)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:1111
+msgid "First Appearance"
+msgstr ""
+
+#: views.py:1118
+#, python-format
+msgid "%(points)s point"
+msgid_plural "%(points)s points"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:1123
+msgid "Top Kills"
+msgstr ""
+
+#: views.py:1125
+#, python-format
+msgid "%(points)d kill"
+msgid_plural "%(points)d kills"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:1130
+msgid "Top Arrests"
+msgstr ""
+
+#: views.py:1132
+#, python-format
+msgid "%(points)d arrest"
+msgid_plural "%(points)d arrests"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:1139
+#, python-format
+msgid "%(points)d kill in a row"
+msgid_plural "%(points)d kills in a row"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:1146
+#, python-format
+msgid "%(points)d arrest in a row"
+msgid_plural "%(points)d arrests in a row"
+msgstr[0] ""
+msgstr[1] ""
+
+#: views.py:1627
+msgid "Request rate limit exceeded"
+msgstr ""
+
+#: views.py:1650
+#, python-format
+msgid "%(command)s is not a valid command name"
+msgstr ""
+
+#: views.py:1673
+#, python-format
+msgid "%(arg)s is not a valid argument for the whois command"
+msgstr ""
+
+#: views.py:1680
+#, python-format
+msgid "%(ip)s is not a valid IP address"
 msgstr ""
