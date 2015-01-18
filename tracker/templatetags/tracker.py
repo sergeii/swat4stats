@@ -276,7 +276,7 @@ def country(iso):
     try:
         countries = country.dict
     except AttributeError:
-        countries = dict(django_countries.countries)
+        countries = dict(django_countries.countries.countries)
         setattr(country, 'dict', countries)
     try:
         return countries[iso.upper()]
