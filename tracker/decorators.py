@@ -59,52 +59,29 @@ def requires_valid_request(pattern_node):
 
 
 def requires_authorized_source(view):
-    """
-    Decorate a view with a wrapper that attemps to find 
-    the client IP in the list of streaming servers and challenge it's key hash.
-
-    In case of success set `stream_source` request attribute pointing to a model instance 
-    of the matched server and call the original view.
-
-    In case of failure return an error status response.
-    """
     @wraps(view)
     def wrapped(request, *args, **kwargs):
         from .views import StreamView
-        # stream_data is required for this decorator
+        # stream_data should have already been parsed by now
         assert request.stream_data
+
+        attrs = {
+            'ip': request.META['REMOTE_ADDR'],
+            'port': request.stream_data['port'].value,
+        }
         try:
-            server = (models.Server.objects
-                .streamed()
-                .get(ip=request.META['REMOTE_ADDR'], port=request.stream_data['port'].value)
-            )
+            server = models.Server.objects.get(**attrs)
         except models.Server.DoesNotExist:
-            return StreamView.status(request, StreamView.STATUS_ERROR, ('The server is not registered.'))
-        else:
-            setattr(request, 'stream_source', server)
-            return view(request, *args, **kwargs)
-    return wrapped
+            logger.debug('creating a server for {ip}:{port}'.format(**attrs))
+            server = models.Server.objects.create_server(enabled=True, streamed=True, **attrs)
 
+        if not server.streamed:
+            return StreamView.status(
+                request, StreamView.STATUS_ERROR, _('The server is not registered.')
+            )
 
-def requires_unique_request(view):
-    """
-    Decorate a view with a wrapper that rejects duplicate requests.
-
-    The Julia's v2 Tracker extension (along with the HTTP package) is designed 
-    the way that it attempts to retry a request if it hasn't receieved 
-    a http response in time which makes the tracker prone to receiving duplicate requests.
-
-    In case of a duplicate request return a fake success code.
-    """
-    @wraps(view)
-    def wrapped(request, *args, **kwargs):
-        from .views import StreamView
-
-        qs = models.Game.objects.filter(tag__isnull=False, tag=request.stream_data['tag'].value)
-
-        if qs.exists():
-            logger.warning('{} has already been processed'.format(request.stream_data['tag'].value))
-            return StreamView.status(request, StreamView.STATUS_OK, _('Received duplicate request.'))
+        # store the server instance for further use
+        setattr(request, 'stream_source', server)
 
         return view(request, *args, **kwargs)
     return wrapped
@@ -112,9 +89,9 @@ def requires_unique_request(view):
 
 def requires_valid_source(view):
     """
-    Decorate a view with a wrapper that attemps to find the client IP in the list of streaming servers.
+    Decorate a view with a wrapper that attempts to find the client IP in the list of streaming servers.
 
-    In case of success set `stream_source` request attribute pointing to a model instance 
+    In case of success set `stream_source` request attribute pointing to a model instance
     of the matched server and call the original view.
 
     In case of failure return an error status response.
@@ -123,7 +100,8 @@ def requires_valid_source(view):
     def wrapped(request, *args, **kwargs):
         from .views import StreamView
         try:
-            server = (models.Server.objects
+            server = (
+                models.Server.objects
                 .streamed()
                 .filter(ip=request.META['REMOTE_ADDR'])[:1]
                 .get()

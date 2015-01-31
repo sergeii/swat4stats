@@ -25,12 +25,6 @@ live_servers_detected = Signal(providing_args=['servers'])
 dead_servers_detected = Signal(providing_args=['servers'])
 
 
-@receiver(pre_save, sender=models.Server)
-def validate_server_instance(sender, instance, **kwargs):
-    """Validate a Server instance upon saving."""
-    instance.clean()
-
-
 @receiver(live_servers_detected)
 def update_server_hostname(sender, servers, **kwargs):
     """Attempt to update server hostname."""

@@ -405,7 +405,7 @@ class ServerManager(models.Manager):
         else:
             raise ValidationError(_('The server has already been registered.'))
 
-        return self.create(**dict(ip=ip, port=port, **options))
+        return self.create(ip=ip, port=port, **options)
 
     def enabled(self):
         return self.get_queryset().filter(enabled=True)
@@ -499,6 +499,11 @@ class Server(models.Model):
         self.port = int(self.port)
         if not (1 <= self.port <= 65535):
             raise ValidationError(_('Port number must be between 1 and 65535 inclusive.'))
+
+    def save(self, *args, **kwargs):
+        """Validate a server instance upon saving."""
+        self.clean()
+        super(Server, self).save(*args, **kwargs)
 
 
 @python_2_unicode_compatible
