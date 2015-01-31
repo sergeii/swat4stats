@@ -370,3 +370,5 @@ _('Stinger')
 _('CS Gas')
 _('Flashbang')
 _('Baton')
+
+_('Unknown Map')

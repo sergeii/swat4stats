@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-12-15 17:34+0000\n"
+"POT-Creation-Date: 2015-01-31 17:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3013,6 +3013,10 @@ msgstr ""
 
 #: translation.py:372
 msgid "Baton"
+msgstr ""
+
+#: translation.py:374
+msgid "Unknown Map"
 msgstr ""
 
 #: views.py:77

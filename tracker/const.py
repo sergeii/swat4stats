@@ -180,6 +180,7 @@ STREAM_PATTERN = {
         'required': False,
         'default': '0',
         'table': {
+            '-1': 'Unknown Map',
             '0': 'A-Bomb Nightclub',
             '1': 'Brewer County Courthouse',
             '2': 'Children of Taronne Tenement',
@@ -878,7 +879,7 @@ STREAM_PATTERN = {
                         # Primary weapon
                         '0': {
                             'type': node.MappingPatternNode,
-                            'name' : 'primary',
+                            'name': 'primary',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -886,7 +887,7 @@ STREAM_PATTERN = {
                         # Primary weapon ammo
                         '1': {
                             'type': node.MappingPatternNode,
-                            'name' : 'primary_ammo',
+                            'name': 'primary_ammo',
                             'required': False,
                             'table': AMMO,
                             'default': '0',
@@ -894,7 +895,7 @@ STREAM_PATTERN = {
                         # Secondary weapon
                         '2': {
                             'type': node.MappingPatternNode,
-                            'name' : 'secondary',
+                            'name': 'secondary',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -902,7 +903,7 @@ STREAM_PATTERN = {
                         # Secondary weapon ammo
                         '3': {
                             'type': node.MappingPatternNode,
-                            'name' : 'secondary_ammo',
+                            'name': 'secondary_ammo',
                             'required': False,
                             'table': AMMO,
                             'default': '0',
@@ -910,7 +911,7 @@ STREAM_PATTERN = {
                         # Equip slot #1
                         '4': {
                             'type': node.MappingPatternNode,
-                            'name' : 'equip_one',
+                            'name': 'equip_one',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -918,7 +919,7 @@ STREAM_PATTERN = {
                         # Equip slot #2
                         '5': {
                             'type': node.MappingPatternNode,
-                            'name' : 'equip_two',
+                            'name': 'equip_two',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -926,7 +927,7 @@ STREAM_PATTERN = {
                         # Equip slot #3
                         '6': {
                             'type': node.MappingPatternNode,
-                            'name' : 'equip_three',
+                            'name': 'equip_three',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -934,7 +935,7 @@ STREAM_PATTERN = {
                         # Equip slot #4
                         '7': {
                             'type': node.MappingPatternNode,
-                            'name' : 'equip_four',
+                            'name': 'equip_four',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -942,7 +943,7 @@ STREAM_PATTERN = {
                         # Equip slot #5
                         '8': {
                             'type': node.MappingPatternNode,
-                            'name' : 'equip_five',
+                            'name': 'equip_five',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -950,7 +951,7 @@ STREAM_PATTERN = {
                         # Breacher
                         '9': {
                             'type': node.MappingPatternNode,
-                            'name' : 'breacher',
+                            'name': 'breacher',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -958,7 +959,7 @@ STREAM_PATTERN = {
                         # Body armor
                         '10': {
                             'type': node.MappingPatternNode,
-                            'name' : 'body',
+                            'name': 'body',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -966,7 +967,7 @@ STREAM_PATTERN = {
                         # Head armor
                         '11': {
                             'type': node.MappingPatternNode,
-                            'name' : 'head',
+                            'name': 'head',
                             'required': False,
                             'table': EQUIPMENT,
                             'default': '0',
@@ -989,43 +990,43 @@ STREAM_PATTERN = {
                             },
                             '1': {
                                 'type': node.NumericPatternNode,
-                                'name' : 'time',
+                                'name': 'time',
                                 'required': False,
                                 'default': '0',
                             },
                             '2': {
                                 'type': node.NumericPatternNode,
-                                'name' : 'shots',
+                                'name': 'shots',
                                 'required': False,
                                 'default': '0',
                             },
                             '3': {
                                 'type': node.NumericPatternNode,
-                                'name' : 'hits',
+                                'name': 'hits',
                                 'required': False,
                                 'default': '0',
                             },
                             '4': {
                                 'type': node.NumericPatternNode,
-                                'name' : 'teamhits',
+                                'name': 'teamhits',
                                 'required': False,
                                 'default': '0',
                             },
                             '5': {
                                 'type': node.NumericPatternNode,
-                                'name' : 'kills',
+                                'name': 'kills',
                                 'required': False,
                                 'default': '0',
                             },
                             '6': {
                                 'type': node.NumericPatternNode,
-                                'name' : 'teamkills',
+                                'name': 'teamkills',
                                 'required': False,
                                 'default': '0',
                             },
                             '7': {
                                 'type': node.NumericPatternNode,
-                                'name' : 'distance',
+                                'name': 'distance',
                                 'required': False,
                                 'default': '0',
                             },
