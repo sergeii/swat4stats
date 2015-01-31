@@ -187,7 +187,7 @@ class StreamView(generic.View):
     STATUS_ERROR = '1'
 
     @staticmethod
-    def status(request, code, message=None):
+    def status(request, code, messages=None):
         """
         Return an integer status code followed by an optional message.
         The status and message are delimited with a new line
@@ -199,23 +199,37 @@ class StreamView(generic.View):
             3. 1\nInvalid server key
             4. 1\nThe server is not registered
         """
-        return HttpResponse('\n'.join(map(force_text, filter(None, [code, message]))))
+        if not isinstance(messages, (list, tuple)):
+            messages = [messages]
+        # send the status code along with optional list of messages
+        return HttpResponse(
+            '\n'.join(map(force_text, filter(None, [code] + list(messages))))
+        )
 
     @method_decorator(decorators.requires_valid_request(definitions.stream_pattern_node))
     @method_decorator(decorators.requires_authorized_source)
     def post(self, request):
-        logger.debug('receieved stream data from {}:{}'
+        logger.debug(
+            'received stream data from {}:{}'
             .format(request.stream_source.ip, request.stream_source.port)
         )
-        # emit a signal
-        stream_data_received.send_robust(
+        messages = []
+        # collect messages of the signal handlers
+        response = stream_data_received.send_robust(
             sender=None, 
             data=request.stream_data, 
             server=request.stream_source, 
             # attach raw http message body
             raw=request.stream_data_raw
         )
-        return StreamView.status(request, StreamView.STATUS_OK)
+        for _, message in response:
+            # response may itself be a list of messages
+            if isinstance(message, (tuple, list)):
+                messages.extend(message)
+            else:
+                messages.append(message)
+
+        return StreamView.status(request, StreamView.STATUS_OK, messages)
 
     def get(self, request):
         """Display data streaming tutorial."""
