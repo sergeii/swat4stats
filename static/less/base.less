@@ -164,6 +164,7 @@ a:visited:hover {
 #background:extend(#container) {
     background-repeat: no-repeat; 
     background-size: cover;
+    background-color: #080808;
 }
 
 #swat-header {
@@ -684,12 +685,8 @@ a:visited:hover {
     .block();
     height: @size / 2; 
     width: @size; 
-    overflow: hidden; 
-
-    img {
-        width: @size; 
-        height: auto;
-    }
+    overflow: hidden;
+    background-size: contain;
 }
 
 .swat-game-frame-ileft:extend(.swat-game-frame-inline) {
@@ -712,10 +709,11 @@ a:visited:hover {
     overflow: hidden;
 }
 
-.swat-game-frame-image img {
+.swat-game-frame-image {
     @size: 8em;
     height: @size;
     width: @size;
+    background-color: #ccc;
 }
 
 .swat-game-frame-desc {
