@@ -42,7 +42,12 @@ def requires_valid_request(pattern_node):
                 # feed the parsed query string
                 data = pattern_node.parse(qs)
             except ValueNodeError as e:
-                logger.warning('failed to parse querystring "{}" ({})'.format(body, e))
+                logger.warning(
+                    'failed to parse querystring "{}" ({})'.format(body, e),
+                    extra={
+                        'request': request,
+                    }
+                )
                 # return error status view
                 return StreamView.status(
                     request, 
