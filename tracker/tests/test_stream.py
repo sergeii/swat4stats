@@ -48,12 +48,6 @@ class StreamTestCase(test.TestCase):
         response = self.client.post('/stream/', self.test_data, content_type='application/x-www-form-urlencoded')
         self.assertEqual(chr(response.content[0]), '0')
 
-    def test_unstreamed_server_same_ip_different_port(self):
-        models.Server.objects.create(ip='127.0.0.1', port=10580, enabled=True, streamed=True)
-
-        response = self.client.post('/stream/', self.test_data, content_type='application/x-www-form-urlencoded')
-        self.assertNotEqual(chr(response.content[0]), '0')
-
     def test_unstreamed_server(self):
         models.Server.objects.create(ip='127.0.0.1', port=10480, enabled=True, streamed=False)
 
