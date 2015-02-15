@@ -9,7 +9,7 @@ import copy
 
 from django.core.urlresolvers import reverse
 from django.db import models, transaction, IntegrityError, connection
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text, python_2_unicode_compatible
@@ -707,25 +707,29 @@ class AliasManager(models.Manager):
         # use ip for lookup
         ip = kwargs.pop('ip', None)
         # acquire an isp
-        if kwargs.get('isp', None) is None and ip:
+        if not kwargs.get('isp') and ip:
             kwargs['isp'] = ISP.objects.match_or_create(ip)[0]
         # attempt to match an existing entry by either name or name+isp pair
+        filters = kwargs.copy()
+        # replace None with notnull lookup
+        if 'isp' in filters and not filters['isp']:
+            del filters['isp']
+            filters['isp__isnull'] = True
         try:
-            filters = kwargs.copy()
-            # replace None with notnull lookup
-            if 'isp' in filters and not filters['isp']:
-                del filters['isp']
-                filters['isp__isnull'] = True
             return (self.get_queryset().get(**filters), False)
+            #return (self.get_queryset().filter(**filters)[:1].get(), False)
+        # debug
+        except MultipleObjectsReturned:
+            logger.critical('kwargs: {} filters: {}'.format(kwargs, filters))
         # create a new entry
         except ObjectDoesNotExist:
             with transaction.atomic():
                 # get a profile by name and optionally by ip and isp 
                 # ISP could as well be empty
-                if kwargs.get('profile', None) is None:
+                if not kwargs.get('profile'):
                     filters = {
                         'name': kwargs['name'],
-                        'isp': kwargs.get('isp', None)
+                        'isp': kwargs.get('isp')
                     }
                     # ip must not be empty
                     if ip:
@@ -733,7 +737,7 @@ class AliasManager(models.Manager):
                             'ip': ip,
                         })
                     kwargs['profile'] = Profile.objects.match_smart_or_create(**filters)[0]
-            return (self.get_queryset().create(**kwargs), True)
+                return (self.get_queryset().create(**kwargs), True)
 
 
 @python_2_unicode_compatible
