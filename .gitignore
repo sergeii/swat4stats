@@ -1,0 +1,6 @@
+~*
+.swp
+*.py[cod]
+.coverage
+__pycache__/
+/src
