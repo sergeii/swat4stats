@@ -9,6 +9,8 @@ INTERNAL_IPS = ('127.0.0.1',)
 STATIC_ROOT = PATH_VENV.child('static')
 MEDIA_ROOT = PATH_VENV.child('media')
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -20,48 +22,6 @@ DATABASES = {
         'OPTIONS': {},
     }
 }
-
-LOGGING['handlers'].update({
-    'django': {
-        'level': 'WARNING',
-        'class': 'logging.FileHandler',
-        'filename': os.path.join('/tmp', '%s_debug.log' % PATH_PROJECT.name),
-        'formatter': 'simple',
-    },
-    'sql': {
-        'level': 'WARNING',
-        'class': 'logging.FileHandler',
-        'filename': os.path.join('/tmp', '%s_sql.log' % PATH_PROJECT.name),
-    },
-    'console': {
-        'level': 'DEBUG',
-        'class': 'logging.StreamHandler',
-        'formatter': 'simple',
-    },
-    'stream': {
-        'level': 'INFO',
-        'class': 'logging.FileHandler',
-        'filename': os.path.join('/tmp', '%s_stream.log' % PATH_PROJECT.name),
-    },
-})
-
-LOGGING['loggers'].update({
-    'django': {
-        'handlers': ['django'],
-        'level': 'WARNING',
-        'propagate': True,
-    },
-    'tracker': {
-        'handlers': ['django'],
-        'level': 'WARNING',
-        'propagate': True
-    },
-    'django.db.backends': {
-        'handlers': ['sql'],
-        'level': 'WARNING',
-        'propagate': False,
-    },
-})
 
 CACHES['default'] = {
     'BACKEND': 'redis_cache.cache.RedisCache',

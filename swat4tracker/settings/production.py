@@ -17,37 +17,6 @@ DATABASES = {
     },
 }
 
-LOGGING['handlers'].update({
-    'django': {
-        'level': 'WARNING',
-        'class': 'logging.handlers.RotatingFileHandler',
-        'filename': PATH_VENV.child('log', 'django.log'),
-        'formatter': 'simple',
-        'maxBytes': 1024*1024*5,
-        'backupCount': 5,
-    },
-    'stream': {
-        'level': 'INFO',
-        'class': 'logging.handlers.RotatingFileHandler',
-        'filename': PATH_VENV.child('log', 'stream.log'),
-        'maxBytes': 1024*1024*50,
-        'backupCount': 10,
-    },
-})
-
-LOGGING['loggers'].update({
-    'django': {
-        'handlers': ['django'],
-        'level': 'ERROR',
-        'propagate': True,
-    },
-    'tracker': {
-        'handlers': ['django'],
-        'level': 'WARNING',
-        'propagate': True
-    },
-})
-
 STATIC_ROOT = Path('/var/www/static/swat4tracker/')
 MEDIA_ROOT = Path('/var/www/media/swat4tracker/')
 

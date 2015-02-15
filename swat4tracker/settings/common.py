@@ -3,6 +3,8 @@ from __future__ import unicode_literals, absolute_import
 
 import os
 from datetime import timedelta
+from socket import SOCK_STREAM, SOCK_DGRAM
+from logging.handlers import SYSLOG_TCP_PORT, SYSLOG_UDP_PORT
 
 from unipath import Path
 from celery.schedules import crontab
@@ -105,6 +107,10 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+SERVER_EMAIL = 'django@swat4stats.com'
+DEFAULT_FROM_EMAIL = 'noreply@swat4stats.com'
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
@@ -118,17 +124,37 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'simple': {
-            'format': '[%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(funcName)s() - %(message)s'
+        'syslog': {
+            'format': 'swat4tracker.%(name)s: [%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(message)s'
         },
     },
     'handlers': {
-        # implement stream handler
+        'mail_admins': {
+            'level': 'WARNING',
+            'filters': [],
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'syslog': {
+            'level': 'DEBUG',
+            'formatter': 'syslog',
+            'class': 'logging.handlers.SysLogHandler',
+            'address': ('localhost', SYSLOG_UDP_PORT),
+            'socktype': SOCK_DGRAM,
+        },
     },
     'loggers': {
+        'django': {
+            'handlers': ['syslog', 'mail_admins'],
+            'level': 'ERROR',
+        },
         'stream': {
-            'handlers': ['stream'],
+            'handlers': ['syslog'],
             'level': 'INFO',
+            'propagate': False
+        },
+        'tracker': {
+            'handlers': ['syslog', 'mail_admins'],
+            'level': 'WARNING',
             'propagate': False
         },
     },
