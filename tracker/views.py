@@ -214,6 +214,7 @@ class StreamView(generic.View):
             .format(request.stream_source.ip, request.stream_source.port)
         )
         messages = []
+        error = False
         # collect messages of the signal handlers
         response = stream_data_received.send_robust(
             sender=None, 
@@ -226,10 +227,15 @@ class StreamView(generic.View):
             # response may itself be a list of messages
             if isinstance(message, (tuple, list)):
                 messages.extend(message)
+            # or an exception..
+            elif isinstance(message, Exception):
+                messages.append(str(message))
+                error = True
             else:
                 messages.append(message)
 
-        return StreamView.status(request, StreamView.STATUS_OK, messages)
+        status = StreamView.STATUS_OK if not error else StreamView.STATUS_ERROR
+        return StreamView.status(request, status, messages)
 
     def get(self, request):
         """Display data streaming tutorial."""
