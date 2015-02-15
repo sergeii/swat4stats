@@ -1,11 +1,11 @@
-Django==1.7.3
+Django==1.7.4
 IPy
 Markdown==2.5.2
-Unipath==1.0
+Unipath==1.1
 django-aggregate-if==0.5
 django-appconf==0.6
 django-brake==1.3.1
-django-cacheops==2.2.1
+django-cacheops==2.3
 django-compressor==1.4
 django-countries==3.1.1
 django-debug-toolbar==1.2.2
@@ -15,7 +15,7 @@ django-redis==3.8.2
 mock==1.0.1
 nose==1.3.4
 pip-tools==0.3.5
-psycopg2==2.5.4
+psycopg2==2.6
 python-dateutil==2.4.0
 pytz==2014.10
 redis==2.10.3
@@ -28,10 +28,10 @@ amqp==1.4.6
 anyjson==0.3.3
 billiard==3.3.0.19
 celery==3.1.17
-funcy==1.3
+funcy==1.4
 kombu==3.0.24
 paypal==1.2.1
 -e git+https://github.com/sergeii/python-julia.git#egg=python-julia
 -e git+https://github.com/sergeii/python-serverquery.git#egg=python-serverquery
 -e git+https://github.com/sergeii/python-whois.git@#egg=python-whois
-pip==6.0.6
+pip==6.0.8
