@@ -96,8 +96,8 @@ class ProfileAdmin(admin.ModelAdmin):
 
 
 class ServerAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'enabled', 'listed', 'streamed', 'pinned')
-    list_filter = ('enabled', 'listed', 'streamed', 'pinned')
+    list_display = ('__str__', 'enabled', 'listed', 'streamed', 'pinned', 'version')
+    list_filter = ('enabled', 'listed', 'streamed', 'pinned', 'version')
     search_fields = ('ip', 'hostname')
     list_per_page = 50
 

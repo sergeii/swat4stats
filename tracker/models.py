@@ -433,6 +433,8 @@ class Server(models.Model):
     country = models.CharField(max_length=2, null=True, blank=True)
     # cached hostname
     hostname = models.CharField(max_length=256, null=True, blank=True)
+    # stats mod version
+    version = models.CharField(max_length=64, null=True, blank=True)
 
     objects = ServerManager()
 

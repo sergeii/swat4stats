@@ -222,3 +222,12 @@ def save_game(sender, data, server, **kwargs):
 def log_game(sender, raw, **kwargs):
     """Save raw stream data into a log file."""
     logging.getLogger('stream').info(raw)
+
+
+@receiver(stream_data_received)
+def update_server_version(sender, data, server, **kwargs):
+    """
+    Store version of the tracker mod running on the server.
+    """
+    server.version = data['version'].value
+    server.save(update_fields=['version'])
