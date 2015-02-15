@@ -382,7 +382,7 @@ class ServerStatus(GameMixin):
                     response['players'].setdefault(id, {})
                     response['players'][id][matched.group(1)] = value
         else:
-            logger.warning('received empty response from %s:%s' % (ip_addr, port))
+            logger.info('received empty response from %s:%s' % (ip_addr, port))
         return response
 
 
@@ -1047,7 +1047,8 @@ class ISPManager(models.Manager):
             matched_obj, length = self.match(ip_address)
             # do an extra lookup if the addr num exceedes the limit
             if length > self.model.MAX_LENGTH:
-                logger.warning('the returned range for {} is too large ({})'
+                logger.debug(
+                    'the returned range for {} is too large ({})'
                     .format(ip_address.strNormal(3), length)
                 )
                 raise ObjectDoesNotExist
@@ -1076,7 +1077,8 @@ class ISPManager(models.Manager):
                     # the ip must fit into the resolved range
                     assert ipv4range_from.int() <= ip_address.int() <= ipv4range_to.int()
                 except (IndexError, ValueError, TypeError, AssertionError) as e:
-                    logger.warning('whois for {} does not contain a valid range {}'
+                    logger.warning(
+                        'whois for {} does not contain a valid range {}'
                         .format(ip_address.strNormal(3), data)
                     )
                     return (None, False)
@@ -1094,7 +1096,8 @@ class ISPManager(models.Manager):
                     )
                     # we performed an extra lookup but it the same ip range was resolved
                     if not created:
-                        logger.warning('the range {}-{} already exists'
+                        logger.debug(
+                            'the range {}-{} already exists'
                             .format(ipv4range_from.strNormal(3), ipv4range_to.strNormal(3))
                         )
                         return (ip_obj.isp, False)
@@ -1174,7 +1177,7 @@ class ProfileManager(models.Manager):
         skip_name = 'name' in kwargs and self.model.is_name_popular(kwargs['name'])
 
         if skip_name:
-            logger.warning('will skip name lookup for {}'.format(kwargs['name']))
+            logger.debug('will skip name lookup for {}'.format(kwargs['name']))
 
         if 'ip' in kwargs:
             if 'name' in kwargs:
