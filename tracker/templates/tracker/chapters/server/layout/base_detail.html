@@ -23,11 +23,11 @@ $(document).ready(function(){
 });
 {% endblock %}
 
-{% block title %}{{ status.hostname|clean_name }}{% endblock %}
+{% block title %}{{ status.hostname|clean_name|truncatechars:100 }}{% endblock %}
 
 {% block swat_status %}{{ status.gamename|gamename }} {{ status.gamever }}{% endblock %}
 
-{% block swat_header_upper %}{{ block.super }}<div id="swat-server-title">{{ status.hostname|clean_name }}</div>{% endblock %}
+{% block swat_header_upper %}{{ block.super }}<div id="swat-server-title">{{ status.hostname|clean_name|truncatechars:100 }}</div>{% endblock %}
 
 {% block swat_header_lower %}
 {{ block.super }}

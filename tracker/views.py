@@ -171,7 +171,8 @@ class FeaturedViewMixin(AnnualViewMixin):
         # get random offset
         offset = random.randint(0, self.sample)
 
-        qs = (models.Game.objects
+        qs = (
+            models.Game.objects
             .extra(
                 select={'score_total': 'score_swat + score_sus'}, 
                 order_by=('-score_total',)
