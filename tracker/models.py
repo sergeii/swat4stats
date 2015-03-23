@@ -695,7 +695,7 @@ class Weapon(models.Model):
 
     def __str__(self):
         # +fix bignum
-        return  const.EQUIPMENT[force_text(self.name)]
+        return const.EQUIPMENT[force_text(self.name)]
 
 
 class AliasManager(models.Manager):
@@ -718,8 +718,8 @@ class AliasManager(models.Manager):
             del filters['isp']
             filters['isp__isnull'] = True
         try:
-            return (self.get_queryset().get(**filters), False)
-            #return (self.get_queryset().filter(**filters)[:1].get(), False)
+            #return (self.get_queryset().get(**filters), False)
+            return (self.get_queryset().filter(**filters)[:1].get(), False)
         # debug
         except MultipleObjectsReturned:
             logger.critical('kwargs: {} filters: {}'.format(kwargs, filters))
@@ -1109,7 +1109,8 @@ class ISPManager(models.Manager):
                         created = True
                     # otherwise perform a lookup (still with a possibility of creating a brand new object)
                     else:
-                        isp, created = (self.get_queryset()
+                        isp, created = (
+                            self.get_queryset()
                             .filter(
                                 name__isnull=False,
                                 country__isnull=('country' not in items)  # country may be null
