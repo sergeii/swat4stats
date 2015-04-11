@@ -5,7 +5,6 @@ import datetime
 import random
 import logging
 import collections
-from functools import reduce
 
 import six
 from dateutil import relativedelta
@@ -23,10 +22,9 @@ from django.utils.encoding import force_text
 from django.utils import timezone, timesince
 from django.contrib.humanize.templatetags import humanize
 from django.views.decorators.cache import never_cache
-from django.db.models import Q
+from django.db.models import Q, F, Max, Min, Sum, Avg, Count, When, Case
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
-import aggregate_if
 import cacheops
 from julia import shortcuts
 from brake.decorators import ratelimit
@@ -260,7 +258,7 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
         ),
         (
             _('Highest Playtime'), 
-            aggregate_if.Sum('time', only=Q(game__gametype__in=definitions.MODES_VERSUS)), 
+            Sum('time', only=Q(game__gametype__in=definitions.MODES_VERSUS)),
             lambda value: templatetags.humantime(value)
         ),
         (
@@ -283,16 +281,6 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
             db.models.Max('kill_streak'), 
             lambda value: ngettext_lazy('%d kill', '%d kills') % value
         ),
-        # (
-        #     _('Highest CO-OP Score'), 
-        #     db.models.Sum('game__coop_score'), 
-        #     lambda value: ngettext_lazy('%d points', '%d points') % value
-        # ),
-        # (
-        #     _('Highest CO-OP Playtime'), 
-        #     aggregate_if.Sum('time', only=Q(game__gametype__in=definitions.MODES_COOP)), 
-        #     lambda value: templatetags.humantime(value)
-        # ),
     )
 
     def get_queryset(self, *args, **kwargs):
@@ -364,7 +352,8 @@ class TopListView(AnnualViewMixin, generic.ListView):
     limit = 5
 
     def get_queryset(self, *args, **kwargs):
-        return (super(TopListView, self).get_queryset(*args, **kwargs)
+        return (
+            super(TopListView, self).get_queryset(*args, **kwargs)
             .select_related('profile', 'profile__loadout', 'profile__game_last')
             .filter(position__isnull=False, year=self.year)
             .order_by('position')
@@ -377,7 +366,8 @@ class TopListView(AnnualViewMixin, generic.ListView):
 
     def get_objects(self):
         boards = []
-        qs = (self.get_queryset()
+        qs = (
+            self.get_queryset()
             .filter(
                 # get the ids of the specified categories
                 category__in=map(lambda board: board[0], self.boards), 
@@ -465,7 +455,8 @@ class BoardListView(TopListView):
         return super(BoardListView, self).get(*args, **kwargs)
 
     def get_queryset(self, *args, **kwargs):
-        return (super(BoardListView, self).get_queryset(*args, **kwargs)
+        return (
+            super(BoardListView, self).get_queryset(*args, **kwargs)
             .filter(category=self.board['id'])
         )
 
@@ -1118,7 +1109,7 @@ class ProfileDetailView(ProfileBaseView):
 
     def get_context_data(self, *args, **kwargs):
         stats = self.get_stats()
-        maps = []  #self.get_maps()
+        maps = []  # self.get_maps()
 
         context_data = super(ProfileDetailView, self).get_context_data(*args, **kwargs)
         context_data.update({
@@ -1181,40 +1172,45 @@ class ProfileDetailView(ProfileBaseView):
         """Aggegate map stats."""
         items = {
             'time': (
-                aggregate_if.Sum(
-                    'time', 
-                    only=Q(game__gametype__in=definitions.MODES_VERSUS)
+                Sum(
+                    Case(When(game__gametype__in=definitions.MODES_VERSUS, then='time'))
                 )
             ),
             'games': (
-                aggregate_if.Count(
-                    'game', 
-                    only=Q(game__gametype__in=definitions.MODES_VERSUS),
+                Count(
+                    Case(When(game__gametype__in=definitions.MODES_VERSUS, then='game')),
                     distinct=True
                 )
             ),
-            'overall_score': db.models.Sum('score'),
-            'best_score': db.models.Max('score'),
-            'kills': db.models.Sum('kills'),
+            'overall_score': Sum('score'),
+            'best_score': Max('score'),
+            'kills': Sum('kills'),
             'deaths': (
-                aggregate_if.Sum(
-                    'deaths', 
-                    only=Q(game__gametype__in=definitions.MODES_VERSUS)
+                Sum(
+                    Case(When(game__gametype__in=definitions.MODES_VERSUS, then='deaths'))
                 )
             ),
             'wins': (
-                aggregate_if.Count(
-                    'game', 
-                    only=(Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SWAT_GAMES) |
-                        Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SUS_GAMES)),
+                Count(
+                    Case(
+                        When(
+                            Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SWAT_GAMES) |
+                            Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SUS_GAMES),
+                            then='game'
+                        ),
+                    ),
                     distinct=True
                 )
             ),
             'losses': (
-                aggregate_if.Count(
-                    'game', 
-                    only=(Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SUS_GAMES) |
-                        Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SWAT_GAMES)),
+                Count(
+                    Case(
+                        When(
+                            Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SUS_GAMES) |
+                            Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SWAT_GAMES),
+                            then='game'
+                        )
+                    ),
                     distinct=True
                 )
             ),
@@ -1255,11 +1251,12 @@ class ProfileDetailView(ProfileBaseView):
         "Return the max values for the K/D and S/M stats."
         @cacheops.cached(timeout=60*60*24)
         def _get_max():
-            return (models.Rank.objects
+            return (
+                models.Rank.objects
                 .filter(year=self.year)
                 .aggregate(
-                    spm=aggregate_if.Max('points', only=Q(category=STAT.SPM)),
-                    kdr=aggregate_if.Max('points', only=Q(category=STAT.KDR))
+                    spm=Max(Case(When(category=STAT.SPM, then='points'))),
+                    kdr=Max(Case(When(category=STAT.KDR, then='points')))
                 )
             )
         return _get_max()
@@ -1360,38 +1357,35 @@ class ProfileCoopDetailView(ProfileBaseView):
         items = {
             # best coop score
             'score_best': (
-                db.models.Max('game__coop_score')
+                Max('game__coop_score')
             ),
             # average coop score
             'score_avg': (
-                db.models.Avg('game__coop_score')
+                Avg('game__coop_score')
             ),
             # average mission time
             'time_avg': (
-                aggregate_if.Min(
-                    'game__time', 
-                    only=Q(game__outcome__in=definitions.COMPLETED_MISSIONS)
+                Avg(
+                    Case(When(game__outcome__in=definitions.COMPLETED_MISSIONS, then='game__time'))
                 )
             ),
             # best mission time
             'time_best': (
-                aggregate_if.Min(
-                    'game__time', 
-                    only=Q(game__outcome__in=definitions.COMPLETED_MISSIONS)
+                Min(
+                    Case(When(game__outcome__in=definitions.COMPLETED_MISSIONS, then='game__time'))
                 )
             ),
             # total number of missions completed
             'missions_completed': (
-                aggregate_if.Count(
-                    'game', 
-                    only=Q(game__outcome__in=definitions.COMPLETED_MISSIONS),
+                Count(
+                    Case(When(game__outcome__in=definitions.COMPLETED_MISSIONS, then='game')),
                     distinct=True
                 )
             ),
             # total number of missions failed
             'missions_failed': (
-                aggregate_if.Count('game', 
-                    only=Q(game__outcome__in=definitions.FAILED_MISSIONS),
+                Count(
+                    Case(When(game__outcome__in=definitions.FAILED_MISSIONS, then='game')),
                     distinct=True
                 )
             ),
@@ -1545,6 +1539,7 @@ class PlayerSearchView(FilterViewMixin, generic.ListView):
 
 
 class ProfileRedirectView(generic.RedirectView):
+    permanent = True
     """Redirect /player/Name/ requests to the search view."""
 
     def get_redirect_url(self, *args, **kwargs):

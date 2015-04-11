@@ -40,7 +40,11 @@ urlpatterns = patterns('',
         include(profile_urls)
     ),
     # legacy profile url redirect page
-    url(r'^player/(?P<name>.+)/$', views.ProfileRedirectView.as_view(), name='player'),
+    url(
+        r'^player/(?P<name>.+)/$',
+        views.ProfileRedirectView.as_view(permanent=True),
+        name='player'
+    ),
     # top 20
     url(r'^top/(?:(?P<year>\d{4})/)?$', views.TopListView.as_view(), name='top'),
     # leaderboards
@@ -50,7 +54,11 @@ urlpatterns = patterns('',
         name='leaderboard'
     ),
 
-    url(r'^games/$', generic.RedirectView.as_view(pattern_name='tracker:game_list_history'), name='game_list'),
+    url(
+        r'^games/$',
+        generic.RedirectView.as_view(pattern_name='tracker:game_list_history', permanent=True),
+        name='game_list'
+    ),
     url(r'^games/history/$', views.GameListView.as_view(), name='game_list_history'),
     url(r'^games/online/$', views.GameOnlineListView.as_view(), name='game_list_online'),
     url(

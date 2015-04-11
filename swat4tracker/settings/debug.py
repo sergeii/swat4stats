@@ -4,7 +4,6 @@ from __future__ import unicode_literals, absolute_import
 from .local import *
 
 DEBUG = True
-TEMPLATE_DEBUG = True
 
 INTERNAL_IPS = INTERNAL_IPS + ('192.168.1.10', '192.168.1.20')
 INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)

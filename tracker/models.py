@@ -9,6 +9,7 @@ import copy
 
 from django.core.urlresolvers import reverse
 from django.db import models, transaction, IntegrityError, connection
+from django.db.models import F, Q, When, Case, Value, Count, Sum, Max, Min
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -20,7 +21,6 @@ import six
 import IPy
 import julia
 from serverquery.protocol import gamespy1
-import aggregate_if
 from whois import whois
 
 from .utils import lock, force_ipy, calc_ratio
@@ -1225,7 +1225,8 @@ class ProfileManager(models.Manager):
         """
         Return a queryset with all the (other than loadout and country) popular fields set to a value.
         """
-        return (self.get_queryset()
+        return (
+            self.get_queryset()
             .filter(
                 name__isnull=False, 
                 team__isnull=False, 
@@ -1309,7 +1310,7 @@ class Profile(models.Model):
     def fetch_popular_loadout(self, year=None):
         """Return the profile's most popular loadout."""
         # skip the VIP's loadout
-        id = self.fetch_popular('loadout', year, only=models.Q(vip=False))
+        id = self.fetch_popular('loadout', year, Case(When(vip=False, then='loadout')))
         if id:
             return Loadout.objects.get(pk=id)
         return None
@@ -1325,7 +1326,7 @@ class Profile(models.Model):
             if value is not None:
                 setattr(self, field, value)
 
-    def fetch_popular(self, field, year=None, **kwargs):
+    def fetch_popular(self, field, year=None, cond=None):
         """
         Return a profile's most popular item described 
         by the `field` name of the related Player entries.
@@ -1341,9 +1342,10 @@ class Profile(models.Model):
         """
         qs = self.qualified_year(year) if year else self.qualified_recent()
         try:
-            annotated = (qs
+            annotated = (
+                qs
                 .values(field)
-                .annotate(num=aggregate_if.Count(field, **kwargs))
+                .annotate(num=Count(cond if cond else field))
                 .order_by('-num')[0:1]
                 .get()
             )
@@ -1470,44 +1472,51 @@ class Profile(models.Model):
                 STAT.TOP_SCORE: models.Max('score'),
                 # non-COOP time
                 STAT.TIME: (
-                    aggregate_if.Sum(
-                        'time',  
-                        only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
+                    Sum(
+                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='time'))
                     )
                 ),
                 # non-coop games
                 STAT.GAMES: (
-                    aggregate_if.Count(
-                        'game',  
-                        only=models.Q(game__gametype__in=definitions.MODES_VERSUS),
+                    Count(
+                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='game')),
                         distinct=True
                     )
                 ),
                 # non-coop wins
                 STAT.WINS: (
-                    aggregate_if.Count(
-                        'game',  
-                        only=(models.Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SWAT_GAMES) |
-                            models.Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SUS_GAMES)),
+                    Count(
+                        Case(
+                            When(
+                                Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SWAT_GAMES) |
+                                Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SUS_GAMES),
+                                then='game'
+                            ),
+                        ),
                         distinct=True
                     )
                 ),
                 # non-coop losses
                 STAT.LOSSES: (
-                    aggregate_if.Count(
-                        'game',  
-                        only=(models.Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SUS_GAMES) |
-                            models.Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SWAT_GAMES)),
+                    Count(
+                        Case(
+                            When(
+                                Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SUS_GAMES) |
+                                Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SWAT_GAMES),
+                                then='game'
+                            ),
+                        ),
                         distinct=True
                     )
                 ),
                 # non-coop draws
                 STAT.DRAWS: (
-                    aggregate_if.Count(
-                        'game',
-                        only=models.Q(
-                            game__outcome__in=definitions.DRAW_GAMES, 
-                            game__gametype__in=definitions.MODES_VERSUS
+                    Count(
+                        Case(
+                            When(
+                                Q(game__outcome__in=definitions.DRAW_GAMES, game__gametype__in=definitions.MODES_VERSUS),
+                                then='game'
+                            ),
                         ),
                         distinct=True
                     )
@@ -1516,9 +1525,8 @@ class Profile(models.Model):
                 STAT.TOP_KILLS: models.Max('kills'),
                 # non-coop teamkills
                 STAT.TEAMKILLS: (
-                    aggregate_if.Sum(
-                        'teamkills',
-                        only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
+                    Sum(
+                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='teamkills'))
                     )
                 ),
                 STAT.ARRESTS: models.Sum('arrests'),
@@ -1526,174 +1534,161 @@ class Profile(models.Model):
                 STAT.ARRESTED: models.Sum('arrested'),
                 # non-coop deaths
                 STAT.DEATHS: (
-                    aggregate_if.Sum(
-                        'deaths',
-                        only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
+                    Sum(
+                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='deaths'))
                     )
                 ),
                 # non-coop suicides
                 STAT.SUICIDES: (
-                    aggregate_if.Sum(
-                        'suicides',
-                        only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
+                    Sum(
+                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='suicides'))
                     )
                 ),
                 STAT.KILL_STREAK: models.Max('kill_streak'),
                 STAT.ARREST_STREAK: models.Max('arrest_streak'),
                 STAT.DEATH_STREAK: (
-                    aggregate_if.Max(
-                        'death_streak',
-                        only=models.Q(game__gametype__in=definitions.MODES_VERSUS)
+                    Max(
+                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='death_streak'))
                     )
                 ),
                 # Barricaded Suspects stats
                 STAT.BS_SCORE: (
-                    aggregate_if.Sum(
-                        'score', 
-                        models.Q(game__gametype=definitions.MODE_BS)
+                    Sum(
+                        Case(When(game__gametype=definitions.MODE_BS, then='score'))
                     )
                 ),
                 STAT.BS_TIME: (
-                    aggregate_if.Sum(
-                        'time', 
-                        models.Q(game__gametype=definitions.MODE_BS)
+                    Sum(
+                        Case(When(game__gametype=definitions.MODE_BS, then='time'))
                     )
                 ),
                 # VIP Escort stats
                 # Score earned in VIP Escort
                 STAT.VIP_SCORE: (
-                    aggregate_if.Sum(
-                        'score', 
-                        models.Q(game__gametype=definitions.MODE_VIP)
+                    Sum(
+                        Case(When(game__gametype=definitions.MODE_VIP, then='score'))
                     )
                 ),
                 # Time played in VIP Escort
                 STAT.VIP_TIME: (
-                    aggregate_if.Sum(
-                        'time', 
-                        models.Q(game__gametype=definitions.MODE_VIP)
+                    Sum(
+                        Case(When(game__gametype=definitions.MODE_VIP, then='time'))
                     )
                 ),
-                STAT.VIP_ESCAPES: models.Sum('vip_escapes'),
-                STAT.VIP_CAPTURES: models.Sum('vip_captures'),
-                STAT.VIP_RESCUES: models.Sum('vip_rescues'),
-                STAT.VIP_KILLS_VALID: models.Sum('vip_kills_valid'),
-                STAT.VIP_KILLS_INVALID: models.Sum('vip_kills_invalid'),
+                STAT.VIP_ESCAPES: Sum('vip_escapes'),
+                STAT.VIP_CAPTURES: Sum('vip_captures'),
+                STAT.VIP_RESCUES: Sum('vip_rescues'),
+                STAT.VIP_KILLS_VALID: Sum('vip_kills_valid'),
+                STAT.VIP_KILLS_INVALID: Sum('vip_kills_invalid'),
                 STAT.VIP_TIMES: (
-                    aggregate_if.Count('pk', only=models.Q(vip=True), distinct=True)
+                    Count(
+                        Case(When(vip=True, then='pk')), distinct=True
+                    )
                 ),
                 # Rapid Deployment stats
                 STAT.RD_SCORE: (
-                    aggregate_if.Sum(
-                        'score', 
-                        models.Q(game__gametype=definitions.MODE_RD)
+                    Sum(
+                        Case(When(game__gametype=definitions.MODE_RD, then='score'))
                     )
                 ),
                 STAT.RD_TIME: (
-                    aggregate_if.Sum(
-                        'time', 
-                        models.Q(game__gametype=definitions.MODE_RD)
+                    Sum(
+                        Case(When(game__gametype=definitions.MODE_RD, then='time'))
                     )
                 ),
                 STAT.RD_BOMBS_DEFUSED: models.Sum('rd_bombs_defused'),
                 # Smash and Grab stats
                 STAT.SG_SCORE: (
-                    aggregate_if.Sum(
-                        'score', 
-                        models.Q(game__gametype=definitions.MODE_SG)
+                    Sum(
+                        Case(When(game__gametype=definitions.MODE_SG, then='score'))
                     )
                 ),
                 STAT.SG_TIME: (
-                    aggregate_if.Sum(
-                        'time', 
-                        models.Q(game__gametype=definitions.MODE_SG)
+                    Sum(
+                        Case(When(game__gametype=definitions.MODE_SG, then='time'))
                     )
                 ),
                 STAT.SG_ESCAPES: models.Sum('sg_escapes'),
                 STAT.SG_KILLS: models.Sum('sg_kills'),
                 # COOP stats
                 STAT.COOP_SCORE: (
-                    aggregate_if.Sum(
-                        'game__coop_score', 
-                        models.Q(game__gametype__in=definitions.MODES_COOP)
+                    Sum(
+                        Case(When(game__gametype__in=definitions.MODES_COOP, then='game__coop_score'))
                     )
                 ),
                 STAT.COOP_TIME: (
-                    aggregate_if.Sum(
-                        'time', 
-                        only=models.Q(game__gametype__in=definitions.MODES_COOP)
+                    Sum(
+                        Case(When(game__gametype__in=definitions.MODES_COOP, then='time'))
                     )
                 ),
                 STAT.COOP_GAMES: (
-                    aggregate_if.Count(
-                        'game', 
-                        only=models.Q(game__gametype__in=definitions.MODES_COOP),
+                    Count(
+                        Case(When(game__gametype__in=definitions.MODES_COOP, then='game')),
                         distinct=True
                     )
                 ),
                 STAT.COOP_WINS: (
-                    aggregate_if.Count(
-                        'game', 
-                        only=models.Q(game__outcome__in=definitions.COMPLETED_MISSIONS),
+                    Count(
+                        Case(When(game__outcome__in=definitions.COMPLETED_MISSIONS, then='game')),
                         distinct=True
                     )
                 ),
                 STAT.COOP_LOSSES: (
-                    aggregate_if.Count(
-                        'game', 
-                        only=models.Q(game__outcome__in=definitions.FAILED_MISSIONS),
+                    Count(
+                        Case(When(game__outcome__in=definitions.FAILED_MISSIONS, then='game')),
                         distinct=True
                     )
                 ),
                 STAT.COOP_TEAMKILLS: (
-                    aggregate_if.Sum(
-                        'teamkills', 
-                        only=models.Q(game__gametype__in=definitions.MODES_COOP)
+                    Sum(
+                        Case(When(game__gametype__in=definitions.MODES_COOP, then='teamkills'))
                     )
                 ),
                 STAT.COOP_DEATHS: (
-                    aggregate_if.Sum(
-                        'deaths', 
-                        only=models.Q(game__gametype__in=definitions.MODES_COOP)
+                    Sum(
+                        Case(When(game__gametype__in=definitions.MODES_COOP, then='deaths'))
                     )
                 ),
-                STAT.COOP_HOSTAGE_ARRESTS: models.Sum('coop_hostage_arrests'),
-                STAT.COOP_HOSTAGE_HITS: models.Sum('coop_hostage_hits'),
-                STAT.COOP_HOSTAGE_INCAPS: models.Sum('coop_hostage_incaps'),
-                STAT.COOP_HOSTAGE_KILLS: models.Sum('coop_hostage_kills'),
-                STAT.COOP_ENEMY_ARRESTS: models.Sum('coop_enemy_arrests'),
-                STAT.COOP_ENEMY_INCAPS: models.Sum('coop_enemy_incaps'),
-                STAT.COOP_ENEMY_KILLS: models.Sum('coop_enemy_kills'),
-                STAT.COOP_ENEMY_INCAPS_INVALID: models.Sum('coop_enemy_incaps_invalid'),
-                STAT.COOP_ENEMY_KILLS_INVALID: models.Sum('coop_enemy_kills_invalid'),
-                STAT.COOP_TOC_REPORTS: models.Sum('coop_toc_reports'),
+                STAT.COOP_HOSTAGE_ARRESTS: Sum('coop_hostage_arrests'),
+                STAT.COOP_HOSTAGE_HITS: Sum('coop_hostage_hits'),
+                STAT.COOP_HOSTAGE_INCAPS: Sum('coop_hostage_incaps'),
+                STAT.COOP_HOSTAGE_KILLS: Sum('coop_hostage_kills'),
+                STAT.COOP_ENEMY_ARRESTS: Sum('coop_enemy_arrests'),
+                STAT.COOP_ENEMY_INCAPS: Sum('coop_enemy_incaps'),
+                STAT.COOP_ENEMY_KILLS: Sum('coop_enemy_kills'),
+                STAT.COOP_ENEMY_INCAPS_INVALID: Sum('coop_enemy_incaps_invalid'),
+                STAT.COOP_ENEMY_KILLS_INVALID: Sum('coop_enemy_kills_invalid'),
+                STAT.COOP_TOC_REPORTS: Sum('coop_toc_reports'),
             },
             'weapon': {
                 # ammo based stats
                 STAT.AMMO_SHOTS: (
-                    aggregate_if.Sum(
-                        'weapon__shots',
-                        only=models.Q(
-                            weapon__name__in=definitions.WEAPONS_FIRED,
-                            game__gametype__in=definitions.MODES_VERSUS
+                    Sum(
+                        Case(
+                            When(
+                                Q(weapon__name__in=definitions.WEAPONS_FIRED, game__gametype__in=definitions.MODES_VERSUS),
+                                then='weapon__shots'
+                            )
                         )
                     )
                 ),
                 STAT.AMMO_HITS: (
-                    aggregate_if.Sum(
-                        'weapon__hits',
-                        only=models.Q(
-                            weapon__name__in=definitions.WEAPONS_FIRED,
-                            game__gametype__in=definitions.MODES_VERSUS
+                    Sum(
+                        Case(
+                            When(
+                                Q(weapon__name__in=definitions.WEAPONS_FIRED, game__gametype__in=definitions.MODES_VERSUS),
+                                then='weapon__hits'
+                            )
                         )
                     )
                 ),
                 STAT.AMMO_DISTANCE: (
-                    aggregate_if.Max(
-                        'weapon__distance',
-                        only=models.Q(
-                            weapon__name__in=definitions.WEAPONS_FIRED,
-                            game__gametype__in=definitions.MODES_VERSUS
+                    Max(
+                        Case(
+                            When(
+                                Q(weapon__name__in=definitions.WEAPONS_FIRED, game__gametype__in=definitions.MODES_VERSUS),
+                                then='weapon__distance'
+                            )
                         )
                     )
                 ),
@@ -1721,13 +1716,15 @@ class Profile(models.Model):
             {1: {'shots': 3, 'hits': 1,...}, 2: {'shots': 2, 'hits': 2,...}, ...}
         """
         aggregated = self.aggregate(
-            {'shots': models.Sum('weapon__shots'),
-            'time': models.Sum('weapon__time'),
-            'hits': models.Sum('weapon__hits'),
-            'teamhits': models.Sum('weapon__teamhits'),
-            'kills': models.Sum('weapon__kills'),
-            'teamkills': models.Sum('weapon__teamkills'),
-            'distance': models.Max('weapon__distance')}, 
+            {
+                'shots': Sum('weapon__shots'),
+                'time': Sum('weapon__time'),
+                'hits': Sum('weapon__hits'),
+                'teamhits': Sum('weapon__teamhits'),
+                'kills': Sum('weapon__kills'),
+                'teamkills': Sum('weapon__teamkills'),
+                'distance': Max('weapon__distance'),
+            },
             start, 
             end,
             # group by weapon name

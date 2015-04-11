@@ -17,7 +17,6 @@ PATH_APP = PATH_PROJECT.parent
 PATH_VENV = PATH_APP.parent
 
 DEBUG = False
-TEMPLATE_DEBUG = False
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -34,8 +33,7 @@ INSTALLED_APPS = (
     'django_countries',
     'compressor',
     'django_markdown',
-    'django_nose',
-    
+
     'tracker',
 )
 
@@ -49,33 +47,33 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sites.middleware.CurrentSiteMiddleware',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth', 
-    'django.core.context_processors.debug', 
-    'django.core.context_processors.i18n', 
-    'django.core.context_processors.media', 
-    'django.core.context_processors.static', 
-    'django.core.context_processors.tz', 
-    'django.contrib.messages.context_processors.messages',
-    'django.core.context_processors.request', 
-
-    'tracker.context_processors.current_view', 
-    'tracker.context_processors.current_site', 
-)
-
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            PATH_APP.child('templates'),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.core.context_processors.debug',
+                'django.core.context_processors.i18n',
+                'django.core.context_processors.media',
+                'django.core.context_processors.static',
+                'django.core.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                'django.core.context_processors.request',
+                'tracker.context_processors.current_view',
+            ],
+        },
+    },
+]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder', 
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
-)
-
-TEMPLATE_DIRS = (
-    PATH_APP.child('templates'),
 )
 
 STATICFILES_DIRS = (
@@ -182,8 +180,6 @@ COMPRESS_PRECOMPILERS = (
 COMPRESS_DATA_URI_MAX_SIZE = 1024*5
 
 MARKDOWN_PROTECT_PREVIEW = True
-
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # celery
 BROKER_URL = 'redis://localhost/3'
