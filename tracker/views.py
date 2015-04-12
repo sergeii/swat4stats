@@ -258,7 +258,7 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
         ),
         (
             _('Highest Playtime'), 
-            Sum('time', only=Q(game__gametype__in=definitions.MODES_VERSUS)),
+            Sum(Case(When(game__gametype__in=definitions.MODES_VERSUS, then='time'))),
             lambda value: templatetags.humantime(value)
         ),
         (
@@ -302,7 +302,8 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
 
             for title, agg_obj, translate in self.summary:
                 try:
-                    player = (models.Player.objects.qualified(start, end)
+                    player = (
+                        models.Player.objects.qualified(start, end)
                         .select_related('alias__profile')
                         .filter(alias__profile__name__isnull=False)
                         .values('alias__profile')
