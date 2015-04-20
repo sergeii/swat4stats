@@ -419,9 +419,9 @@ class BoardListView(TopListView):
             (STAT.VIP_RESCUES, _('VIP Rescues'), 'int'),
             (STAT.VIP_KILLS_VALID, _('VIP Kills'), 'int'),
         )],
-        # [_('Rapid Deployment'), (
-        #     (STAT.RD_BOMBS_DEFUSED, _('Bombs Disarmed'), 'int'),
-        # )],
+        [_('Rapid Deployment'), (
+            (STAT.RD_BOMBS_DEFUSED, _('Bombs Disarmed'), 'int'),
+        )],
         # [_('Smash and Grab'), (
         #     (STAT.SG_ESCAPES, _('Case Escapes'), 'int'),
         #     (STAT.SG_KILLS, _('Case Carrier Kills'), 'int'),
