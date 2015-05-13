@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
+import sys
 
 from .common import *
+
 
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ('127.0.0.1',)
@@ -23,6 +25,18 @@ DATABASES = {
     }
 }
 
+LOGGING['loggers'] = {
+    'django': {
+        'handlers': ['syslog', 'mail_admins'],
+        'level': 'INFO',
+    },
+    'tracker': {
+        'handlers': ['syslog', 'mail_admins'],
+        'level': 'DEBUG',
+        'propagate': False
+    },
+}
+
 CACHES['default'] = {
     'BACKEND': 'redis_cache.cache.RedisCache',
     'LOCATION': '127.0.0.1:6379:1',
@@ -36,3 +50,9 @@ CACHEOPS_REDIS = {
 }
 
 COMPRESS_OFFLINE = False
+
+
+if 'test' in sys.argv[1:2]:
+    DEFAULT_TABLESPACE = 'tmpfs'
+    CELERY_ALWAYS_EAGER = True
+    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
