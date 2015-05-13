@@ -13,7 +13,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError, Multiple
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text, python_2_unicode_compatible
-from django.utils.html import mark_safe
+from django.utils.html import mark_safe, escape
 from django.core.cache import cache as redis
 
 import six
@@ -2050,8 +2050,8 @@ class Article(models.Model):
         """
         try:
             renderer = self.renderers[self.renderer]
-            logger.error('No article renderer {}'.format(self.renderer))
         except KeyError:
+            logger.error('No article renderer {}'.format(self.renderer))
             renderer = self.renderers[self._meta.get_field('renderer').default]
 
         return renderer(self.text)
@@ -2069,4 +2069,4 @@ class Article(models.Model):
 
     @classmethod
     def render_markdown(cls, value):
-        return cls.render_html((markdown.markdown(value)))
+        return cls.render_html(markdown.markdown(escape(value)))

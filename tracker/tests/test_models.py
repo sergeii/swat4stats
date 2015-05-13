@@ -920,7 +920,7 @@ class ProfileMatchTestCase2(TestCase):
 
 
 class ArticleTestCase(TestCase):
-    sane_html = (
+    html_text = (
         ('<script>alert()</script>', '&lt;script&gt;alert()&lt;/script&gt;'),
         ("""<a href="javascript:document.location='http://www.google.com/'">xss</a>""",
          '<a>xss</a>'),
@@ -933,6 +933,10 @@ class ArticleTestCase(TestCase):
         ('<iframe width="560" height="315" src="https://www.youtube.com/" frameborder="0" allowfullscreen></iframe>',
          '<iframe allowfullscreen="" frameborder="0" height="315" src="https://www.youtube.com/" width="560"></iframe>'),
         ('<img src="http://example.org/picture.png" />', '<img src="http://example.org/picture.png">'),
+    )
+    markdown_text = (
+        ('* foo', '<ul>\n<li>foo</li>\n</ul>'),
+        ('* <b>foo</b>', '<ul>\n<li>&lt;b&gt;foo&lt;/b&gt;</li>\n</ul>'),
     )
 
     def test_html_renderer(self):
@@ -962,7 +966,12 @@ class ArticleTestCase(TestCase):
         article = models.Article.objects.create(text='foo', renderer=9999)
         self.assertEqual(models.Article.objects.get(pk=article.pk).rendered, '<p>foo</p>')
 
-    def test_sane_html(self):
-        for raw_html, sane_html in self.sane_html:
-            article = models.Article(text=raw_html, renderer=models.Article.RENDERER_HTML)
-            self.assertEqual(article.rendered, sane_html)
+    def test_html_text(self):
+        for raw_text, expected_html in self.html_text:
+            article = models.Article(text=raw_text, renderer=models.Article.RENDERER_HTML)
+            self.assertEqual(article.rendered, expected_html)
+
+    def test_markdown_text(self):
+        for raw_text, expected_html in self.markdown_text:
+            article = models.Article(text=raw_text, renderer=models.Article.RENDERER_MARKDOWN)
+            self.assertEqual(article.rendered, expected_html)
