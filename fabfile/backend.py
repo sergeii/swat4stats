@@ -51,7 +51,7 @@ def dependencies():
 @task
 def managepy(cmd, user=None):
     """Run a django's project manage.py command inside the virtual environment."""
-    with shell_env(PYTHONDONTWRITEBYTECODE='1'):
+    with shell_env(PYTHONDONTWRITEBYTECODE='1', DJ_PRODUCTION='1'):
         with utils.virtualenv(env.paths['base']):
             with cd(env.paths['project']):
                 sudo('python %s %s' % (env.paths['project'].child('manage.py'), cmd), user=user or env.project['uid'])
