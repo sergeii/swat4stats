@@ -19,6 +19,7 @@ from django.core.cache import cache as redis
 import six
 import markdown
 import julia
+import bleach
 from serverquery.protocol import gamespy1
 from whois import whois
 
@@ -1996,6 +1997,37 @@ class Article(models.Model):
     objects = models.Manager()
     published = PublishedArticleManager()
 
+    # bleach
+    ALLOWED_TAGS = [
+        'a',
+        'abbr',
+        'acronym',
+        'b',
+        'blockquote',
+        'code',
+        'em',
+        'i',
+        'li',
+        'ol',
+        'strong',
+        'ul',
+        'img',
+        'iframe',
+        'p',
+        'div',
+    ]
+
+    ALLOWED_ATTRIBUTES = {
+        'a': ['href', 'title'],
+        'abbr': ['title'],
+        'acronym': ['title'],
+        'img': ['src', 'title'],
+        'iframe': ['src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen'],
+    }
+
+    ALLOWED_STYLES = []
+
+
     def __init__(self, *args, **kwargs):
         super(Article, self).__init__(*args, **kwargs)
         cls = type(self)
@@ -2024,14 +2056,17 @@ class Article(models.Model):
 
         return renderer(self.text)
 
-    @staticmethod
-    def render_plaintext(value):
+    @classmethod
+    def render_plaintext(cls, value):
         return value
 
-    @staticmethod
-    def render_html(value):
+    @classmethod
+    def render_html(cls, value):
+        value = bleach.clean(
+            value, tags=cls.ALLOWED_TAGS, attributes=cls.ALLOWED_ATTRIBUTES, styles=cls.ALLOWED_STYLES,
+        )
         return mark_safe(value)
 
-    @staticmethod
-    def render_markdown(value):
-        return mark_safe(markdown.markdown(value))
+    @classmethod
+    def render_markdown(cls, value):
+        return cls.render_html((markdown.markdown(value)))

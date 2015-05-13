@@ -920,6 +920,20 @@ class ProfileMatchTestCase2(TestCase):
 
 
 class ArticleTestCase(TestCase):
+    sane_html = (
+        ('<script>alert()</script>', '&lt;script&gt;alert()&lt;/script&gt;'),
+        ("""<a href="javascript:document.location='http://www.google.com/'">xss</a>""",
+         '<a>xss</a>'),
+        ('<a href="https://example.org/" onclick=alert(1)>xss</a>',
+         '<a href="https://example.org/">xss</a>'),
+        ("""<img src="javascript:alert('XSS');">""", '<img>'),
+        ('<p>foo</p>', '<p>foo</p>'),
+        ('<b>foo</b>', '<b>foo</b>'),
+        ('<a href="https://www.youtube.com/">foo</a>', '<a href="https://www.youtube.com/">foo</a>'),
+        ('<iframe width="560" height="315" src="https://www.youtube.com/" frameborder="0" allowfullscreen></iframe>',
+         '<iframe allowfullscreen="" frameborder="0" height="315" src="https://www.youtube.com/" width="560"></iframe>'),
+        ('<img src="http://example.org/picture.png" />', '<img src="http://example.org/picture.png">'),
+    )
 
     def test_html_renderer(self):
         text = '<b>Foo!</b>'
@@ -947,3 +961,8 @@ class ArticleTestCase(TestCase):
     def test_default_renderer_for_invalid_values_is_markdown(self):
         article = models.Article.objects.create(text='foo', renderer=9999)
         self.assertEqual(models.Article.objects.get(pk=article.pk).rendered, '<p>foo</p>')
+
+    def test_sane_html(self):
+        for raw_html, sane_html in self.sane_html:
+            article = models.Article(text=raw_html, renderer=models.Article.RENDERER_HTML)
+            self.assertEqual(article.rendered, sane_html)
