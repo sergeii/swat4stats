@@ -4,3 +4,4 @@
 .coverage
 __pycache__/
 /src
+/celerybeat*
