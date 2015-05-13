@@ -1,24 +1,23 @@
 # -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import, division)
+from __future__ import unicode_literals, absolute_import, division
 
 import re
 import datetime
 import logging
-from functools import partial, reduce
+from functools import partial
 import copy
 
-from django.core.urlresolvers import reverse
-from django.db import models, transaction, IntegrityError, connection
+from django.db import models, transaction, connection
 from django.db.models import F, Q, When, Case, Value, Count, Sum, Max, Min
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text, python_2_unicode_compatible
-from django.utils.decorators import method_decorator
+from django.utils.html import mark_safe
 from django.core.cache import cache as redis
 
 import six
-import IPy
+import markdown
 import julia
 from serverquery.protocol import gamespy1
 from whois import whois
@@ -957,7 +956,8 @@ class IPManager(models.Manager):
         Return a queryset with an extra `length` field that
         is equal to the number of ip addresses in the ip range.
         """
-        return (super(IPManager, self).get_queryset()
+        return (
+            super(IPManager, self).get_queryset()
             .extra(select={'length': '(range_to - range_from)'})
         )
 
@@ -1031,7 +1031,8 @@ class ISPManager(models.Manager):
         # convert to a IPy.IP instance
         ip_address = force_ipy(ip_address)
         # do an inclusive ip lookup
-        obj = (IP.objects
+        obj = (
+            IP.objects
             .select_related('isp')
             .filter(
                 range_from__lte=ip_address.int(), 
@@ -1058,19 +1059,15 @@ class ISPManager(models.Manager):
         except ObjectDoesNotExist:
                 try:
                     data = whois.whois(ip_address.strNormal(3))
-                    logger.debug('received whois for {}: {}, {}, {}'
-                        .format(
-                            ip_address.strNormal(3), 
-                            data.get('ipv4range', None), 
-                            data.get('orgname', None), 
-                            data.get('country', None)
-                        )
+                    logger.debug(
+                        'received whois for {}: {}, {}, {}'
+                        .format(ip_address.strNormal(3), data.get('ipv4range'), data.get('orgname'), data.get('country'))
                     )
                 except Exception as e:
                     logger.critical('failed to get whois for {} ({})'.format(ip_address, e))
                     data = {}
                 # attempt to unpack ip range tuple
-                ipv4range = data.get('ipv4range', None)
+                ipv4range = data.get('ipv4range')
                 try:
                     ipv4range_from = force_ipy(ipv4range[0])
                     ipv4range_to = force_ipy(ipv4range[1])
@@ -1086,9 +1083,9 @@ class ISPManager(models.Manager):
                     return (None, False)
                 # prepare lookup/create data
                 items = {}
-                if data.get('orgname', None):
+                if data.get('orgname'):
                     items['name'] = data['orgname']
-                if data.get('country', None):
+                if data.get('country'):
                     items['country'] = data['country']
                 with transaction.atomic():
                     # attempt to insert the ip range details
@@ -1193,7 +1190,7 @@ class ProfileManager(models.Manager):
                 kwargs['isp'] = ISP.objects.match_or_create(kwargs['ip'])[0]
 
         # isp must not be None for a name+isp lookup
-        if 'name' in kwargs and (not skip_name) and kwargs.get('isp', None):
+        if 'name' in kwargs and (not skip_name) and kwargs.get('isp'):
             # search for a player by case insensitive name and non-None isp
             steps.append((self.match, {'name__iexact': kwargs['name'], 'isp': kwargs['isp']}))
             # search by name+non-empty country
@@ -1862,7 +1859,8 @@ class RankManager(models.Manager):
         categories = list(items.keys())
 
         with transaction.atomic():
-            entries = (self.get_queryset()
+            entries = (
+                self.get_queryset()
                 .select_for_update()
                 .filter(profile=profile, year=year, category__in=categories)
             )
@@ -1962,7 +1960,8 @@ class PublishedArticleManager(models.Manager):
         Return a queryset that would fetch articles with 
         the `date_published` column greater or equal to the current time.
         """
-        return (super(PublishedArticleManager, self)
+        return (
+            super(PublishedArticleManager, self)
             .get_queryset(*args, **kwargs)
             .filter(is_published=True, date_published__lte=timezone.now)
         )
@@ -1974,16 +1973,65 @@ class PublishedArticleManager(models.Manager):
 
 @python_2_unicode_compatible
 class Article(models.Model):
-    title = models.CharField(max_length=64)
+    RENDERER_PLAINTEXT = 1
+    RENDERER_HTML = 2
+    RENDERER_MARKDOWN = 3
+
+    title = models.CharField(blank=True, max_length=64)
     text = models.TextField()
     signature = models.CharField(max_length=128, blank=True)
     is_published = models.BooleanField(default=False)
-    date_published = models.DateTimeField()
+    date_published = models.DateTimeField(blank=True, default=timezone.now)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
+    renderer = models.SmallIntegerField(
+        choices=(
+            (RENDERER_PLAINTEXT, _('Plain text')),
+            (RENDERER_HTML, _('HTML')),
+            (RENDERER_MARKDOWN, _('Markdown')),
+        ),
+        default=RENDERER_MARKDOWN
+    )
 
     objects = models.Manager()
     published = PublishedArticleManager()
 
+    def __init__(self, *args, **kwargs):
+        super(Article, self).__init__(*args, **kwargs)
+        cls = type(self)
+        # cache renderers
+        if not hasattr(cls, 'renderers'):
+            cls.renderers = {
+                getattr(cls, attr): getattr(cls, 'render_{}'.format(attr.split('_', 1)[-1].lower()))
+                for attr in dir(cls) if attr.startswith('RENDERER_')
+            }
+
     def __str__(self):
         return self.title
+
+    @property
+    def rendered(self):
+        """
+        Render article text according to the specified renderer.
+
+        :return: Rendered article text
+        """
+        try:
+            renderer = self.renderers[self.renderer]
+            logger.error('No article renderer {}'.format(self.renderer))
+        except KeyError:
+            renderer = self.renderers[self._meta.get_field('renderer').default]
+
+        return renderer(self.text)
+
+    @staticmethod
+    def render_plaintext(value):
+        return value
+
+    @staticmethod
+    def render_html(value):
+        return mark_safe(value)
+
+    @staticmethod
+    def render_markdown(value):
+        return mark_safe(markdown.markdown(value))

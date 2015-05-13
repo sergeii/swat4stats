@@ -1,5 +1,5 @@
 {% extends "tracker/layout/base.html" %}
-{% load i18n staticfiles static tracker humanize django_markdown %}
+{% load i18n staticfiles static tracker humanize %}
 
 {% block title %}{% trans "Main" %}{% endblock %}
 
@@ -40,7 +40,7 @@
                             <div class="left title underlined">{{ article.title }}</div>
                             <div class="right gray">{{ article.date_published|naturaltime }}</div>
                         </div>
-                        <div class="text">{{ article.text|markdown }}</div>
+                        <div class="text">{{ article.rendered }}</div>
                         {% if article.signature %}<div class="right space-top">{{ article.signature }}</div>{% endif %}
                     </div>
                 {% empty %}

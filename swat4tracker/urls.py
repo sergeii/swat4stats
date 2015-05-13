@@ -24,7 +24,6 @@ sitemaps = {
 }
 
 urlpatterns = patterns('',
-    url(r'^markdown/', include('django_markdown.urls')),
     # sitemaps
     url(r'^sitemap\.xml$', cache_page(60*60)(index), {'sitemaps': sitemaps, 'sitemap_url_name': 'sitemaps'}),
     url(r'^sitemap-(?P<section>.+)\.xml$', cache_page(60*60)(sitemap), {'sitemaps': sitemaps}, name='sitemaps'),

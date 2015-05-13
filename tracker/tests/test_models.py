@@ -909,3 +909,33 @@ class ProfileMatchTestCase2(TestCase):
         )
         
         self.assertNotEqual(alias1.profile.pk, alias2.profile.pk)
+
+
+class ArticleTestCase(TestCase):
+
+    def test_html_renderer(self):
+        text = '<b>Foo!</b>'
+        article = models.Article(text=text, renderer=models.Article.RENDERER_HTML)
+        self.assertEqual(article.rendered, text)
+        self.assertIsInstance(article.rendered, SafeText)
+        self.assertIsInstance(article.rendered, SafeData)
+
+    def test_plaintext_renderer(self):
+        text = '<b>Foo!</b>'
+        article = models.Article(text=text, renderer=models.Article.RENDERER_PLAINTEXT)
+        self.assertEqual(article.rendered, text)
+        self.assertFalse(isinstance(article.rendered, SafeData))
+
+    def test_markdown_renderer(self):
+        text = '* foo'
+        article = models.Article(text=text, renderer=models.Article.RENDERER_MARKDOWN)
+        self.assertEqual(article.rendered, '<ul>\n<li>foo</li>\n</ul>')
+        self.assertIsInstance(article.rendered, SafeText)
+
+    def test_default_renderer_is_markdown(self):
+        article = models.Article.objects.create(text='foo')
+        self.assertEqual(models.Article.objects.get(pk=article.pk).renderer, models.Article.RENDERER_MARKDOWN)
+
+    def test_default_renderer_for_invalid_values_is_markdown(self):
+        article = models.Article.objects.create(text='foo', renderer=9999)
+        self.assertEqual(models.Article.objects.get(pk=article.pk).rendered, '<p>foo</p>')

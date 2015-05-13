@@ -32,7 +32,6 @@ INSTALLED_APPS = (
     'cacheops',
     'django_countries',
     'compressor',
-    'django_markdown',
 
     'tracker',
 )

@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import)
+from __future__ import unicode_literals, absolute_import
 
-from django.db import transaction
 from django.db.models import Count
 from django.contrib import admin
-from django.utils.encoding import force_text
 
-from julia import shortcuts
-from django_markdown.admin import MarkdownModelAdmin
-
-from . import models, utils, definitions
+from . import models
 
 
 class IPAdmin(admin.ModelAdmin):
@@ -106,7 +101,7 @@ class ServerAdmin(admin.ModelAdmin):
         return False
 
 
-class ArticleAdmin(MarkdownModelAdmin):
+class ArticleAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'is_published', 'date_published')
     search_fields = ('title', 'text',)
     list_per_page = 20
