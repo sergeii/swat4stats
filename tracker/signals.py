@@ -87,18 +87,11 @@ def update_profile_game_reference(sender, data, server, game, players, **kwargs)
     models.Profile.objects.filter(pk__in=pks).update(game_last=game)
 
 
-@receiver(pre_save, sender=models.Server)
+@receiver(post_save, sender=models.Server)
 def update_server_country(sender, instance, **kwargs):
-    """Detect and save the server's location (country) by it's IP address prior to the model save."""
-    isp, created = models.ISP.objects.match_or_create(instance.ip)
-    try:
-        assert isp.country
-    # country is either empty or the isp is None
-    except:
-        pass
-    else:
-        # assign the country
-        instance.country = isp.country
+    """Attempt to update country the server belongs to upon a save."""
+    from .tasks import update_server_country
+    update_server_country.apply_async(args=(instance.pk,), countdown=5)
 
 
 @receiver(stream_data_received)
@@ -125,15 +118,15 @@ def save_game(sender, data, server, **kwargs):
                     rd_bombs_defused=data['bombs_defused'].value,
                     rd_bombs_total=data['bombs_total'].value,
                     # calculate coop score 100 max
-                    coop_score=min(100, (utils.calc_coop_score(data['coop_procedures']) if data.get('coop_procedures', None) else 0)),
+                    coop_score=min(100, (utils.calc_coop_score(data['coop_procedures']) if data.get('coop_procedures') else 0)),
                 )
-        except IntegrityError as e:
-            logger.warning('the game with tag %s has already been saved' % data['tag'].value)
+        except IntegrityError:
+            logger.warning('the game with tag {} has already been saved'.format(data['tag'].value))
             return
 
         players = []
         # insert objectives in bulk
-        if data.get('coop_objectives', None) is not None:
+        if data.get('coop_objectives'):
             models.Objective.objects.bulk_create([
                 models.Objective(
                     game=game, 
@@ -144,7 +137,7 @@ def save_game(sender, data, server, **kwargs):
                 for obj in data['coop_objectives']
             ])
         # insert procedures in bulk
-        if data.get('coop_procedures', None) is not None:
+        if data.get('coop_procedures'):
             models.Procedure.objects.bulk_create([
                 models.Procedure(
                     game=game, 
@@ -156,7 +149,7 @@ def save_game(sender, data, server, **kwargs):
                 for pro in data['coop_procedures']
             ])
         # insert players
-        if data.get('players', None) is not None:
+        if data.get('players'):
             # sorry for obvious comments
             # i need something other than empty lines to delimit blocks of code :-)
             for raw_player in data['players']:
@@ -197,7 +190,7 @@ def save_game(sender, data, server, **kwargs):
                 # save the instance
                 player.save()
                 # insert Player weapons in bulk .. unless its a COOP game
-                if raw_player['weapons'] is not None:
+                if raw_player['weapons']:
                     models.Weapon.objects.bulk_create([
                         models.Weapon(
                             player=player,

@@ -7,6 +7,7 @@ from hashlib import md5
 from django import test
 
 from tracker import models
+from tracker.utils import force_ipy
 
 
 def encode_post_data(d):
@@ -17,7 +18,12 @@ class StreamTestCase(test.TestCase):
 
     def setUp(self):
         self.client = test.Client(enforce_csrf_checks=True, REMOTE_ADDR='127.0.0.1')
-
+        (models.ISP.objects.create(name='foo')
+            .ip_set.create(
+                range_from=force_ipy('127.0.0.0').int(),
+                range_to=force_ipy('127.0.0.255').int()
+            )
+        )
         self.test_qs = {
             '0': 'tag', 
             '1': '1.0.0', 

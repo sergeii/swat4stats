@@ -155,7 +155,8 @@ def update_popular(time_delta):
     """
     min_date = timezone.now() - utils.force_timedelta(time_delta)
 
-    queryset = (models.Profile.objects
+    queryset = (
+        models.Profile.objects
         .select_for_update()
         .select_related('game_last')
         .filter(game_last__date_finished__gte=min_date)
@@ -178,7 +179,8 @@ def update_ranks(time_delta):
     """
     min_date = timezone.now() - utils.force_timedelta(time_delta)
 
-    queryset = (models.Profile.objects
+    queryset = (
+        models.Profile.objects
         .popular()
         .select_related('game_last')
         .filter(game_last__date_finished__gte=min_date)
@@ -223,3 +225,20 @@ def update_positions(*args):
     # rank up all leaderboard entries for every listed year
     for year in years:
         models.Rank.objects.rank(year)
+
+
+@app.task(ignore_result=True)
+def update_server_country(pk):
+    """
+    Detect and update the server's country.
+    """
+    obj = models.Server.objects.get(pk=pk)
+    isp, created = models.ISP.objects.match_or_create(obj.ip)
+    try:
+        if not isp.country:
+            raise AssertionError
+    # country is either empty or the isp is None
+    except (AssertionError, AttributeError):
+        pass
+    else:
+        models.Server.objects.filter(pk=pk).update(country=isp.country)

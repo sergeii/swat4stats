@@ -1,15 +1,15 @@
 from __future__ import unicode_literals
 
 import datetime
-import random
 import socket
 
+from whois import whois
 from cacheops import invalidation
 from mock import patch, PropertyMock
 from django import test
 from django.core import exceptions
 from django.utils import timezone
-from django.db import connection, IntegrityError
+from django.utils.safestring import SafeText, SafeData
 
 from tracker import models, utils, const
 from tracker.definitions import STAT
@@ -25,6 +25,14 @@ class ServerTestCase(TestCase):
 
     valid_port_values = (1, '2', 1023, '1024', 10468, 24511, 65535)
     invalid_port_values = (-1000, -1, '0', 0, 65536, 100000)
+
+    def setUp(self):
+        (models.ISP.objects.create(name='foo')
+            .ip_set.create(
+                range_from=utils.force_ipy('127.0.0.0').int(),
+                range_to=utils.force_ipy('127.0.0.255').int()
+            )
+        )
 
     def test_create_server_valid_port_number(self):
         for port in self.valid_port_values:
@@ -619,14 +627,14 @@ class ProfileTestCase(TestCase):
         models.Player.objects.create(game=self.test_game, alias=profile1.alias_set.create(name='Serge', isp=None), ip='127.0.0.1')
 
         self.assertRaises(exceptions.ObjectDoesNotExist, models.Profile.objects.match_smart, name='Serge', isp=None)
-        self.assertRaises(exceptions.ObjectDoesNotExist, models.Profile.objects.match_smart, name='Serge', ip='127.0.0.2')
+        self.assertRaises(exceptions.ObjectDoesNotExist, models.Profile.objects.match_smart, name='Serge', isp=None, ip='127.0.0.2')
 
-    def test_match_smart_non_empty_isp_will_not_match_against_existing_null_isp(self):
+    def test_match_smart_empty_isp_will_not_match_against_existing_non_null_isp(self):
         profile1 = models.Profile.objects.create()
         models.Player.objects.create(game=self.test_game, alias=profile1.alias_set.create(name='Serge', isp=models.ISP.objects.create()), ip='127.0.0.1')
 
         self.assertRaises(exceptions.ObjectDoesNotExist, models.Profile.objects.match_smart, name='Serge', isp=None)
-        self.assertRaises(exceptions.ObjectDoesNotExist, models.Profile.objects.match_smart, name='Serge', ip='127.0.0.2')
+        self.assertRaises(exceptions.ObjectDoesNotExist, models.Profile.objects.match_smart, name='Serge', isp=None, ip='127.0.0.2')
 
     def test_match_smart_will_not_match_other_profiles_with_null_isp(self):
         profile1 = models.Profile.objects.create()
@@ -641,7 +649,7 @@ class ProfileTestCase(TestCase):
 
     def test_match_smart_will_not_perform_whois_lookup_if_isp_is_present_even_none(self):
         with patch('tracker.models.whois.whois', return_value={'ipv4range': ('127.0.0.0', '127.255.255.255')}) as mock:
-            profile, created = models.Profile.objects.match_smart_or_create(name='Serge', ip='127.0.0.1', isp=None)
+            models.Profile.objects.match_smart_or_create(name='Serge', ip='127.0.0.1', isp=None)
             self.assertFalse(mock.called)
 
     def test_match_smart_will_perform_whois_lookup_no_isp_provided(self):
@@ -756,7 +764,7 @@ class ProfileMatchTestCase(TestCase):
 
     def setUp(self):
         super(ProfileMatchTestCase, self).setUp()
-        with patch('tracker.models.whois.whois', return_value={'country': 'un', 'orgname': 'foo', 'ipv4range': ('127.255.255.0', '127.255.255.255')}):
+        with patch.object(whois, 'whois', return_value={'country': 'un', 'orgname': 'foo', 'ipv4range': ('127.255.255.0', '127.255.255.255')}):
             self.server1 = models.Server.objects.create(ip='127.0.0.1', port=10480)
             self.server2 = models.Server.objects.create(ip='127.0.0.1', port=10580)
         
