@@ -155,6 +155,8 @@ class SummaryViewMixin(object):
 class FeaturedViewMixin(AnnualViewMixin):
     sample = 200
     limit = 10
+    min_time = 600
+    min_score = 200
 
     def get_context_data(self, *args, **kwargs):
         context_data = super(FeaturedViewMixin, self).get_context_data(*args, **kwargs)
@@ -163,19 +165,32 @@ class FeaturedViewMixin(AnnualViewMixin):
         })
         return context_data
 
+    def get_featured_period(self):
+        return models.Rank.get_period_for_year(self.year)
+
     def get_featured_games(self):
         # get current/past year's extreme dates
-        start, end = models.Rank.get_period_for_year(self.year)
+        start, end = self.get_featured_period()
         # get random offset
         offset = random.randint(0, self.sample)
 
         qs = (
             models.Game.objects
             .extra(
-                select={'score_total': 'score_swat + score_sus'}, 
-                order_by=('-score_total',)
+                select={
+                    'score_total': 'score_swat + score_sus',
+                    'score_avg': '(score_swat + score_sus) / time',
+                },
+                order_by=('-score_avg',),
+                where=['score_swat + score_sus >= %s'],
+                params=[self.min_score]
             )
-            .filter(date_finished__gte=start, date_finished__lte=end)
+            .filter(
+                date_finished__gte=start,
+                date_finished__lte=end,
+                time__gte=self.min_time,
+                player_num__gte=models.Profile.MIN_PLAYERS
+            )
         )
         return qs[offset:offset+self.limit]
 
@@ -250,6 +265,7 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
     template_name = 'tracker/chapters/main/main.html'
     model = models.Article
 
+    sample = 0  # always return the same featured games
     summary = (
         (
             _('Highest Score'), 
@@ -287,8 +303,10 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
         """Display the latest 5 articles."""
         return self.model.published.latest(5)
 
+    def get_featured_period(self):
+        return self.get_period()[1:]
+
     def get_summary(self):
-        now = timezone.now()
         # cache untill tomorrow
         @cacheops.cached(timeout=(utils.tomorrow()-timezone.now()).seconds)
         def _get_summary():
