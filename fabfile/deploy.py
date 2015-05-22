@@ -46,8 +46,7 @@ def code():
 @task
 @roles('backend')
 def migrate():
-    for app in env.project['apps']:
-        backend.managepy('migrate %s' % app)
+    backend.managepy('migrate')
 
 
 @task
