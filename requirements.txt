@@ -8,7 +8,7 @@ django-cacheops==2.3.2
 django-compressor==1.5
 django-countries==3.3
 django-debug-toolbar==1.3.0
-django-redis==3.8.3
+django-redis==3.8.4
 mock==1.0.1
 pip-tools==0.3.6
 psycopg2==2.6
@@ -16,7 +16,7 @@ python-dateutil==2.4.2
 pytz==2015.4
 redis==2.10.3
 requests==2.7.0
-simplejson==3.7.1
+simplejson==3.7.2
 six==1.9.0
 sqlparse==0.1.15
 uWSGI==2.0.10
@@ -30,4 +30,4 @@ bleach==1.4.1
 -e git+https://github.com/sergeii/python-julia.git#egg=python-julia
 -e git+https://github.com/sergeii/python-serverquery.git#egg=python-serverquery
 -e git+https://github.com/sergeii/python-whois.git@#egg=python-whois
-pip==6.1.1
+pip==7.0.0
