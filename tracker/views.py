@@ -149,7 +149,7 @@ class SummaryViewMixin(object):
         elif weekday <= 2:
             return (_('Weekly Summary'), week-datetime.timedelta(days=7), now)
         else:
-            return None
+            return (None,)*3
 
 
 class FeaturedViewMixin(AnnualViewMixin):
@@ -169,8 +169,11 @@ class FeaturedViewMixin(AnnualViewMixin):
         return models.Rank.get_period_for_year(self.year)
 
     def get_featured_games(self):
-        # get current/past year's extreme dates
         start, end = self.get_featured_period()
+
+        if start is None:
+            return None
+
         # get random offset
         offset = random.randint(0, self.sample)
 
@@ -311,12 +314,10 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
         @cacheops.cached(timeout=(utils.tomorrow()-timezone.now()).seconds)
         def _get_summary():
             summary = []
-            period = self.get_period()
+            period_title, start, end = self.get_period()
 
-            if not period:
+            if start is None:
                 return None
-
-            period_title, start, end = period
 
             for title, agg_obj, translate in self.summary:
                 try:
