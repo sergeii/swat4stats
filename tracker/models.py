@@ -718,11 +718,7 @@ class AliasManager(models.Manager):
             del filters['isp']
             filters['isp__isnull'] = True
         try:
-            #return (self.get_queryset().get(**filters), False)
             return (self.get_queryset().filter(**filters)[:1].get(), False)
-        # debug
-        except MultipleObjectsReturned:
-            logger.critical('kwargs: {} filters: {}'.format(kwargs, filters))
         # create a new entry
         except ObjectDoesNotExist:
             with transaction.atomic():
@@ -865,7 +861,10 @@ class Player(models.Model):
 
     @property
     def country(self):
-        return self.alias.isp.country
+        try:
+            return self.alias.isp.country
+        except AttributeError:
+            return None
 
     @property
     def coop_status_translated(self):
