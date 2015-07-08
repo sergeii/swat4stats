@@ -21,7 +21,7 @@ STATIC_ROOT = Path('/var/www/static/swat4tracker/')
 MEDIA_ROOT = Path('/var/www/media/swat4tracker/')
 
 CACHES['default'] = {
-    'BACKEND': 'redis_cache.cache.RedisCache',
+    'BACKEND': 'django_redis.cache.RedisCache',
     'LOCATION': 'unix:/var/run/redis/redis.sock:1',
 }
 
