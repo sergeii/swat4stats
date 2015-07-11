@@ -153,7 +153,7 @@ class SummaryViewMixin(object):
 
 
 class FeaturedViewMixin(AnnualViewMixin):
-    sample = 200
+    sample = 20
     limit = 10
     min_time = 600
     min_score = 200
