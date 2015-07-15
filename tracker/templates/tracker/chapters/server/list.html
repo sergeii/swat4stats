@@ -5,12 +5,12 @@
 {{ block.super }}
 
 $(document).ready(function(){
-
+    var fetchInterval = 5;
     (function fetchServers(){
         setTimeout(
             function(){
                 $.ajax({
-                    url: '{% url 'tracker:server_list_ajax' %}?' + $.param(JSON.parse('{{ form.cleaned_data|tojson|escapejs }}')),
+                    url: '{% url 'tracker:server_list' %}?' + $.param(JSON.parse('{{ form.cleaned_data|tojson|escapejs }}')),
                     success: function(data){
                         $('#server-list').htmlScroll(data);
                     },
@@ -19,9 +19,8 @@ $(document).ready(function(){
                     },
                 });
             }, 
-            {{ FETCH_INTERVAL }}*1000
+            fetchInterval*1000
         );
-        
     })();
 
     $('#server-filter-window').popup('.sel-server-filter-open');

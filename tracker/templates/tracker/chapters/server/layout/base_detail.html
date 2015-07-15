@@ -4,11 +4,12 @@
 {% block head_script %}
 {{ block.super }}
 $(document).ready(function(){
+    var fetchInterval = 5;
     (function fetchStatus(){
         setTimeout(
             function(){
                 $.ajax({
-                    url: '{% server_url object 'tracker:server_ajax' %}',
+                    url: '{% server_url object 'tracker:server' %}',
                     success: function(data){
                         $('#container').htmlScroll(data);
                     },
@@ -17,7 +18,7 @@ $(document).ready(function(){
                     },
                 });
             }, 
-            {{ FETCH_INTERVAL }}*1000
+            fetchInterval*1000
         );
     })();
 });

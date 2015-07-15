@@ -36,6 +36,20 @@ from .definitions import STAT
 logger = logging.getLogger(__name__)
 
 
+class AjaxTemplateViewMixin(object):
+
+    def get_ajax_template_names(self):
+        return [self.ajax_template_name]
+
+    def get_html_template_names(self):
+        return super(AjaxTemplateViewMixin, self).get_template_names()
+
+    def get_template_names(self, *args, **kwargs):
+        if self.request.is_ajax():
+            return self.get_ajax_template_names()
+        return self.get_html_template_names()
+
+
 class AnnualViewMixin(object):
     # min days since jan 01 the new year will not considered interesting (since lack of data)
     MIN_YEAR_DAYS = 7
@@ -61,7 +75,7 @@ class AnnualViewMixin(object):
         super(AnnualViewMixin, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
-        if not kwargs.get('year', None):
+        if not kwargs.get('year'):
             # skip the current year if its too early.. 
             if (timezone.now() - models.Rank.get_period_for_year(self.year_max)[0]).days < self.MIN_YEAR_DAYS and len(self.years) > 1:
                 #..unless its the only year
@@ -463,7 +477,7 @@ class BoardListView(TopListView):
 
     def get(self, *args, **kwargs):
         """Set the active leaderboard."""
-        board_name = self.kwargs.get('board_name', None)
+        board_name = self.kwargs.get('board_name')
         # set default
         if not board_name:
             board_name = self.get_default_board()
@@ -543,32 +557,32 @@ class GameListView(FilterViewMixin, GameListBaseView):
         if not self.form.is_valid():
             return qs.none()
         # filter by map
-        if self.form.cleaned_data.get('mapname', None):
+        if self.form.cleaned_data.get('mapname'):
             qs = qs.filter(mapname=self.form.cleaned_data['mapname'])
         # filter by gametime
-        if self.form.cleaned_data.get('gametime', None):
+        if self.form.cleaned_data.get('gametime'):
             qs = qs.filter(time__gte=self.form.cleaned_data['gametime']*60)
         # filter by outcome
-        if self.form.cleaned_data.get('outcome', None):
+        if self.form.cleaned_data.get('outcome'):
             qs = qs.filter(outcome=self.form.cleaned_data['outcome'])
         # filter by gametype
-        if self.form.cleaned_data.get('gametype', None):
+        if self.form.cleaned_data.get('gametype'):
             qs = qs.filter(gametype=self.form.cleaned_data['gametype'])
         # filter by server
-        if self.form.cleaned_data.get('server', None):
+        if self.form.cleaned_data.get('server'):
             qs = qs.filter(server=self.form.cleaned_data['server'])
         # filter by participated players
-        if self.form.cleaned_data.get('players', None):
+        if self.form.cleaned_data.get('players'):
             for name in self.form.cleaned_data['players']:
                 qs = qs.filter(player__alias__name__iexact=name)
         # filter by year
-        if self.form.cleaned_data.get('year', None):
+        if self.form.cleaned_data.get('year'):
             qs = qs.filter(date_finished__year=self.form.cleaned_data['year'])
         # filter by month
-        if self.form.cleaned_data.get('month', None):
+        if self.form.cleaned_data.get('month'):
             qs = qs.filter(date_finished__month=self.form.cleaned_data['month'])
         # filter by day
-        if self.form.cleaned_data.get('day', None):
+        if self.form.cleaned_data.get('day'):
             qs = qs.filter(date_finished__day=self.form.cleaned_data['day'])
         # cache the queryset
         return qs.order_by('-date_finished')  # .distinct()  #.cache()
@@ -727,10 +741,9 @@ class GameDetailView(generic.DetailView):
         return _('Cheater')
 
 
-class ServerListView(FilterViewMixin, generic.ListView):
-    FETCH_INTERVAL = 10  # ajax update interval
-
+class ServerListView(AjaxTemplateViewMixin, FilterViewMixin, generic.ListView):
     template_name = 'tracker/chapters/server/list.html'
+    ajax_template_name = 'tracker/chapters/server/list_ajax.html'
     model = models.Server
     form_class = forms.ServerFilterForm
     form = None
@@ -749,43 +762,39 @@ class ServerListView(FilterViewMixin, generic.ListView):
         # assemble filters
         filters = {}
         # filter empty servers
-        if self.form.cleaned_data.get('filter_empty', None):
+        if self.form.cleaned_data.get('filter_empty'):
             filters['is_empty'] = False
         # filter full servers
-        if self.form.cleaned_data.get('filter_full', None):
+        if self.form.cleaned_data.get('filter_full'):
             filters['is_full'] = False
         # filter password protected servers
-        if self.form.cleaned_data.get('filter_passworded', None):
+        if self.form.cleaned_data.get('filter_passworded'):
             filters['passworded'] = False
-        # filter by game label
-        if self.form.cleaned_data.get('gamename', None) is not None:
+        # filter by game label (SWAT4, SWAT4X)
+        if self.form.cleaned_data.get('gamename'):
             filters['gamename'] = utils.escape_cache_key(self.form.cleaned_data['gamename'])
-        # filter by game version
-        if self.form.cleaned_data.get('gamever', None) is not None:
+        # filter by game version (1.0, 1.1)
+        if self.form.cleaned_data.get('gamever'):
             filters['gamever'] = utils.escape_cache_key(self.form.cleaned_data['gamever'])
-        # filter servers by gametype
-        if self.form.cleaned_data.get('gametype', None) is not None:
+        # filter servers by gametype (VIP, BS, etc)
+        if self.form.cleaned_data.get('gametype'):
             filters['gametype'] = utils.escape_cache_key(self.form.cleaned_data['gametype'])
-        # then apply them
+
         return self.model.objects.status.filter(**filters).sort('-pinned', '-player_num')
 
     def get_context_data(self, *args, **kwargs):
         context_data = super(ServerListView, self).get_context_data(*args, **kwargs)
         context_data.update({
-            'FETCH_INTERVAL': self.FETCH_INTERVAL,
             'form': self.form,
         })
         return context_data
 
 
-class ServerListAjaxView(ServerListView):
-    template_name = 'tracker/chapters/server/list_ajax.html'
-
-
-class ServerDetailView(generic.DetailView):
-    FETCH_INTERVAL = 5  # ajax update interval
+class ServerDetailView(AjaxTemplateViewMixin, generic.DetailView):
     TEMPLATE_DEFAULT = 'tracker/chapters/server/detail.html'
     TEMPLATE_MODE = 'tracker/chapters/server/detail_mode%(mode)s.html'
+    AJAX_TEMPLATE_DEFAULT = 'tracker/chapters/server/detail_ajax.html'
+    AJAX_TEMPLATE_MODE = 'tracker/chapters/server/detail_mode%(mode)s_ajax.html'
 
     model = models.Server
 
@@ -796,20 +805,32 @@ class ServerDetailView(generic.DetailView):
     def dispatch(self, *args, **kwargs):
         return super(ServerDetailView, self).dispatch(*args, **kwargs)
 
-    def get_template_names(self, *args, **kwargs):
-        return [self.TEMPLATE_MODE % {'mode': self.status.gametype}, self.TEMPLATE_DEFAULT]
+    def get_html_template_names(self, *args, **kwargs):
+        return [
+            self.TEMPLATE_MODE % {'mode': self.status.gametype},
+            self.TEMPLATE_DEFAULT
+        ]
+
+    def get_ajax_template_names(self):
+        return [
+            self.AJAX_TEMPLATE_MODE % {'mode': self.status.gametype},
+            self.AJAX_TEMPLATE_DEFAULT
+        ]
 
     def get(self, request, *args, **kwargs):
         try:
             response = super(ServerDetailView, self).get(request, *args, **kwargs)
         except self.ServerNotAvailable:
+            # Override ajax response so it returns 404 in case of an error
+            if self.request.is_ajax():
+                raise Http404('The server is not available.')
             return render(request, 'tracker/chapters/server/cap.html', {})
         else:
             return response
 
     def get_object(self, *args, **kwargs):
-        ip = self.kwargs.get('server_ip', None)
-        port = self.kwargs.get('server_port', None)
+        ip = self.kwargs.get('server_ip')
+        port = self.kwargs.get('server_port')
 
         if not (ip and port):
             raise AttributeError
@@ -823,10 +844,9 @@ class ServerDetailView(generic.DetailView):
             raise self.ServerNotAvailable
 
         # attempt to fetch cached server status
-        try:
-            self.status = obj.status
-            assert self.status
-        except AssertionError:
+        self.status = obj.status
+
+        if not self.status:
             raise self.ServerNotAvailable
 
         return obj
@@ -842,32 +862,12 @@ class ServerDetailView(generic.DetailView):
         )
 
         context_data.update({
-            'FETCH_INTERVAL': self.FETCH_INTERVAL,
             'status': self.status,
             'players': players,
             'players_blue': [player for player in players if player.get('team', 0) == definitions.TEAM_BLUE],
             'players_red': [player for player in players if player.get('team', 0) == definitions.TEAM_RED],
         })
         return context_data
-
-
-class ServerDetailAjaxView(ServerDetailView):
-    TEMPLATE_DEFAULT = 'tracker/chapters/server/detail_ajax.html'
-    TEMPLATE_MODE = 'tracker/chapters/server/detail_mode%(mode)s_ajax.html'
-
-    def get(self, request, *args, **kwargs):
-        """
-        Override the server ajax view so it does not return 
-        the SWAT black screen message in case of an error.
-
-        Return 404 instead.
-        """
-        try:
-            response = super(ServerDetailView, self).get(request, *args, **kwargs)
-        except self.ServerNotAvailable:
-            raise Http404('The server is not available.')
-        else:
-            return response
 
 
 class ProfileBaseView(AnnualViewMixin, generic.DetailView):

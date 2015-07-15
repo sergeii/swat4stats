@@ -16,11 +16,6 @@ profile_urls = patterns('',
     url(r'^history/$', views.ProfileHistoryListView.as_view(), name='profile_history'),
 )
 
-server_urls = patterns('',
-    url(r'^$', views.ServerDetailView.as_view(), name='server'),
-    url(r'^ajax/$', views.ServerDetailAjaxView.as_view(), name='server_ajax'),
-)
-
 api_urls = patterns('',
     url(r'^motd/summary/$', views.APIMotdSummaryView.as_view()),
     url(r'^motd/leaderboard/(?:(?P<board_name>[\w]+)/)?$', views.APIMotdLeaderboardView.as_view()),
@@ -66,11 +61,8 @@ urlpatterns = patterns('',
         views.GameDetailView.as_view(),
         name='game'
     ),
-    # server list
     url(r'^servers/$', views.ServerListView.as_view(), name='server_list'),
-    url(r'^servers/ajax/$', views.ServerListAjaxView.as_view(), name='server_list_ajax'),
-    # server page
-    url(r'^servers/(?P<server_ip>[0-9.]+):(?P<server_port>\d{1,5})/', include(server_urls)),
+    url(r'^servers/(?P<server_ip>[0-9.]+):(?P<server_port>\d{1,5})/$', views.ServerDetailView.as_view(), name='server'),
 
     # search page
     url(r'^search/$', views.PlayerSearchView.as_view(), name='search'),
