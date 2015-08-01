@@ -14,7 +14,6 @@ python-dateutil==2.4.2
 pytz==2015.4
 redis==2.10.3
 requests==2.7.0
-simplejson==3.7.3
 six==1.9.0
 uWSGI==2.0.11.1
 celery==3.1.18
