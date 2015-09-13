@@ -70,13 +70,8 @@ TEMPLATES = [
 ]
 
 STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder', 
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
-)
-
-STATICFILES_DIRS = (
-    PATH_APP.child('static'),
 )
 
 STATIC_URL = '/static/'
