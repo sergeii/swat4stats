@@ -19,7 +19,7 @@ class Celery(celery.Celery):
         from raven.contrib.celery import register_signal, register_logger_signal
 
         client = raven.Client(dsn=raven_config['dsn'])
-        register_logger_signal(client, loglevel=logging.WARNING)
+        register_logger_signal(client, loglevel=logging.ERROR)
         register_signal(client)
 
 
