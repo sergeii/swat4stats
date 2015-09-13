@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
 from __future__ import (unicode_literals, absolute_import)
 
-from django.conf.urls import patterns, include, url
-from django.core.urlresolvers import reverse_lazy
+from django.conf.urls import include, url
 from django.views import generic
 
 from . import views
 
-profile_urls = patterns('',
+profile_urls = [
     url(r'^$', views.ProfileDetailView.as_view(), name='profile'),
     url(r'^overview/$', views.ProfileDetailView.as_view(), name='profile_overview'),
     url(r'^equipment/$', views.ProfileWeaponListView.as_view(), name='profile_equipment'),
     url(r'^coop/$', views.ProfileCoopDetailView.as_view(), name='profile_coop'),
     url(r'^ranking/$', views.ProfileRankingListView.as_view(), name='profile_ranking'),
     url(r'^history/$', views.ProfileHistoryListView.as_view(), name='profile_history'),
-)
+]
 
-api_urls = patterns('',
+api_urls = [
     url(r'^motd/summary/$', views.APIMotdSummaryView.as_view()),
     url(r'^motd/leaderboard/(?:(?P<board_name>[\w]+)/)?$', views.APIMotdLeaderboardView.as_view()),
     url(r'^whois/$', views.APIWhoisView.as_view()),
-)
+]
 
-urlpatterns = patterns('',
+urlpatterns = [
     # main page
     url(r'^$', views.MainView.as_view(), name='main'),
     # stream page
@@ -66,4 +65,4 @@ urlpatterns = patterns('',
 
     # search page
     url(r'^search/$', views.PlayerSearchView.as_view(), name='search'),
-)
+]
