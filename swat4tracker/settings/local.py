@@ -81,3 +81,16 @@ COMPRESS_OFFLINE = False
 if 'test' in sys.argv[1:2]:
     CELERY_ALWAYS_EAGER = True
     CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+    LOGGING.update({
+        'loggers': {
+            '': {
+                'level': 'DEBUG',
+                'handlers': ['null'],
+            },
+        },
+        'handlers': {
+            'null': {
+                'class': 'logging.NullHandler'
+            }
+        }
+    })
