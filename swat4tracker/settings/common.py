@@ -1,22 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
-
 import os
 from datetime import timedelta
-from socket import SOCK_STREAM, SOCK_DGRAM
-from logging.handlers import SYSLOG_TCP_PORT, SYSLOG_UDP_PORT
 
 from unipath import Path
 from celery.schedules import crontab
 
-# swat4tracker project package
-PATH_PROJECT = Path(os.path.dirname(__file__)).parent
-# django application package
-PATH_APP = PATH_PROJECT.parent
-# virtualenv dir
-PATH_VENV = PATH_APP.parent
+
+BASE_DIR = Path(os.path.dirname(__file__)).parent.parent
 
 DEBUG = False
+
+SECRET_KEY = 'secret'
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -49,9 +44,7 @@ MIDDLEWARE_CLASSES = (
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            PATH_APP.child('templates'),
-        ],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -121,41 +114,6 @@ LOGGING = {
         },
         'simple': {
             'format': '[%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(funcName)s() - %(message)s'
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': [],
-            'class': 'django.utils.log.AdminEmailHandler'
-        },
-        'syslog': {
-            'level': 'DEBUG',
-            'formatter': 'syslog',
-            'class': 'logging.handlers.SysLogHandler',
-            'address': ('localhost', SYSLOG_UDP_PORT),
-            'socktype': SOCK_DGRAM,
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['syslog', 'mail_admins'],
-            'level': 'ERROR',
-        },
-        'stream': {
-            'handlers': ['syslog'],
-            'level': 'INFO',
-            'propagate': False
-        },
-        'tracker': {
-            'handlers': ['syslog', 'mail_admins'],
-            'level': 'WARNING',
-            'propagate': False
         },
     },
 }

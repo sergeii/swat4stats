@@ -8,8 +8,8 @@ from .common import *
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ('127.0.0.1',)
 
-STATIC_ROOT = PATH_VENV.child('static')
-MEDIA_ROOT = PATH_VENV.child('media')
+STATIC_ROOT = BASE_DIR.child('static')
+MEDIA_ROOT = BASE_DIR.child('media')
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
@@ -25,21 +25,47 @@ DATABASES = {
     }
 }
 
-LOGGING['loggers'] = {
-    'django': {
-        'handlers': ['syslog', 'mail_admins'],
-        'level': 'INFO',
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'syslog': {
+            'format': 'swat4tracker.%(name)s: [%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(message)s'
+        },
+        'simple': {
+            'format': '[%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(funcName)s() - %(message)s'
+        },
     },
-    'tracker': {
-        'handlers': ['syslog', 'mail_admins'],
-        'level': 'DEBUG',
-        'propagate': False
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'syslog': {
+            'level': 'DEBUG',
+            'formatter': 'syslog',
+            'class': 'logging.handlers.SysLogHandler',
+            'address': '/dev/log'
+        },
+    },
+    'loggers': {
+        '': {
+            'level': 'DEBUG',
+            'handlers': ['syslog', 'console'],
+        },
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['syslog'],
+            'propagate': False,
+        },
     },
 }
 
+
 CACHES['default'] = {
     'BACKEND': 'django_redis.cache.RedisCache',
-    'LOCATION': '127.0.0.1:6379:1',
+    'LOCATION': 'redis://127.0.0.1:6379/1',
 }
 
 CACHEOPS_REDIS = {

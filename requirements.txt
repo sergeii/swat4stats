@@ -21,4 +21,3 @@ bleach==1.4.1
 -e git+https://github.com/sergeii/python-julia.git#egg=python-julia
 -e git+https://github.com/sergeii/python-serverquery.git#egg=python-serverquery
 -e git+https://github.com/sergeii/python-whois.git@#egg=python-whois
-pip==7.1.1

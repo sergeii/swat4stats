@@ -3,6 +3,7 @@ from __future__ import unicode_literals, absolute_import
 
 from .common import *
 
+SECRET_KEY = os.environ['DJ_SECRET_KEY']
 ALLOWED_HOSTS = ['swat4tracker.com', 'swat4stats.com']
 
 DATABASES = {
