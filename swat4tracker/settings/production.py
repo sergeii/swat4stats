@@ -21,10 +21,6 @@ DATABASES = {
 
 INSTALLED_APPS += ('raven.contrib.django.raven_compat',)
 
-MIDDLEWARE_CLASSES = (
-    'raven.contrib.django.raven_compat.middleware.Sentry404CatchMiddleware',
-) + MIDDLEWARE_CLASSES
-
 STATIC_ROOT = Path('/var/www/static/swat4tracker/')
 MEDIA_ROOT = Path('/var/www/media/swat4tracker/')
 
