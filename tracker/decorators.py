@@ -42,12 +42,8 @@ def requires_valid_request(pattern_node):
                 # feed the parsed query string
                 data = pattern_node.parse(qs)
             except ValueNodeError as e:
-                logger.warning(
-                    'failed to parse querystring "{}" ({})'.format(body, e),
-                    extra={
-                        'request': request,
-                    }
-                )
+                logger.warning('failed to parse querystring "%s" (%s)', body, e,
+                               extra={'request': request})
                 # return error status view
                 return StreamView.status(
                     request, 
@@ -112,7 +108,7 @@ def requires_valid_source(view):
                 .get()
             )
         except models.Server.DoesNotExist:
-            logger.warning('server with IP {} is not registered'.format(request.META['REMOTE_ADDR']))
+            logger.warning('server with IP %s is not registered', request.META['REMOTE_ADDR'])
         else:
             # set request attr
             setattr(request, 'stream_source', server)
