@@ -71,7 +71,9 @@ LOGGING = {
             'propagate': True,
         },
         'py.warnings': {
-            'propagate': True,
+            'level': 'INFO',
+            'handlers': ['syslog'],
+            'propagate': False,
         },
         'django': {
             'propagate': True,
