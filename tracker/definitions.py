@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 try:
     stream_pattern_node = shortcuts.parse_pattern(const.STREAM_PATTERN)
 except node.PatternNodeError as e:
-    logger.critical('failed to parse pattern ({})'.format(e))
+    logger.error('failed to parse pattern (%s)', e, exc_info=True)
     raise
 
 unmap = partial(shortcuts.unmap, coerce=int)

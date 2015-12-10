@@ -342,7 +342,7 @@ class ServerStatus(GameMixin):
                             definitions.stream_pattern_node.item('coop_objectives').item, 'status', status
                         )
                     except julia.node.BaseNodeError as e:
-                        logger.error(str(e))
+                        logger.error('failed to unmap coop objectives (%s)', str(e), exc_info=True)
                     else:
                         # mimic an Objective instance
                         self.objectives.append({
@@ -1064,7 +1064,7 @@ class ISPManager(models.Manager):
                         .format(ip_address.strNormal(3), data.get('ipv4range'), data.get('orgname'), data.get('country'))
                     )
                 except Exception as e:
-                    logger.critical('failed to get whois for {} ({})'.format(ip_address, e))
+                    logger.error('failed to get whois for %s (%s)', ip_address, e)
                     data = {}
                 # attempt to unpack ip range tuple
                 ipv4range = data.get('ipv4range')
@@ -2050,7 +2050,7 @@ class Article(models.Model):
         try:
             renderer = self.renderers[self.renderer]
         except KeyError:
-            logger.error('No article renderer {}'.format(self.renderer))
+            logger.error('No article renderer %s', self.renderer)
             renderer = self.renderers[self._meta.get_field('renderer').default]
 
         return renderer(self.text)
