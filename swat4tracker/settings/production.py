@@ -59,6 +59,11 @@ LOGGING = {
             'handlers': ['syslog', 'sentry'],
             'propagate': False,
         },
+        'sentry.errors': {
+            'level': 'WARNING',
+            'handlers': ['syslog'],
+            'propagate': False,
+        },
         'django.request': {
             'propagate': True,
         },
