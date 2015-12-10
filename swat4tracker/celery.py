@@ -24,7 +24,7 @@ class Celery(celery.Celery):
 
     def on_configure(self):
         if 'raven.contrib.django.raven_compat' in settings.INSTALLED_APPS:
-            client = raven.Client(settings.RAVEN_CONFIG['dsn'])
+            client = raven.Client(**settings.RAVEN_CONFIG)
             # register a custom filter to filter out duplicate logs
             register_logger_signal(client)
             # hook into the Celery error handler

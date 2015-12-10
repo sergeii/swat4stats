@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
-import logging
+
+import raven
 
 from .common import *
 
@@ -46,7 +47,6 @@ LOGGING = {
             'level': 'DEBUG',
             'formatter': 'syslog',
             'class': 'logging.handlers.SysLogHandler',
-            'address': '/dev/log'
         },
     },
     'loggers': {
@@ -84,5 +84,6 @@ COMPRESS_OFFLINE = True
 if os.environ.get('DJ_SENTRY_DSN'):
     RAVEN_CONFIG = {
         'dsn': os.environ['DJ_SENTRY_DSN'],
-        'CELERY_LOGLEVEL': logging.WARNING,
+        'auto_log_stacks': True,
+        'release': raven.fetch_git_sha(BASE_DIR),
     }
