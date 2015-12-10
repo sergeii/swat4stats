@@ -121,7 +121,7 @@ def save_game(sender, data, server, **kwargs):
                     coop_score=min(100, (utils.calc_coop_score(data['coop_procedures']) if data.get('coop_procedures') else 0)),
                 )
         except IntegrityError:
-            logger.warning('the game with tag %s has already been saved', data['tag'].value)
+            logger.info('the game with tag %s has already been saved', data['tag'].value)
             return
 
         players = []
