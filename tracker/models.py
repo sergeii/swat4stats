@@ -510,8 +510,7 @@ class Server(models.Model):
 
 @python_2_unicode_compatible
 class Game(models.Model, GameMixin):
-    # protect game entries from CASCADE DELETE
-    server = models.ForeignKey('Server', null=True, on_delete=models.SET_NULL)
+    server = models.ForeignKey('Server', on_delete=models.PROTECT)
     tag = models.CharField(max_length=8, null=True, unique=True)
     time = models.SmallIntegerField(default=0)
     outcome = models.SmallIntegerField(default=0)
@@ -742,8 +741,7 @@ class AliasManager(models.Manager):
 class Alias(models.Model):
     profile = models.ForeignKey('Profile')
     name = models.CharField(max_length=64)  # db_index?
-    # protect entries from CASCADE DELETE
-    isp = models.ForeignKey('ISP', related_name='+', null=True, on_delete=models.SET_NULL)
+    isp = models.ForeignKey('ISP', related_name='+', null=True, on_delete=models.PROTECT)
 
     objects = AliasManager()
 
@@ -799,7 +797,7 @@ class Player(models.Model):
 
     game = models.ForeignKey('Game')
     alias = models.ForeignKey('Alias')
-    loadout = models.ForeignKey('Loadout', null=True, on_delete=models.SET_NULL)
+    loadout = models.ForeignKey('Loadout', null=True, on_delete=models.PROTECT)
     ip = models.GenericIPAddressField(protocol='IPv4')
 
     team = models.SmallIntegerField(null=True)
@@ -1262,7 +1260,7 @@ class Profile(models.Model):
     name = models.CharField(max_length=64, null=True)
     team = models.SmallIntegerField(null=True)
     country = models.CharField(max_length=2, null=True)
-    loadout = models.ForeignKey('Loadout', null=True, on_delete=models.SET_NULL)
+    loadout = models.ForeignKey('Loadout', null=True, on_delete=models.PROTECT)
 
     # reference to the first played game
     game_first = models.ForeignKey('Game', related_name='+', null=True, on_delete=models.SET_NULL)
