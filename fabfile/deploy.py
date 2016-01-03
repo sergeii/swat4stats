@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
-from functools import partial, wraps
+from functools import partial
 from contextlib import contextmanager
 
 from fabric.contrib.files import exists
@@ -13,22 +13,23 @@ from .utils import su, rmdir, mkpath, virtualenv
 class App(object):
     env_vars = {
         'DJ_PRODUCTION': '1',
-        'DJ_SECRET_KEY': 'secret',
     }
 
-    git = 'git@localhost:web/swat4tracker#origin/master'
+    git = 'git@swat4stats.com:web/swat4stats#origin/master'
 
-    base = mkpath('/home/www_swat4tracker/')
+    base = mkpath('/home/swat4stats')
     src = base.child('src')
     env = base.child('env')
 
-    uwsgi_program = 'swat4tracker_uwsgi'
-    celeryd_program = 'swat4tracker_celeryd:*'
-    celerybeat_program = 'swat4tracker_celerybeat'
+    local_static = base.child('static')
+    remote_static = 'front.int.swat4stats.com::swat4stats'
 
-    user = 'www_swat4tracker'
-    group = 'www_swat4tracker'
-    python = '/usr/bin/python3.4'
+    uwsgi_profile = 'swat4stats'
+    celery_program = 'celery:'
+    celerybeat_program = 'celerybeat'
+
+    user = 'swat4stats'
+    group = 'swat4stats'
 
     @property
     def git_path(self):
@@ -53,34 +54,35 @@ class App(object):
 
 app = App()
 run = su(app.user)
-pyenv = partial(path, '/usr/local/bin', 'prepend')
+pyenv = partial(path, '/opt/python3.4.4/bin', 'prepend')
 exists = partial(exists, use_sudo=True)
 
 
 @task
 def deploy():
-    """Pull code updates from repo then deploy it"""
     execute(deploy_code)
-    execute(mkvirtualenv)
-    execute(install_requirements)
+    execute(deploy_env)
     execute(migrate)
     execute(invalidate)
-    execute(collectstatic)
-    restart()
+    execute(deploy_static)
+    execute(restart)
 
 
 @task
 def restart():
-    """Restart uwsgi and celery workers"""
-    execute(uwsgi, 'restart')
-    execute(celeryd, 'restart')
+    execute(uwsgi, 'reload')
     execute(celerybeat, 'restart')
+    execute(celery, 'restart')
+
+
+@roles('backend')
+def reload():
+    uwsgi('reload')
 
 
 @task
 @roles('backend')
 def deploy_code():
-    """Checkout code from git repo"""
     if not exists(app.src):
         puts('{} does not exist'.format(app.src))
         run('git clone {} {}'.format(app.git_path, app.src))
@@ -93,7 +95,6 @@ def deploy_code():
 @task
 @roles('backend')
 def migrate(fake=False):
-    """Apply apps migrations"""
     cmd = 'migrate'
     if fake:
         cmd = '{} --fake'.format(cmd)
@@ -102,49 +103,28 @@ def migrate(fake=False):
 
 @task
 @roles('backend')
-def collectstatic():
+def deploy_static():
     managepy('collectstatic --noinput')
     managepy('compress')
+    run('rsync -a --delete {}/ {}/'.format(app.local_static, app.remote_static))
 
 
 @task
 @roles('backend')
 def invalidate():
-    """Invalidate cachops cache"""
     managepy('invalidate all')
 
 
 @task
 @roles('backend')
-def install_requirements():
-    """
-    Satisfy project dependencies:
-
-        * Upgrade pip itself
-        * Upgrade the packages specified in requirements.txt
-
-    """
-    with app.activate():
-        run('pip install -r {}'.format(app.src.child('pip.txt')))
-        run('pip install -r {}'.format(app.src.child('requirements.txt')))
-
-
-@task
-@roles('backend')
-def nginx(cmd):
-    sudo('service nginx {}'.format(cmd))
-
-
-@task
-@roles('backend')
 def uwsgi(cmd):
-    supervisorctl(cmd, app.uwsgi_program)
+    sudo('/etc/init.d/uwsgi {} {}'.format(cmd, app.uwsgi_profile))
 
 
 @task
 @roles('backend')
-def celeryd(cmd):
-    supervisorctl(cmd, app.celeryd_program)
+def celery(cmd):
+    supervisorctl(cmd, app.celery_program)
 
 
 @task
@@ -155,28 +135,33 @@ def celerybeat(cmd):
 
 @task
 @roles('backend')
-def mkvirtualenv(recreate=False):
-    """Create a virtual environment."""
-    if exists(app.env):
-        if not recreate:
-            puts('{} already exists!'.format(app.env))
-            return
-        rmdir(app.env)
-    opts = ['--no-site-packages', '--python {}'.format(app.python)]
-    with pyenv():
-        run('virtualenv {} -- {}'.format(' '.join(opts), app.env))
+def deploy_env(recreate=False):
+    env_exists = exists(app.env)
+
+    if env_exists:
+        puts('{} already exists'.format(app.env))
+        if recreate:
+            puts('removing {}'.format(app.env))
+            rmdir(app.env)
+            env_exists = False
+
+    if not env_exists:
+        with pyenv():
+            run('virtualenv {}'.format(app.env))
+
+    with app.activate():
+        run('pip install pip --upgrade')
+        run('pip install -r {} --exists-action=w'.format(app.src.child('requirements.txt')))
 
 
 @task
 def managepy(cmd):
-    """Run a manage.py command"""
     with app.activate():
         run('python manage.py {}'.format(cmd))
 
 
 @task
 def supervisorctl(command, program=None):
-    """Issue a supervisorctl command"""
     cmd = 'supervisorctl {}'.format(command)
     if program:
         cmd = '{} {}'.format(cmd, program)

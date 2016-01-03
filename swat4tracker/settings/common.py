@@ -27,6 +27,7 @@ INSTALLED_APPS = (
     'cacheops',
     'django_countries',
     'compressor',
+    'raven.contrib.django.raven_compat',
 
     'tracker',
 )
@@ -132,7 +133,6 @@ COMPRESS_CSS_FILTERS = (
 )
 
 COMPRESS_PRECOMPILERS = (
-    ('text/coffeescript', 'coffee --compile --stdio'),
     ('text/less', 'lessc {infile} {outfile}'),
 )
 
@@ -182,13 +182,6 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
-CELERY_ROUTES = {
-    # use a dedicated queue for server queries
-    'tracker.tasks.query_listed_servers': {
-        'queue': 'serverquery',
-    },
-}
-
 CELERY_TASK_RESULT_EXPIRES = 60
 CELERY_TASK_SERIALIZER = 'pickle'
 CELERY_ACCEPT_CONTENT = ['pickle']
@@ -196,3 +189,5 @@ CELERY_DEFAULT_QUEUE = 'default'
 # dont reserve tasks
 CELERYD_PREFETCH_MULTIPLIER = 1
 CELERYD_HIJACK_ROOT_LOGGER = False
+
+RAVEN_CONFIG = {}

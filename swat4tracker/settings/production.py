@@ -1,33 +1,35 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
+import os
+import json
 
 import raven
 
 from .common import *
 
-SECRET_KEY = os.environ['DJ_SECRET_KEY']
-ALLOWED_HOSTS = ['swat4tracker.com', 'swat4stats.com']
+with open(os.path.expanduser('~/secrets.json')) as f:
+    SECRETS = json.load(f)
+
+SECRET_KEY = SECRETS['SECRET_KEY']
+ALLOWED_HOSTS = ['swat4stats.com']
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': '127.0.0.1',
+        'HOST': 'db.int.swat4stats.com',
         'PORT': '5432',
-        'NAME': 'swat4tracker',
-        'USER': 'swat4tracker',
-        'PASSWORD': 'swat4tracker',
+        'NAME': 'swat4stats',
+        'USER': 'swat4stats',
+        'PASSWORD': SECRETS['DB_PASSWORD'],
         'OPTIONS': {},
     },
 }
 
-INSTALLED_APPS += ('raven.contrib.django.raven_compat',)
-
-STATIC_ROOT = Path('/var/www/static/swat4tracker/')
-MEDIA_ROOT = Path('/var/www/media/swat4tracker/')
+STATIC_ROOT = '/home/swat4stats/static'
 
 CACHES['default'] = {
     'BACKEND': 'django_redis.cache.RedisCache',
-    'LOCATION': 'unix:/var/run/redis/redis.sock:1',
+    'LOCATION': 'redis://127.0.0.1:6379/1',
 }
 
 LOGGING = {
@@ -35,7 +37,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'syslog': {
-            'format': 'swat4tracker.%(name)s: [%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(message)s'
+            'format': 'swat4stats.%(name)s: [%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(message)s'
         },
     },
     'handlers': {
@@ -47,6 +49,7 @@ LOGGING = {
             'level': 'DEBUG',
             'formatter': 'syslog',
             'class': 'logging.handlers.SysLogHandler',
+            'address': '/dev/log'
         },
     },
     'loggers': {
@@ -82,15 +85,15 @@ LOGGING = {
 }
 
 CACHEOPS_REDIS = {
-    'unix_socket_path': '/var/run/redis/redis.sock',
+    'host': '127.0.0.1',
+    'port': 6379,
     'db': 2,
 }
 
 COMPRESS_OFFLINE = True
 
-if os.environ.get('DJ_SENTRY_DSN'):
-    RAVEN_CONFIG = {
-        'dsn': os.environ['DJ_SENTRY_DSN'],
-        'auto_log_stacks': True,
-        'release': raven.fetch_git_sha(BASE_DIR),
-    }
+RAVEN_CONFIG = {
+    'dsn': SECRETS['SENTRY_DSN'],
+    'auto_log_stacks': True,
+    'release': raven.fetch_git_sha(BASE_DIR),
+}
