@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
 
+from django.core.checks import messages
 from django.db.models import Count
 from django.contrib import admin
+from django.db.transaction import atomic
+from django.utils.translation import ugettext_lazy as _
 
 from . import models
 
@@ -95,10 +98,27 @@ class ServerAdmin(admin.ModelAdmin):
     list_filter = ('enabled', 'listed', 'streamed', 'pinned', 'version')
     search_fields = ('ip', 'hostname')
     list_per_page = 50
+    actions = ['merge_servers']
 
     def has_delete_permission(self, request, obj=None):
-        """Do not allow an admin to delete servers."""
         return False
+
+    @atomic
+    def merge_servers(self, request, queryset):
+        """
+        Merge games to the first server in the queryset.
+        """
+        if len(queryset) < 2:
+            self.message_user(request, _('Too few servers selected'), level=messages.ERROR)
+            return
+        objects = list(queryset.order_by('pk'))
+        target = objects[0]
+        servers = objects[1:]
+        server_pks = list(map(lambda server: server.pk, servers))
+        models.Game.objects.filter(server__in=server_pks).update(server=target)
+        models.Server.objects.filter(pk__in=server_pks).delete()
+
+    merge_servers.short_description = _('Merge selected servers')
 
 
 class ArticleAdmin(admin.ModelAdmin):
