@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 query_status_received = Signal(providing_args=['server', 'status'])
 query_status_failed = Signal(providing_args=['server'])
-stream_data_received = Signal(providing_args=['data', 'server', 'raw'])
+stream_data_received = Signal(providing_args=['data', 'server', 'raw', 'request'])
 stream_data_saved = Signal(providing_args=['data', 'server', 'game', 'players'])
 live_servers_detected = Signal(providing_args=['servers'])
 dead_servers_detected = Signal(providing_args=['servers'])
@@ -212,9 +212,9 @@ def save_game(sender, data, server, **kwargs):
 
 
 @receiver(stream_data_received)
-def log_game(sender, raw, **kwargs):
-    """Save raw stream data into a log file."""
-    logging.getLogger('stream').info(raw)
+def log_game(sender, raw, request, **kwargs):
+    """Log raw stream data"""
+    logging.getLogger('stream').info('%s: %s', request.META['REMOTE_ADDR'], raw)
 
 
 @receiver(stream_data_received)

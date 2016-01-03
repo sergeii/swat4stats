@@ -240,10 +240,8 @@ class StreamView(generic.View):
     @method_decorator(decorators.requires_valid_request(definitions.stream_pattern_node))
     @method_decorator(decorators.requires_authorized_source)
     def post(self, request):
-        logger.debug(
-            'received stream data from {}:{}'
-            .format(request.stream_source.ip, request.stream_source.port)
-        )
+        logger.info('received stream data from %s:%s (%s)',
+                    request.stream_source.ip, request.stream_source.port, request.META['REMOTE_ADDR'])
         messages = []
         error = False
         # collect messages of the signal handlers
@@ -251,8 +249,8 @@ class StreamView(generic.View):
             sender=None, 
             data=request.stream_data, 
             server=request.stream_source, 
-            # attach raw http message body
-            raw=request.stream_data_raw
+            raw=request.stream_data_raw,
+            request=request
         )
         for _, message in response:
             # response may itself be a list of messages

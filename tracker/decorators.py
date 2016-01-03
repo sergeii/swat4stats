@@ -74,6 +74,8 @@ def requires_authorized_source(view):
         }
         try:
             server = models.Server.objects.get(**attrs)
+            logger.info('obtained server %s %s:%s for %s',
+                        server.pk, server.ip, server.port, request.META['REMOTE_ADDR'])
         except models.Server.DoesNotExist:
             logger.debug('creating a server for {ip}:{port}'.format(**attrs))
             server = models.Server.objects.create_server(enabled=True, streamed=True, **attrs)
