@@ -75,6 +75,7 @@ def restart():
     execute(celery, 'restart')
 
 
+@task
 @roles('backend')
 def reload():
     uwsgi('reload')
