@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: /admin
 Crawl-delay: 5
-Sitemap: http://swat4stats.com/sitemap.xml
+Sitemap: https://swat4stats.com/sitemap.xml
