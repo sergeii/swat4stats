@@ -1,4 +1,4 @@
-Django==1.8.7
+Django==1.8.8
 IPy==0.83
 Markdown==2.6.2
 Unipath==1.1
