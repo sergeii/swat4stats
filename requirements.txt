@@ -1,23 +1,26 @@
-Django==1.8.8
+Django==1.9.1
 IPy==0.83
 Markdown==2.6.2
 Unipath==1.1
-django-brake==1.3.1
-django-cacheops==2.4
-django-compressor==1.5
-django-countries==3.3
-django-debug-toolbar==1.3.2
-django-redis==4.2.0
+django-brake==1.4.1
+django-cacheops==2.4.3
+django-countries==3.4.1
+django-debug-toolbar==1.4
+django-redis==4.3.0
 mock==1.3.0
 psycopg2==2.6.1
 python-dateutil==2.4.2
 pytz==2015.4
 redis==2.10.3
-requests==2.7.0
-six==1.9.0
-celery==3.1.18
-bleach==1.4.1
+requests==2.9.1
+six==1.10.0
+celery==3.1.19
+bleach==1.4.2
 raven==5.8.1
+
+# waiting for 1.7
+-e git+https://github.com/django-compressor/django-compressor@199089e1ed9adbd5c5ef6bf2f6e0445c579495b1#egg=django_compressor
+
 -e git+https://github.com/sergeii/python-julia.git#egg=python-julia
 -e git+https://github.com/sergeii/python-serverquery.git#egg=python-serverquery
 -e git+https://github.com/sergeii/python-whois.git@#egg=python-whois

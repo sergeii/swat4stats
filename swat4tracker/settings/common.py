@@ -129,7 +129,7 @@ COMPRESS_OUTPUT_DIR = ''
 COMPRESS_CSS_FILTERS = (
     'compressor.filters.css_default.CssAbsoluteFilter',
     'compressor.filters.datauri.CssDataUriFilter',
-    'compressor.filters.cssmin.CSSMinFilter',
+    'compressor.filters.cssmin.rCSSMinFilter',
 )
 
 COMPRESS_PRECOMPILERS = (

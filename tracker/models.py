@@ -1963,7 +1963,7 @@ class PublishedArticleManager(models.Manager):
         return (
             super(PublishedArticleManager, self)
             .get_queryset(*args, **kwargs)
-            .filter(is_published=True, date_published__lte=timezone.now)
+            .filter(is_published=True, date_published__lte=timezone.now())
         )
 
     def latest(self, limit):
