@@ -134,7 +134,7 @@ COMPRESS_CSS_FILTERS = (
 )
 
 COMPRESS_PRECOMPILERS = (
-    ('text/less', 'lessc {infile} {outfile}'),
+    ('text/less', '{} {{infile}} {{outfile}}'.format(BASE_DIR.child('node_modules', 'less', 'bin', 'lessc'))),
 )
 
 # only data-encode small files

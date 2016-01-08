@@ -1,0 +1,9 @@
+{
+  "name": "swat4stats",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Sergei Khoroshilov <kh.sergei@gmail.com>",
+  "dependencies": {
+    "less": "^2.5.3"
+  }
+}

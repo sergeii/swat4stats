@@ -90,7 +90,7 @@ def deploy_code():
     with cd(app.src):
         run('git fetch')
         run('git reset --hard {}'.format(app.git_ref))
-        run('git clean -fdx')
+        run('git clean -fdx -e node_modules')
 
 
 @task
@@ -153,6 +153,9 @@ def deploy_env(recreate=False):
     with app.activate():
         run('pip install pip --upgrade')
         run('pip install -r {} --exists-action=w'.format(app.src.child('requirements.txt')))
+
+    with app.cd():
+        run('npm install')
 
 
 @task
