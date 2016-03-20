@@ -1645,7 +1645,7 @@ class APIWhoisView(generic.View):
         return HttpResponse('\n'.join(list(filter(None, [code, command, message]))))
 
     # limit request rate to the whois api
-    @method_decorator(ratelimit(rate='5/m', block=False))
+    @method_decorator(ratelimit(rate='60/m', block=False))
     @method_decorator(decorators.requires_valid_source)
     @method_decorator(decorators.requires_valid_request(pattern_node))
     def dispatch(self, *args, **kwargs):
