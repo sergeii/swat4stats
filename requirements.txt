@@ -1,4 +1,4 @@
-Django==1.9.1
+Django==1.9.4
 IPy==0.83
 Markdown==2.6.5
 Unipath==1.1
@@ -10,13 +10,13 @@ django-redis==4.3.0
 mock==1.3.0
 psycopg2==2.6.1
 python-dateutil==2.4.2
-pytz==2015.7
+pytz==2016.1
 redis==2.10.5
 requests==2.9.1
 six==1.10.0
-celery==3.1.19
+celery==3.1.23
 bleach==1.4.2
-raven==5.9.2
+raven==5.11.1
 
 # waiting for 1.7
 -e git+https://github.com/django-compressor/django-compressor@199089e1ed9adbd5c5ef6bf2f6e0445c579495b1#egg=django_compressor
