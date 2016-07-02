@@ -4,6 +4,7 @@ import os
 import json
 
 import raven
+from raven.transport import ThreadedRequestsHTTPTransport
 
 from .common import *
 
@@ -96,4 +97,6 @@ RAVEN_CONFIG = {
     'dsn': SECRETS['SENTRY_DSN'],
     'auto_log_stacks': True,
     'release': raven.fetch_git_sha(BASE_DIR),
+    'include_versions': False,
+    'transport': ThreadedRequestsHTTPTransport,
 }
