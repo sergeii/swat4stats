@@ -155,8 +155,8 @@ CELERYBEAT_SCHEDULE = {
     # query servers for 90 seconds with an interval of 5 seconds
     'query-servers': {
         'task': 'tracker.tasks.query_listed_servers',
-        'schedule': timedelta(seconds=90),
-        'kwargs': {'time_delta': 90, 'interval': 5},
+        'schedule': timedelta(seconds=60),
+        'kwargs': {'time_delta': 60, 'interval': 5},
     },
     # update the profile popular fields (name, team, etc) every hour
     'update-popular': {

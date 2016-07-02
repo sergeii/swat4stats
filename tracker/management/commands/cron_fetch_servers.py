@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
 
-import warnings
-
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from tracker import tasks
 
 
@@ -18,5 +16,4 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        warnings.warn('Use of %s is deprecated. Use celery instead.' % __name__, DeprecationWarning)
         tasks.update_server_list()

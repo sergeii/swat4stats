@@ -32,7 +32,6 @@ class ServerQueryThread(threading.Thread):
         super(ServerQueryThread, self).__init__(*args, **kwargs)
 
     def run(self):
-        self.semaphore.acquire()
         try:
             self.server.query()
         except:
@@ -109,7 +108,6 @@ def query_listed_servers(time_delta, interval):
         time_delta - execution time (seconds/timedelta obj)
         interval - time between query cycles (seconds/timedelta obj)
     """
-    threads = []
     # list of available servers
     servers_listed = set()
     # list of servers that have responded to a query
@@ -124,19 +122,19 @@ def query_listed_servers(time_delta, interval):
     servers = models.Server.objects.listed()
 
     while time.time() < stop_time:
+        threads = []
         for server in servers:
             # keep track of servers being queried
             servers_listed.add(server)
+            semaphore.acquire()
             thread = ServerQueryThread(server=server, semaphore=semaphore, live=servers_live)
             threads.append(thread)
             # queue the thread
             thread.start()
-        
+        # block untill all threads finished
+        [thread.join() for thread in threads]
         # sleep for a while
         time.sleep(interval)
-
-    # block untill all threads finished
-    [thread.join() for thread in threads]
 
     # servers that have replied at least once
     live_servers_detected.send(sender=None, servers=servers_live)

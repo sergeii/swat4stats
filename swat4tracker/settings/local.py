@@ -77,10 +77,10 @@ CACHEOPS_REDIS = {
 
 COMPRESS_OFFLINE = False
 
+CELERY_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 if 'test' in sys.argv[1:2]:
-    CELERY_ALWAYS_EAGER = True
-    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
     LOGGING.update({
         'loggers': {
             '': {

@@ -50,4 +50,4 @@ SERVER_LIST_URLS = {
 }
 
 # max number of concurrent server status requests
-MAX_STATUS_CONNECTIONS = 30
+MAX_STATUS_CONNECTIONS = 50
