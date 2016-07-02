@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
-import os
 import json
 
 import raven
@@ -25,6 +24,14 @@ DATABASES = {
         'OPTIONS': {},
     },
 }
+
+INSTALLED_APPS = (
+    'opbeat.contrib.django',
+) + INSTALLED_APPS
+
+MIDDLEWARE_CLASSES = (
+    'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
+) + MIDDLEWARE_CLASSES
 
 STATIC_ROOT = '/home/swat4stats/static'
 
@@ -99,4 +106,10 @@ RAVEN_CONFIG = {
     'release': raven.fetch_git_sha(BASE_DIR),
     'include_versions': False,
     'transport': ThreadedRequestsHTTPTransport,
+}
+
+OPBEAT = {
+    'ORGANIZATION_ID': SECRETS['OPBEAT_ORGANIZATION_ID'],
+    'APP_ID': SECRETS['OPBEAT_APP_ID'],
+    'SECRET_TOKEN': SECRETS['OPBEAT_SECRET_TOKEN'],
 }
