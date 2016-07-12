@@ -2001,7 +2001,7 @@ class Article(models.Model):
         'li', 'ol', 'strong', 'ul',
         'img', 'iframe',
         'p', 'div',
-        'br', 'hr'
+        'br', 'hr', 'pre',
     ]
 
     ALLOWED_ATTRIBUTES = {
