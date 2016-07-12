@@ -1996,22 +1996,12 @@ class Article(models.Model):
 
     # bleach
     ALLOWED_TAGS = [
-        'a',
-        'abbr',
-        'acronym',
-        'b',
-        'blockquote',
-        'code',
-        'em',
-        'i',
-        'li',
-        'ol',
-        'strong',
-        'ul',
-        'img',
-        'iframe',
-        'p',
-        'div',
+        'a', 'abbr', 'acronym',
+        'b', 'blockquote', 'code', 'em', 'i',
+        'li', 'ol', 'strong', 'ul',
+        'img', 'iframe',
+        'p', 'div',
+        'br', 'hr'
     ]
 
     ALLOWED_ATTRIBUTES = {
