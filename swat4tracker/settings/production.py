@@ -62,7 +62,7 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['syslog', 'sentry'],
         },
         'django.db.backends': {
