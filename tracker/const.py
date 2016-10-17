@@ -1061,4 +1061,16 @@ WHOIS_PATTERN = {
         'required': False,
         'default': '',
     },
+    '4': {
+        'type': node.StringPatternNode,
+        'name': 'player_name',
+        'required': False,
+        'default': '',
+    },
+    '5': {
+        'type': node.StringPatternNode,
+        'name': 'player_ip',
+        'required': False,
+        'default': '',
+    },
 }
