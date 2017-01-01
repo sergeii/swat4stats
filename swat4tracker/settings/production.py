@@ -21,6 +21,7 @@ DATABASES = {
         'NAME': 'swat4stats',
         'USER': 'swat4stats',
         'PASSWORD': SECRETS['DB_PASSWORD'],
+        'CONN_MAX_AGE': 600,
         'OPTIONS': {},
     },
 }
