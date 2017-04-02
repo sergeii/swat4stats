@@ -43,9 +43,13 @@ SERVER_LIST_URLS = {
     ('http://www.markmods.com/swat4serverlist/',
        r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
     ),
-    # gametracker/gsc server list
-    ('http://api.getgsc.com/?command=get_gameservers_csv&search_by=game_abbrev&search_term=swat4&limit=1000',
-        r'^(?P<addr>%s),(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
+    # gametracker server list
+    ('http://www.gametracker.com/search/swat4/?searchipp=50',
+        r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
+    ),
+    #
+    ('http://www.gametracker.com/search/swat4/?searchipp=50&searchpge=2',
+        r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
     ),
 }
 
