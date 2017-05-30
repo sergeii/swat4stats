@@ -51,6 +51,9 @@ SERVER_LIST_URLS = {
     ('http://www.gametracker.com/search/swat4/?searchipp=50&searchpge=2',
         r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
     ),
+    ('https://dev.swat4stats.com/api/servers/',
+     r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
+    ),
 }
 
 # max number of concurrent server status requests

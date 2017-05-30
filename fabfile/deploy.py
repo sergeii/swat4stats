@@ -15,7 +15,7 @@ class App(object):
         'DJ_PRODUCTION': '1',
     }
 
-    git = 'git@swat4stats.com:web/swat4stats#origin/master'
+    git = 'git@git.swat4stats.com:swat4stats/swat4stats#origin/master'
 
     base = mkpath('/home/swat4stats')
     src = base.child('src')

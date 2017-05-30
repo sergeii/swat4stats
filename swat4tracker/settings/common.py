@@ -150,7 +150,7 @@ CELERYBEAT_SCHEDULE = {
     # fetch new servers from various sources every 30 min
     'update-servers': {
         'task': 'tracker.tasks.update_server_list',
-        'schedule': timedelta(minutes=30),
+        'schedule': timedelta(minutes=5),
     },
     # query servers for 90 seconds with an interval of 5 seconds
     'query-servers': {
