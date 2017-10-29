@@ -144,6 +144,7 @@ STREAM_PATTERN = {
             '2': 'SAS',
             '3': 'SSF Realism Mod',
             '4': 'H.S.M.E',
+            '5': 'SEF',
         }
     },
     # Game version
