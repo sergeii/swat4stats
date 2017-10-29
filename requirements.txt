@@ -25,5 +25,5 @@ opbeat==3.3.4
 -e git+https://github.com/django-compressor/django-compressor@199089e1ed9adbd5c5ef6bf2f6e0445c579495b1#egg=django_compressor
 
 -e git+https://github.com/sergeii/python-julia.git#egg=python-julia
--e git+https://github.com/sergeii/python-serverquery.git#egg=python-serverquery
+-e git+https://github.com/sergeii/python-serverquery.git@546cc80#egg=python-serverquery
 -e git+https://github.com/sergeii/python-whois.git@#egg=python-whois

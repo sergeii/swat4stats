@@ -16,8 +16,8 @@ ALLOWED_HOSTS = ['swat4stats.com']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': 'ha.int.swat4stats.com',
-        'PORT': '46432',
+        'HOST': 'db.int.swat4stats.com',
+        'PORT': '6432',
         'NAME': 'swat4stats',
         'USER': 'swat4stats',
         'PASSWORD': SECRETS['DB_PASSWORD'],

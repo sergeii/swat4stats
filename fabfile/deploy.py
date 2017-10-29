@@ -24,7 +24,6 @@ class App(object):
     local_static = base.child('static')
     remote_static = 'front.int.swat4stats.com::swat4stats'
 
-    uwsgi_profile = 'swat4stats'
     celery_program = 'celery:'
     celerybeat_program = 'celerybeat'
 
@@ -70,7 +69,7 @@ def deploy():
 
 @task
 def restart():
-    execute(uwsgi, 'reload')
+    execute(reload)
     execute(celerybeat, 'restart')
     execute(celery, 'restart')
 
@@ -78,7 +77,7 @@ def restart():
 @task
 @roles('backend')
 def reload():
-    uwsgi('reload')
+    sudo('touch /etc/uwsgi/vassals/swat4stats.ini')
 
 
 @task
@@ -114,12 +113,6 @@ def deploy_static():
 @roles('backend')
 def invalidate():
     managepy('invalidate all')
-
-
-@task
-@roles('backend')
-def uwsgi(cmd):
-    sudo('/etc/init.d/uwsgi {} {}'.format(cmd, app.uwsgi_profile))
 
 
 @task
