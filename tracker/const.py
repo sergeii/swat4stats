@@ -381,6 +381,25 @@ STREAM_PATTERN = {
             '194': 'Food Wall Restaurant butchered',  # MP-Foodwall2.s4m
             '195': 'Fede\'s Nightmare',  # MP-FedesNightmare.s4m
             '196': '(SEALMAP)Central_Base',  # MP-Central_Base.s4m, SP-Central_Base.s4m
+            # provided by Keyser Soze
+            '197': 'Arcade1_0',  # MP-Arcade1_0.s4m
+            '198': 'Saint-Paul Asylum V2',  # MP-AsylumV2.s4m
+            '199': 'BattleShips V2',  # MP-BattleShipsV2.s4m
+            '200': 'C-Block V2',  # MP-CBlockV2.s4m
+            '201': 'City Streets V2',  # MP-CityStreetsV2.s4m
+            '202': 'Club -[*ATL*]- V2',  # MP-ClubATLV2.s4m
+            '203': 'Combat Zone V2',  # MP-CombatZoneV2.s4m
+            '204': 'Desert ops -Village- V2',  # MP-DesertOpsVillageV2.s4m
+            '205': 'Drug Lab1_0',  # MP-DrugLab1_0.s4m
+            '206': 'Dust 2',  # MP-Dust2.s4m
+            '207': 'Food Wall Restaurant by FlOo V2',  # MP-Foodwall_flOo_V2.s4m
+            '208': 'Jigsaw\'s Madness',  # MP-JigsawsMadness.s4m
+            '209': 'Madmap V2',  # MP-MadmapV2.s4m
+            '210': 'Mad Shopping V2',  # MP-MadShoppingV2.s4m
+            '211': 'Newfort V2',  # MP-NewfortV2.s4m
+            '212': 'Pier 13 V2',  # MP-Pier13V2.s4m
+            '213': 'Subway Station V2',  # MP-SubwayStationV2.s4m
+            '214': 'Winter Foodwall',  # MP-WinterFoodwall.s4m
         },
     },
     # Indicate whether the server is password protected
