@@ -24,6 +24,6 @@ elastic-apm==2.2.1
 # waiting for 1.7
 -e git+https://github.com/django-compressor/django-compressor@199089e1ed9adbd5c5ef6bf2f6e0445c579495b1#egg=django_compressor
 
--e git+https://github.com/sergeii/python-julia.git#egg=python-julia
+-e git+https://github.com/sergeii/python-julia.git@46914e0#egg=python-julia
 -e git+https://github.com/sergeii/python-serverquery.git@546cc80#egg=python-serverquery
--e git+https://github.com/sergeii/python-whois.git@#egg=python-whois
+-e git+https://github.com/sergeii/python-whois.git@817a6fc#egg=python-whois
