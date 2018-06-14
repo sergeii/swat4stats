@@ -7,6 +7,9 @@ from raven.transport import ThreadedRequestsHTTPTransport
 
 from .common import *
 
+
+RAVEN_GIT_SHA = raven.fetch_git_sha(BASE_DIR)
+
 with open(os.path.expanduser('~/secrets.json')) as f:
     SECRETS = json.load(f)
 
@@ -26,12 +29,12 @@ DATABASES = {
     },
 }
 
-INSTALLED_APPS = (
-    'opbeat.contrib.django',
-) + INSTALLED_APPS
+INSTALLED_APPS += (
+    'elasticapm.contrib.django',
+)
 
 MIDDLEWARE_CLASSES = (
-    'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
+    'elasticapm.contrib.django.middleware.TracingMiddleware',
 ) + MIDDLEWARE_CLASSES
 
 STATIC_ROOT = '/home/swat4stats/static'
@@ -104,13 +107,20 @@ COMPRESS_OFFLINE = True
 RAVEN_CONFIG = {
     'dsn': SECRETS['SENTRY_DSN'],
     'auto_log_stacks': True,
-    'release': raven.fetch_git_sha(BASE_DIR),
+    'release': RAVEN_GIT_SHA,
     'include_versions': False,
     'transport': ThreadedRequestsHTTPTransport,
 }
 
-OPBEAT = {
-    'ORGANIZATION_ID': SECRETS['OPBEAT_ORGANIZATION_ID'],
-    'APP_ID': SECRETS['OPBEAT_APP_ID'],
-    'SECRET_TOKEN': SECRETS['OPBEAT_SECRET_TOKEN'],
+ELASTIC_APM = {
+    'SERVICE_NAME': 'swat4stats',
+    'SECRET_TOKEN': '193dde07-bd58-434a-b081-dcb5efed8079',
+    'SERVER_URL': 'https://apm-intake.swat4stats.com',
+    'ENVIRONMENT': 'production',
+    'SERVICE_VERSION': RAVEN_GIT_SHA,
+    'SPAN_FRAMES_MIN_DURATION': 0,
+    'TRANSACTION_MAX_SPANS': 100,
+    'FLUSH_INTERVAL': 30,
+    'AUTO_LOG_STACKS': False,
+    'COLLECT_LOCAL_VARIABLES': 'off',
 }

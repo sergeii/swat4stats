@@ -18,8 +18,8 @@ celery==3.1.23
 billiard==3.3.0.23
 kombu==3.0.35
 bleach==1.4.3
-raven==5.21.0
-opbeat==3.3.4
+raven==6.9.0
+elastic-apm==2.2.1
 
 # waiting for 1.7
 -e git+https://github.com/django-compressor/django-compressor@199089e1ed9adbd5c5ef6bf2f6e0445c579495b1#egg=django_compressor
