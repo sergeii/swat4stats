@@ -118,6 +118,7 @@ ELASTIC_APM = {
     'SERVER_URL': 'https://apm-intake.swat4stats.com',
     'ENVIRONMENT': 'production',
     'SERVICE_VERSION': RAVEN_GIT_SHA,
+    'TRANSACTION_SAMPLE_RATE': 0.1,
     'SPAN_FRAMES_MIN_DURATION': 0,
     'TRANSACTION_MAX_SPANS': 100,
     'FLUSH_INTERVAL': 30,
