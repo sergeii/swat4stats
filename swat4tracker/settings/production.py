@@ -29,14 +29,6 @@ DATABASES = {
     },
 }
 
-INSTALLED_APPS += (
-    'elasticapm.contrib.django',
-)
-
-MIDDLEWARE_CLASSES = (
-    'elasticapm.contrib.django.middleware.TracingMiddleware',
-) + MIDDLEWARE_CLASSES
-
 STATIC_ROOT = '/home/swat4stats/static'
 
 CACHES['default'] = {
@@ -110,18 +102,4 @@ RAVEN_CONFIG = {
     'release': RAVEN_GIT_SHA,
     'include_versions': False,
     'transport': ThreadedRequestsHTTPTransport,
-}
-
-ELASTIC_APM = {
-    'SERVICE_NAME': 'swat4stats',
-    'SECRET_TOKEN': '193dde07-bd58-434a-b081-dcb5efed8079',
-    'SERVER_URL': 'https://apm-intake.swat4stats.com',
-    'ENVIRONMENT': 'production',
-    'SERVICE_VERSION': RAVEN_GIT_SHA,
-    'TRANSACTION_SAMPLE_RATE': 0.1,
-    'SPAN_FRAMES_MIN_DURATION': 999999,
-    'TRANSACTION_MAX_SPANS': 100,
-    'FLUSH_INTERVAL': 30,
-    'AUTO_LOG_STACKS': False,
-    'COLLECT_LOCAL_VARIABLES': 'off',
 }

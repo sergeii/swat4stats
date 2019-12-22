@@ -53,7 +53,7 @@ class App(object):
 
 app = App()
 run = su(app.user)
-pyenv = partial(path, '/opt/python3.8/bin', 'prepend')
+pyenv = partial(path, '/opt/python3.7/bin', 'prepend')
 exists = partial(exists, use_sudo=True)
 
 
