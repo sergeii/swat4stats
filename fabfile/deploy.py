@@ -53,7 +53,7 @@ class App(object):
 
 app = App()
 run = su(app.user)
-pyenv = partial(path, '/opt/python3.7/bin', 'prepend')
+pyenv = partial(path, '/opt/python3.6/bin', 'prepend')
 exists = partial(exists, use_sudo=True)
 
 
@@ -95,7 +95,7 @@ def deploy_code():
 @task
 @roles('backend')
 def migrate(fake=False):
-    cmd = 'migrate'
+    cmd = 'migrate --noinput'
     if fake:
         cmd = '{} --fake'.format(cmd)
     managepy(cmd)
