@@ -50,7 +50,7 @@ $(document).ready(function(){
     {% if server.streamed %}
     <a href="{% url 'tracker:game_list_history' %}?filter_server=on&amp;server={{ server.pk }}" class="swat-button">{% trans "History" %}</a>
     {% endif %}
-    <a href="xfire:join?game=swat4{% ifequal status.gamename_translated 'SWAT 4X' %}tss{% endifequal %}&amp;server={{ server.ip }}:{{ server.port }}" class="swat-button-arrow-right">{% trans "Join" %}</a>
+    <a href="swatjoin://{{ status.gamename|gamename|urlencode }}{{ status.gamever }}/{{ server.ip }}:{{ server.port }}" class="swat-button-arrow-right">{% trans "Join" %}</a>
 </div>
 {% endspaceless %}
 {% endblock %}
