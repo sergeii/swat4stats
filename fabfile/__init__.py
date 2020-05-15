@@ -9,6 +9,6 @@ from .deploy import *  # noqa
 env.always_use_pty = False
 env.use_ssh_config = True
 env.roledefs = {
-    'backend': ['new.swat4stats.com'],
+    'backend': ['swat4stats.jodie'],
 }
 env.sudo_prefix += '-i'
