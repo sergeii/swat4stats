@@ -51,7 +51,6 @@ $(document).ready(function(){
     <a href="{% url 'tracker:game_list_history' %}?filter_server=on&amp;server={{ server.pk }}" class="swat-button">{% trans "History" %}</a>
     {% endif %}
     <a href="swatjoin://{{ status.gamename|gamename }}{{ status.gamever }}/{{ server.ip }}:{{ server.port }}" class="swat-button-arrow-right">{% trans "Join" %}</a>
-    //comment: encode gamename into URL
 </div>
 {% endspaceless %}
 {% endblock %}
