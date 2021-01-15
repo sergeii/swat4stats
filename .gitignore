@@ -9,4 +9,5 @@ __pycache__/
 /.cache
 /.pytest_cache
 /static
+/web/dist
 supervisord.log

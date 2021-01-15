@@ -22,7 +22,7 @@ class App(object):
     env = base.child('env')
 
     local_static = base.child('static')
-    remote_static = 'front.int.swat4stats.com::swat4stats'
+    remote_static = 'cdn.int.swat4stats.com::swat4stats'
 
     celery_program = 'celery:'
     celerybeat_program = 'celerybeat'
