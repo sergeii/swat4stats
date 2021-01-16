@@ -59,7 +59,7 @@ def fetch_server_list(self, url, pattern):
     }
 
     try:
-        response = requests.get(url, headers=headers, timeout=timeout)
+        response = requests.get(url, headers=headers, timeout=timeout, verify=False)
     except Exception as exc:
         logger.debug('failed to fetch %s (%s, %s)' % (url, type(exc), exc))
         raise self.retry(exc=exc)

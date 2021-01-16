@@ -40,15 +40,15 @@ POPULAR_NAMES = (
 # used by the tasks.update_server_list task to keep the server list up to date
 SERVER_LIST_URLS = {
     # mark server list
-    ('http://www.markmods.com/swat4serverlist/',
+    ('https://www.markmods.com/swat4serverlist/',
        r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
     ),
     # gametracker server list
-    ('http://www.gametracker.com/search/swat4/?searchipp=50',
+    ('https://www.gametracker.com/search/swat4/?searchipp=50',
         r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
     ),
     #
-    ('http://www.gametracker.com/search/swat4/?searchipp=50&searchpge=2',
+    ('https://www.gametracker.com/search/swat4/?searchipp=50&searchpge=2',
         r'\b(?P<addr>%s):(?P<port>%s)\b' % (definitions.PATTERN_IPV4, definitions.PATTERN_PORT)
     ),
     ('https://dev.swat4stats.com/api/servers/',
