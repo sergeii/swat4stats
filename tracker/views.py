@@ -245,10 +245,10 @@ class StreamView(generic.View):
         messages = []
         error = False
         # collect messages of the signal handlers
-        response = stream_data_received.send_robust(
-            sender=None, 
-            data=request.stream_data, 
-            server=request.stream_source, 
+        response = stream_data_received.send(
+            sender=None,
+            data=request.stream_data,
+            server=request.stream_source,
             raw=request.stream_data_raw,
             request=request
         )
