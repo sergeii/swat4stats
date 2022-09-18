@@ -7,18 +7,6 @@ REDIS_DB = {
     'celery': 13,
 }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'swat4stats',
-        'USER': 'swat4stats',
-        'PASSWORD': 'swat4stats',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-        'DISABLE_SERVER_SIDE_CURSORS': True,
-    }
-}
-
 LOGGING.update({
     'loggers': {
         '': {
