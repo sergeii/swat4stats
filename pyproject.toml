@@ -28,6 +28,7 @@ factory-boy = "3.2.1"
 flake8 = "5.0.4"
 pre-commit = "^2.20.0"
 pyupgrade = "2.38.0"
+uWSGI = "2.0.20"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "5.0.4"
