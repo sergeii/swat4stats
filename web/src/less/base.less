@@ -1,0 +1,2169 @@
+@swat-yellow: #FFFF00;
+@swat-blue: lighten(#0000ff, 10%);
+@swat-red: #ff0000;
+@swat-green: #00ff00;
+
+@swat-transparent-box-background: rgba(0, 0, 0, 0.65);
+@swat-cursor: '../cursor/cursor_black.png';
+
+@color-error: lighten(#ff0000, 7.5%);
+
+@black-bar-height: 12%;
+@frame-height: 100%-@black-bar-height*2;
+@menu-width: 40%;
+
+@button-width: 10em;
+@button-symbol-width: 1.25em;
+
+.box-sizing(@type){
+    -webkit-box-sizing: @type;
+    -moz-box-sizing: @type;
+    -o-box-sizing: @type;
+    box-sizing: @type;
+}
+
+.appearance(@type){
+    -webkit-appearance: @type;
+    -moz-appearance: @type;
+    -o-appearance: @type;
+    appearance: @type;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+sub, sup {
+    font-size: 0.75em;
+}
+
+button, input {
+    border: 0;
+    background: none;
+    .box-sizing(content-box);
+}
+
+body,
+button,
+input[type="submit"],
+input[type="button"], {
+    cursor: url(@swat-cursor), auto;
+}
+
+body {
+    font-family: 'Play', sans-serif;
+    text-align: left;
+    color: #fff;
+    overflow: hidden;
+    background: #000;
+    font-size: 100%;
+}
+
+body.x-narrow {
+    font-size: 40% !important;
+}
+
+body.narrow {
+    font-size: 75% !important;
+}
+
+body.wide {
+    font-size: 115% !important;
+}
+
+body.x-wide {
+    font-size: 125% !important;
+}
+
+img {
+    vertical-align: top;
+}
+
+a {
+    cursor: url(@swat-cursor), auto;
+    outline: none;
+
+    &.unstyled {
+        text-decoration: none;
+        color: inherit;
+    }
+}
+
+a:link,
+a:visited {
+    color: #fff;
+}
+
+a:hover,
+a:visited:hover {
+    color: @swat-yellow;
+}
+
+.hoverable:hover {
+    background-color: @swat-yellow;
+    box-shadow: 0 0 0.3em 0.1em @swat-yellow;
+}
+
+.interactive {
+    border-bottom: 1px dotted #fff !important;
+}
+
+.interactive:hover {
+    &:extend(a:hover);
+}
+
+.transform(@value){
+    -webkit-transform: @value;
+    -moz-transform: @value;
+    -o-transform: @value;
+    -ms-transform: @value;
+    transform: @value;
+}
+
+.rotate(@value){
+    .transform(rotate(@value));
+}
+
+.rotate90 {
+    .rotate(-90deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+}
+
+.swat-green {
+    color: @swat-green !important;
+}
+
+.swat-blue {
+    color: @swat-blue;
+}
+
+.swat-red {
+    color: @swat-red;
+}
+
+.swat-yellow {
+    color: #FFFF00;
+}
+
+.black-bar-mixin {
+    position: fixed;
+    height: @black-bar-height;
+    width: 100%;
+    background: #000;
+    z-index: 1000;
+}
+
+#container {
+    width: 100%;
+    height: 100%;
+}
+
+#background:extend(#container) {
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #080808;
+}
+
+#swat-header {
+    .black-bar-mixin();
+    top: 0;
+
+    & > .upper {
+        position: relative;
+        height: 50%;
+    }
+
+    & > .lower {
+        position: relative;
+        height: 50%;
+
+        & > .left {
+            margin: 0.5em 0.75em;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            text-align: left;
+        }
+        & > .right {
+            margin: 0.5em 0.75em;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            text-align: right;
+        }
+    }
+}
+
+#swat-footer {
+    .black-bar-mixin();
+    bottom: 0;
+    text-align: right;
+    padding: 0.5em 0.75em;
+    .border-box();
+
+    & > .inner {
+        position: relative;
+        height: 100%;
+
+        & > .left {
+            position: absolute;
+            left: 0;
+            top: 0;
+            text-align: left;
+        }
+
+        & > .status {
+            .swat-status-text();
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            text-align: left;
+        }
+
+        & > .right {
+            min-width: 50%;
+            position: absolute;
+            right: 0;
+            top: 0;
+            text-align: right;
+        }
+
+        #copyright {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            font-size: 0.85em;
+        }
+    }
+}
+
+#swat-frame {
+    width: 100%;
+    position: relative;
+    top: @black-bar-height;
+    height: @frame-height;
+    -webkit-background-size: 100%;
+    moz-background-size: 100%;
+    -o-background-size: 100%;
+    background-size: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    & > .inner {
+        padding: 0.75em;
+        position: relative;
+        .border-box();
+
+        &.fixed {
+            overflow: hidden;
+            height: 100%;
+        }
+    }
+}
+
+.swat-box {
+    background: @swat-transparent-box-background;
+
+    & > .header {
+        color: #000;
+        background-color: #fff;
+        padding: 0.15em 0.5em;
+        font-size: 0.9em;
+
+        &.extra + .inner {
+            // compensate header space
+            padding-bottom: 2em;
+        }
+    }
+
+    .swat-heading {
+        padding: 0.15em 0.1em 0 0.1em;
+    }
+
+    & > .inner {
+        padding: 0.75em;
+        font-size: 0.9em;
+        line-height: 1.15em;
+        .border-box();
+
+        &.text, & .text {
+            line-height: 1.15em;
+        }
+    }
+}
+
+.swat-box.dark {
+    background-color: #000;
+}
+
+.swat-box.bordered {
+    border: 2px solid #fff;
+    .border-box();
+}
+
+.swat-box.popup:extend(.swat-box.dark, .swat-box.bordered) {
+    display: none;
+
+    width: 45em;
+    height: 20em;
+
+    & > .inner {
+        position: relative;
+        height: inherit;
+
+        & .button-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            margin-bottom: 1.5em;
+        }
+
+        & > * {
+            padding: 1.5em;
+        }
+    }
+
+    &.smaller {
+        width: 30em !important;
+        height: 15em !important;
+    }
+}
+
+.swat-button:hover {
+    color: @swat-yellow;
+    background: #000;
+    border-color: @swat-yellow;
+}
+
+.swat-button {
+    font-family: 'Airborne', sans-serif;
+    text-align: center;
+    padding: 0.2em;
+    width: @button-width;
+    display: inline-block !important;
+    border: 0.15em solid;
+    border-color: #fff;
+    background: #000;
+    font-size: 0.85em;
+    line-height: 1.2em;
+    text-decoration: none;
+    color: #fff;
+
+    &.active,
+    &.active:hover,
+    &.active:after {
+        color: #000 !important;
+        border-color: #fff;
+        background-color: #fff;
+    }
+
+    &.inactive,
+    &.inactive:hover,
+    &.inactive:after {
+        color: #444 !important;
+        border-color: #444 !important;
+    }
+}
+
+.swat-button-bar > * {
+    margin: 0 0.25em;
+
+    &:first-child {
+        margin-left: 0 !important;
+    }
+
+    &:last-child {
+        margin-right: 0 !important;
+    }
+}
+
+.swat-button-arrow-right {
+    &:extend(.swat-button all);
+    position: relative;
+    width: @button-width - @button-symbol-width;
+    padding-right: 1.8em;
+
+    &:after {
+        content: " ";
+        height: 1.58em;
+        display: block;
+        border-color: inherit;
+        position: absolute;
+        width: @button-symbol-width;
+        margin: 0 0.2em;
+        background-size: auto @button-symbol-width;
+        background-repeat: no-repeat;
+
+        border-left: 0.15em solid;
+        top: 0;
+        right: 0;
+
+        background-position: 0 center;
+        background-image: url(../images/css/arrow_right.png);
+    }
+
+    &:hover:after {
+        background-position: -@button-symbol-width center;
+    }
+
+    &.inactive {
+        &:after, &:hover:after {
+            background-position: -2*@button-symbol-width center;
+        }
+    }
+}
+
+.swat-button-arrow-left:extend(.swat-button-arrow-right all){
+    padding-left: 1.8em;
+    padding-right: 0;
+
+    &:after {
+        left: 0;
+        right: none;
+        border-left: none;
+        border-right: 0.15em solid;
+
+        background-image: url(../images/css/arrow_left.png);
+    }
+}
+
+.swat-button-cross:extend(.swat-button-arrow-right all){
+    &:after {
+        background-image: url(../images/css/menu_exit.png);
+    }
+}
+
+.swat-tab-button {
+    &:extend(.swat-button);
+    border-bottom: none;
+
+    &.active {
+        &:extend(.swat-button.active all);
+    }
+}
+
+.swat-tab-button:hover {
+    &:extend(.swat-button:hover);
+}
+
+.swat-button-white:extend(.swat-button) {
+    display: inline-block !important;
+    background: #fff;
+    color: #000 !important;
+    padding: 0.2em 0.15em;
+
+    &.large {
+        width: @button-width*1.5;
+    }
+
+    &.huge {
+        width: @button-width*1.65;
+        padding: 0.5em 0;
+    }
+}
+
+.swat-button-white:hover {
+    border-color: @swat-yellow;
+    background-color: @swat-yellow;
+}
+
+.swat-button-submit {
+    @size: 3.55em;
+
+    &:extend(.swat-button-white all);
+    width: @size;
+    height: @size;
+    padding: 0;
+    background-image: url(../images/css/menu_yes.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 3em auto;
+    content: " ";
+}
+
+.swat-button-cancel {
+    &:extend(.swat-button-submit all);
+    background-image: url(../images/css/menu_no.png);
+    background-size: 2.5em auto;
+}
+
+.swat-input-block {
+    width: 16em;
+    position: relative;
+
+    .errorlist {
+        margin-top: 0.25em;
+        color: @color-error;
+        font-size: 0.9em;
+    }
+}
+
+.swat-input-label,
+.swat-input-block select,
+.swat-input-block input, {
+    //font-size: 0.9em;
+}
+
+.swat-input-label {
+    margin-bottom: 0.35em;
+}
+
+.swat-input-field-wrapper input,
+.swat-input-select-wrapper select,
+.swat-input-select,
+.swat-input-field {
+    width: 100%;
+    background: #fff;
+    padding: 0.25em 0.25em;
+    border: 0;
+    border-radius: 0;
+    text-overflow: "";
+    text-indent: 0.01px;
+    .appearance(none);
+    .box-sizing(border-box);
+}
+
+.swat-input-checkbox-wrapper {
+
+    input[type="checkbox"] {
+        display: none;
+
+        &:checked + span {
+            background: url(../images/css/checkbox_checked.png) no-repeat center center;
+            background-size: 1.35em auto;
+        }
+    }
+    span {
+        @size: 1.7em;
+        display: inline-block;
+        width: @size;
+        height: @size;
+        background-color: #000;
+        border: 2px solid #fff;
+        .border-box();
+    }
+}
+
+.swat-input-field {
+    line-height: 1.3em;
+    height: 1.45em;
+}
+
+.swat-input-select-wrapper select {
+    background: transparent;
+}
+
+.swat-input-select-wrapper {
+    background: url(../images/css/menu_scroll_down_black.png) no-repeat;
+    background-position: right center;
+    background-size: 1.5em auto;
+    background-color: #fff;
+}
+
+.swat-input-inline {
+    position: relative;
+
+    & > * + .swat-input-select-wrapper,
+    & > * + .swat-input-field-wrapper,
+    & > * + .swat-date-block, {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 1.65em;
+        margin-left: 0.65em;
+    }
+}
+
+.swat-form {
+    .swat-input-block {
+        margin-bottom: 0.75em;
+        width: 100%;
+    }
+
+    .swat-date-block:extend(& .swat-input-block) {
+        .float();
+        & > * {
+            float: left;
+            & > * {
+                margin-left: 0.5em;
+            }
+            &:first-child {
+                & > * {
+                    margin-left: 0 !important;
+                }
+            }
+        }
+
+        .input-year {
+            width: 27.5% !important;
+        }
+        .input-month {
+            width: 45% !important;
+        }
+        .input-day {
+            width: 27.5% !important;
+        }
+    }
+
+    .button-bar {
+        margin: 0.5em auto;
+    }
+}
+
+.swat-page-range {
+    a {
+        text-decoration: none;
+        display: inline-block;
+        width: 1.2em;
+        height: 1.2em;
+        background-color: #fff;
+        background-size: 1em auto;
+        background-repeat: no-repeat;
+        background-position: center center;
+
+        &:hover {
+            background-color: @swat-yellow;
+        }
+    }
+
+    .previous {
+        background-image: url(../images/css/arrow_black_left.png);
+        margin-right: 0.5em;
+
+        &.inactive {
+            background-image: url(../images/css/arrow_gray_left.png);
+            &:hover {
+                background-color: #fff;
+            }
+        }
+    }
+
+    .next {
+        background-image: url(../images/css/arrow_black_right.png);
+        margin-left: 0.5em;
+
+        &.inactive {
+            background-image: url(../images/css/arrow_gray_right.png);
+            &:hover {
+                background-color: #fff;
+            }
+        }
+    }
+}
+
+.swat-game-frame {
+    .inline();
+    position: relative;
+    background-color: #fff;
+    padding: 0.35em;
+    padding-bottom: 1.5em;
+}
+
+.swat-game-frame-inner {
+    position: relative;
+    overflow: hidden;
+}
+
+.swat-game-frame-inline {
+    position: absolute;
+    color: #fff;
+    bottom: 0;
+    position: absolute;
+    font-size: 0.8em;
+    background: rgba(0,0,0, 0.5);
+    width: 100%;
+    padding: 0.1em 0.15em;
+}
+
+.swat-game-frame-light {
+    @size: 5em;
+
+    .block();
+    height: @size / 2;
+    width: @size;
+    overflow: hidden;
+    background-size: contain;
+}
+
+.swat-game-frame-ileft:extend(.swat-game-frame-inline) {
+    left: 0;
+    text-align: left;
+}
+.swat-game-frame-iright:extend(.swat-game-frame-inline) {
+    right: 0;
+    text-align: right;
+    background: none !important;
+}
+
+.swat-game-frame:hover {
+    background-color: @swat-yellow;
+}
+
+.swat-game-frame-image,
+.swat-game-frame-ileft,
+.swat-game-frame-iright, {
+    overflow: hidden;
+}
+
+.swat-game-frame-image {
+    @size: 8em;
+    height: @size;
+    width: @size;
+    background-color: #ccc;
+}
+
+.swat-game-frame-desc {
+    color: #000;
+    font-size: 0.7em;
+    position: absolute;
+    bottom: 0.15em;
+}
+
+#swat-main-container {
+    overflow: auto;
+    width: 100%;
+
+    & > * {
+        margin-left: @menu-width;
+    }
+}
+
+#swat-menu {
+    position: fixed;
+    top: @black-bar-height;
+    left: 0;
+    margin: 0.75em;
+    width: @menu-width;
+}
+
+#swat-main > *{
+    margin-bottom: 1em;
+}
+
+#main-featured-games {
+
+    .inner {
+        text-align: center;
+        overflow: hidden;
+        height: 11.5em;
+    }
+}
+
+#main-featured-games {
+    .swat-game-frame {
+        margin-bottom: 1.25em;
+    }
+}
+
+#main-featured-players {
+    .swat-profile-picture {
+        font-size: 0.7em;
+    }
+}
+
+.swat-game-list {
+    .swat-game-frame {
+        margin-right: 0.75em;
+        margin-bottom: 1.25em;
+    }
+}
+
+.swat-game-list-wide {
+    & > * {
+        .inline();
+        margin: 0 1.5em 1.5em 0;
+    }
+    .swat-game-frame-light {
+        font-size: 2.75em;
+    }
+}
+
+.swat-game-list-featured {
+    .swat-game-frame-light {
+        font-size: 1.5em;
+    }
+}
+
+.swat-game-list {
+    &:extend(.left);
+}
+
+.swat-menu-heading,
+.swat-heading {
+    font-family: 'Bank Gothic Bold', sans-serif;
+    text-transform: uppercase;
+    font-size: 3em;
+    line-height: 0.8em;
+    text-decoration: none;
+    color: #fff;
+}
+
+.swat-heading-strong {
+    font-family: 'Airborne';
+    font-weight: bold;
+}
+
+.swat-menu-description {
+    font-size: 0.8em;
+    margin-bottom: 0.5em;
+}
+
+.swat-menu-gray-thing {
+    font-family: 'Airborne', sans-serif;
+    letter-spacing: 0.06em;
+    width: 80%;
+    padding-top: 0.3em;
+    margin: 0.55em 0;
+    border-top: solid 0.3em #666;
+    color: #888;
+    font-size: 0.7em;
+}
+
+#swat-logo {
+    width: 100%;
+    height: 4em;
+    background: url(../images/logo/swat.png) no-repeat left top;
+    background-size: auto 100%;
+    margin-bottom: 0.75em;
+}
+
+.swat-chapter {
+    position: relative;
+
+    #swat-frame > .inner.fixed & {
+        height: 100%;
+
+        & > .header {
+            height: 15% !important;
+            margin: 0 !important;
+        }
+        & > .inner {
+            height: 85% !important;
+        }
+    }
+
+    & > .header {
+        margin-bottom: 0.75em;
+        position: relative;
+
+        .title {
+            position: relative;
+            left: -0.05em;
+            top: -0.2em;
+            font-size: 1.15em;
+        }
+
+        & > .message {
+            position: absolute;
+            top: 0;
+            text-align: center;
+            width: 100%;
+        }
+
+    }
+    & > .inner {
+        height: 100%;
+        position: relative;
+    }
+}
+
+.form-buttons {
+    margin-top: 2em;
+    text-align: right;
+}
+
+#swat-server-title {
+    position: absolute;
+    text-align: center;
+    bottom: 0;
+    width: 100%;
+    font-size: 0.95em;
+    font-weight: bold;
+}
+
+#swat-server-status {
+    .swat-status-text();
+    position: absolute;
+    text-align: center;
+    bottom: 0;
+    left: 50%;
+    width: 20em;
+    margin-left: -10em;
+    margin-bottom: 0.5em;
+}
+
+.table {
+    display: table;
+}
+
+.table-header > *,
+.table-row > *,
+.table-row-empty > *,
+.table-cell {
+    display: table-cell;
+    vertical-align: top;
+    text-align: center;
+    overflow: hidden;
+}
+
+.table-row {
+    display: table-row;
+
+    & > * {
+        padding-top: 0.2em;
+        padding-bottom: 0.2em;
+    }
+    &.spaceless > * {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    &.spaceful > * {
+        padding-left: 0.25em;
+        padding-right: 0.25em;
+    }
+    &.astronomic > * {
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+        padding-left: 0.25em;
+        padding-right: 0.25em;
+    }
+
+    &.middle > * {
+        vertical-align: middle !important;
+    }
+
+    &.odd {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+.table-header:extend(.table-row) {
+    & > * {
+        padding-top: 0 !important;
+        vertical-align: middle;
+    }
+
+    &.spaceful > * {
+        padding-bottom: 0.25em;
+    }
+}
+
+.swat-player-row {
+    a,
+    a& {
+        text-decoration: none !important;
+        color: #fff;
+    }
+
+    &:target,
+    &:target *,
+    &:hover,
+    &:hover *,
+    a:hover,
+    &.active {
+        background-color: #fff;
+        color: #000 !important;
+    }
+}
+
+.swat-team-table:extend(.table) {
+    .width100();
+    height: 50em;
+    background: @swat-transparent-box-background;
+
+    .table-header {
+        background-color: #666;
+        color: #000;
+        font-family: 'Airborne';
+        font-size: 0.9em;
+
+        & > *:first-child {
+            border: 2px solid #666 !important;
+            height: 1.5em;
+        }
+    }
+
+    .table-row:nth-child(2) > * {
+        padding-top: 0.125em;
+    }
+
+    .table-row > * {
+        border-right: 2px solid #fff;
+        height: 1.2em;
+
+        &:first-child {
+            border-left: 2px solid #fff;
+        }
+    }
+
+    .table-row.empty > * {
+        height: auto !important;
+    }
+}
+
+.swat-table:extend(.table all){
+    .table-header {
+        .gray();
+        & > *{
+            padding-top: 0.5em;
+            padding-bottom: 0.5em;
+        }
+    }
+}
+
+.table-cell-small {
+    width: 2% !important;
+}
+
+.table-cell-small > img {
+    width: 1.25em;
+    height: auto;
+}
+
+.swat-pict(@url){
+    background: url(@url) center center no-repeat;
+    background-size: auto 1.2em;
+}
+
+.player-cell-name {
+    width: 40%;
+    text-align: left;
+    padding-left: 0.35em;
+}
+
+.player-cell-score,
+.player-cell-kills,
+.player-cell-deaths,
+.player-cell-arrests,
+.player-cell-arrested,
+.player-cell-objectives,
+.player-cell-ping {
+    width: 8%;
+}
+
+.player-cell-country {
+    width: 5%;
+}
+
+.player-cell-score {
+    .swat-pict('../images/css/pict_score.png');
+}
+
+.player-cell-kills {
+    .swat-pict('../images/css/pict_kills.png');
+}
+
+.player-cell-deaths {
+    .swat-pict('../images/css/pict_deaths.png');
+}
+
+.player-cell-arrests {
+    .swat-pict('../images/css/pict_arrests.png');
+}
+
+.player-cell-arrested {
+    .swat-pict('../images/css/pict_arrested.png');
+}
+
+.player-cell-objectives {
+    .swat-pict('../images/css/pict_objectives.png');
+}
+
+.player-cell-ping {
+    .swat-pict('../images/css/pict_ping.png');
+}
+
+.player-cell-status {
+    width: 25%;
+}
+
+.swat-game-score-pane {
+    float: left;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+
+    & > .inner {
+        position: relative;
+        margin: 0 0.5em;
+        height: 100%;
+
+        & > .block {
+            margin-bottom: 1em;
+
+            & > .swat-box {
+                height: 100%;
+            }
+
+            &.block-chat {
+               height: 35%;
+               overflow: hidden;
+            }
+
+            &.block-coop-objectives {
+                height: 40%;
+            }
+
+            &.block-team-table {
+                width: 100%;
+                height: 47.5%;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                overflow: hidden;
+                border-bottom: 2px solid #fff;
+            }
+
+            &.block-coop-team-table {
+                height: 100%;
+                overflow: hidden;
+            }
+
+            &.block-coop-briefing {
+                height: 70%;
+                overflow: hidden;
+            }
+
+            &.block-coop-procedures {
+                height: 100%;
+            }
+
+            &.block-coop-chat {
+               height: 10%;
+               .scrollable();
+            }
+        }
+    }
+}
+
+.best-players {
+    width: 100%;
+    height: 100%;
+    .float();
+    overflow: hidden;
+
+    & > .inner {
+        float: left;
+        width: 33%;
+        height: 50%;
+        margin-bottom: 0.5em;
+
+        .player-info {
+            position: relative;
+
+            .player-picture {
+                float: left;
+                font-size: 0.5em;
+            }
+
+            .player-details {
+                position: absolute;
+                left: 2.5em;
+                margin-left: 0.5em;
+
+                & > .score {
+                    //font-size: 0.9em;
+                    margin-top: 0.125em;
+                }
+            }
+        }
+    }
+}
+
+.swat-timer {
+    color: red;
+    font-family: 'DS-Digital';
+}
+
+#swat-game-outcome {
+    position: absolute;
+    top: 41.5%;
+    right: 0;
+    width: 100%;
+
+    & > .inner {
+        .swat-status-text();
+        width: 100%;
+        text-align: center;
+    }
+}
+
+#swat-game-timer {
+    position: absolute;
+    bottom: 0.3em;
+    left: 50%;
+    text-align: center;
+    width: 10em;
+    margin-left: -5em;
+
+    .swat-status-text {
+        margin-bottom: 0.5em;
+    }
+
+    .swat-timer {
+        font-size: 2.65em;
+        line-height: 0.5em;
+    }
+}
+
+.swat-game-map-best {
+    width: 50%;
+    float: left;
+}
+
+.swat-tab-block {
+    &.left {
+        text-align: left;
+        margin-left: 1em;
+    }
+    &.right {
+        text-align: right;
+        margin-right: 1em;
+    }
+    .swat-tab-button {
+        margin: 0 0.15em;
+    }
+}
+
+.swat-chapter-pane-container {
+    height: 100%;
+    position: relative;
+    .float();
+}
+
+.swat-chapter-pane {
+    float: left;
+
+    &.small {
+        float: left;
+        width: 25%;
+        overflow: hidden;
+    }
+    &.main {
+        height: 100%;
+        width: 75%;
+        .border-box();
+    }
+    &.left {
+        & > * {
+            margin-right: 1em;
+        }
+    }
+    &.right {
+        float: right !important;
+        & > * {
+            margin-left: 1em;
+        }
+    }
+}
+
+.leaderboard-list {
+    .category {
+        &:extend(.title.underlined);
+        margin-top: 0.5em;
+        margin-bottom: 0.35em !important;
+
+        &:first-child {
+            margin-top: 0 !important;
+        }
+    }
+
+    a {
+        display: block;
+        margin-left: 1em;
+    }
+}
+
+.swat-board-list {
+    // display: none;
+    margin-top: 0.25em;
+    margin-bottom: 0.5em;
+}
+
+.board-cell-position {
+    .center();
+    .nowrap();
+    width: 1%;
+}
+
+.board-cell-name {
+    .left();
+}
+
+.board-cell-score {
+    .center();
+    width: 15%;
+}
+
+.board-cell-time {
+    .right();
+    width: 20%;
+}
+
+.board-cell-picture {
+    .center();
+    .nowrap();
+    width: 5%;
+
+    & > * {
+        font-size: 0.65em;
+    }
+}
+
+.swat-coop-score {
+    text-align: right;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 0 !important;
+    width: 100%;
+
+    .swat-heading {
+        font-size: 2.8em;
+    }
+}
+
+.objective-progress {
+    &:extend(.gray);
+}
+
+.objective-completed {
+    &:extend(.swat-green);
+}
+
+.objective-failed {
+    &:extend(.swat-red);
+}
+
+.status-injured {
+    &:extend(.swat-yellow);
+}
+
+.status-incapacitated {
+    &:extend(.swat-red);
+}
+
+.status-healthy, .status-ready {
+    &:extend(.swat-green);
+}
+
+.status-not_ready {
+    &:extend(.gray);
+}
+
+.swat-coop-total-row > *{
+    height: 2em;
+    vertical-align: bottom;
+    font-weight: bold;
+}
+
+.title {
+    &.underlined {
+        border-bottom: 2px solid #fff;
+        padding-bottom: 0.25em;
+        width: 12em;
+        white-space: nowrap;
+        margin-bottom: 0.75em;
+        text-align: left;
+    }
+
+    &.undecorated {
+        margin-bottom: 0.5em;
+    }
+}
+
+.swat-player-picture {
+    text-align: center;
+    width: 5em;
+    height: 5em;
+    //background: linear-gradient(90deg, #fff, #999, #fff);
+}
+
+.swat-player-picture img {
+    width: 5em;
+    height: auto;
+    border: 1px solid #fff;
+    .border-box();
+}
+
+.swat-top-row {
+    .float();
+    padding: 0.75em 0;
+
+    & > * {
+        height: 6em;
+    }
+
+    &.delimited {
+        border-top: 1px solid #fff;
+    }
+}
+
+.swat-top-board {
+    float: left;
+    width: 15%;
+    float: left;
+    position: relative;
+
+    & > .icon {
+        & > img {
+            width: 2.25em;
+            height: auto;
+        }
+    }
+
+    & > .title {
+        margin-bottom: 0.5em;
+    }
+}
+
+.swat-top-table {
+    float: left;
+    width: 85%;
+
+    .table {
+        .width100();
+    }
+
+    .table-row > * {
+        position: relative;
+        width: 20%;
+
+        & > .inner {
+            position: relative;
+            width: 10em;
+            margin: 0 auto;
+            text-align: center;
+
+            .position {
+                .gray();
+                position: absolute;
+                top: 0;
+                left: 2.25em;
+                font-size: 1em;
+            }
+
+            .picture {
+                font-size: 0.7em;
+            }
+
+            .score {
+                padding-top: 0.25em;
+                /*position: absolute;
+                top: 0;
+                left: 3.25em;
+                margin-left: 0.35em;*/
+            }
+        }
+    }
+}
+
+.swat-profile-picture {
+    display: inline-block;
+    position: relative;
+
+    .country {
+        position: absolute;
+        top: 0.3em;
+        left: 0.35em;
+
+        img {
+            width: 1.5em;
+            height: auto;
+        }
+    }
+}
+
+.country-flag {
+    display: block;
+    vertical-align: middle !important;
+    width: auto;
+    height: 0.85em;
+}
+
+.swat-black-window {
+    height: 100%;
+    width: 100%;
+    position: relative;
+
+    & > .inner {
+        position: absolute;
+        bottom: 50%;
+        width: 100%;
+        text-align: center;
+
+        .message {
+            .swat-status-text();
+        }
+
+        .button {
+            margin-top: 2.5em;
+        }
+    }
+}
+
+.swat-weapon-picture {
+    display: inline-block;
+
+    img {
+        height: 5em;
+        width: auto;
+    }
+}
+
+.swat-weapon-caption {
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid #fff;
+    text-align: center;
+    font-size: 0.85em;
+    padding: 0.1em 0;
+    margin-bottom: 0.1em;
+}
+
+.swat-content-delimiter {
+     margin-top: 0.5em;
+     border-top: 2px solid #fff;
+     margin-bottom: 1em;
+     padding: 0 1em;
+}
+
+.profile-table-cell {
+    width: 11%;
+    text-align: center;
+}
+
+#profile-content-top {
+    .width100();
+    .table();
+    margin: 0.5em 0;
+
+    & > * {
+        display: table-cell;
+        vertical-align: middle;
+    }
+}
+
+#profile-content-rank {
+    text-align: center;
+    width: 25%;
+}
+
+#profile-content-rank-insignia {
+    margin-top: 1em;
+
+    img {
+        height: 6em;
+        width: auto;
+    }
+}
+
+#profile-content-rank-title {
+    margin-top: 2em;
+
+    & > * {
+        font-size: 1.5em;
+    }
+}
+
+#profile-content-rank-progression {
+    margin-top: 0.5em;
+
+    .progression-bar-outer {
+        margin: 0 auto;
+        width: 16em;
+    }
+
+    .progression-bar {
+        height: 0.5em;
+        border: 1px solid #ccc;
+        overflow: hidden;
+
+        & > * {
+            background: #fff;
+        }
+    }
+
+    .progression-bar-info {
+        .clearfix();
+        .floatfix();
+        font-size: 0.9em;
+        margin-top: 0.25em;
+
+        & > .left {
+            float: left;
+        }
+        & > .right {
+            float: right;
+        }
+    }
+}
+
+.loadout-cell:extend(.profile-table-cell){
+    width: 45% !important;
+    font-size: 0.4em !important;
+    white-space: nowrap;
+    padding: 0 0.5em;
+
+    .swat-loadout-picture {
+        margin-right: 0.25em;
+    }
+}
+
+#profile-score-block {
+    width: 30%;
+    .center();
+
+    & > .inner {
+        .nowrap();
+        width: 70%;
+        margin: 0 auto;
+
+        & > * {
+            margin-bottom: 0.75em;
+        }
+
+        .score {
+            font-size: 2.5em;
+            line-height: normal;
+        }
+    }
+}
+
+#profile-chart-block {
+    vertical-align: middle;
+    .center();
+    .nowrap();
+}
+
+#profile-record-block {
+    .float();
+
+    & > * {
+        float: left;
+        text-align: center;
+        width: 25%;
+        vertical-align: top;
+        margin-bottom: 1em;
+    }
+
+    .score {
+        margin-top: 0.5em;
+    }
+}
+
+.profile-record-weapon {
+    .picture {
+        font-size: 1em;
+    }
+}
+
+.profile-record-game {
+    .picture {
+        height: 5em;
+    }
+    .swat-game-frame-light {
+        font-size: 2em;
+    }
+}
+
+.profile-gauge-container {
+    margin: 0 0.5em;
+    display: inline-block;
+
+    canvas {
+        width: 12em;
+    }
+
+    .score {
+        font-size: 1.5em;
+    }
+}
+
+.profile-stats-block {
+    float: left;
+    width: 25%;
+    padding-left: 2em;
+    .border-box();
+
+    &.first, &:first-child {
+        padding-left: 0 !important;
+    }
+}
+
+.profile-stats-block-coop:extend(.profile-stats-block all) {
+    width: 33%;
+}
+
+.profile-rank-block:extend(.profile-stats-block) {
+    width: 50% !important;
+    padding-left: 1em;
+
+    &.odd {
+        padding-right: 1em;
+        padding-left: 0 !important;
+    }
+}
+
+.profile-table:extend(.swat-table all){
+    width: 100%;
+    margin-bottom: 1em;
+}
+
+.profile-weapon-table:extend(.profile-table all) {
+    @size: 3em;
+
+    .weapon-picture {
+        height: @size;
+        background-size: auto @size;
+        background-repeat: no-repeat;
+        background-position: 0.5em center;
+    }
+
+    .weapon-title {
+        padding-left: @size*2 + 1em;
+    }
+}
+
+.profile-equipment-table:extend(.profile-weapon-table all) {
+    @size: 3em;
+
+    .weapon-title {
+        padding-left: @size + 1em;
+    }
+}
+
+.profile-fav-loadout-row {
+    .width100();
+    .clearfix();
+    .floatfix();
+    margin-bottom: 1em;
+}
+
+.profile-fav-loadout-row > *{
+    float: left;
+    margin-right: 1em;
+}
+
+.profile-map-table:extend(.profile-table all) {
+    @size: 3.5em;
+
+    .picture-cell {
+        .left();
+        background-size: auto @size;
+        background-position: 0.5em center;
+        background-repeat: no-repeat;
+        height: @size;
+
+        .title {
+            padding-left: @size + 0.75em;
+            .nowrap();
+        }
+    }
+}
+
+.swat-loadout-picture {
+    display: inline-block;
+
+    img {
+        height: 7em;
+        width: auto;
+    }
+}
+
+#profile-title {
+    position: relative;
+
+    & > .details {
+        height: 5em;
+        width: 100%;
+        margin-left: 0.5em;
+        position: absolute;
+        top: 0;
+        left: 5em;
+
+        .name {
+            font-size: 1.8em;
+            line-height: 0.75em;
+        }
+        .award {
+            background: url(../images/css/pict_star.png) no-repeat left top;
+            background-size: 0.9em auto;
+            margin-top: 0.15em;
+            padding-left: 1.1em;
+            & > a {
+                .swat-yellow();
+                font-size: 0.9em;
+            }
+        }
+    }
+}
+
+#profile-tab-bar {
+    position: relative;
+    width: 70%;
+}
+
+#profile-pane-content {
+    width: 70%;
+    position: relative;
+}
+
+#profile-pane-activity {
+    width: 30%;
+    position: relative;
+}
+
+#profile-pane-activity-inner {
+    margin-left: 1em;
+}
+
+.profile-recent-game-title {
+    margin-bottom: 0.5em;
+}
+
+.profile-recent-game-list {
+    margin-bottom: 1em;
+
+    a {
+        margin-right: 0.3em;
+        margin-bottom: 0.3em;
+    }
+}
+
+.year-range:extend(.swat-page-range all) {
+    position: absolute;
+    bottom: 0;
+
+    &.right {
+        right: 0;
+    }
+
+    &.left {
+        left: 0;
+    }
+}
+
+#server-list-button-bar {
+    position: absolute;
+    text-align: right;
+    width: 100%;
+    bottom: 0.25em;
+}
+
+.swat-server-table {
+    height: 90%;
+    overflow: auto;
+    border-top: 2px solid #666;
+    border-bottom: 2px solid #fff;
+
+    & > .inner {
+        &:extend(.swat-team-table all);
+        font-size: 0.9em;
+        height: 100%;
+        width: 100%;
+        .border-box();
+
+        .table-header > * {
+            .center();
+        }
+        .table-row > * {
+            .nowrap();
+            text-align: left;
+            padding: 0.15em 0.3em;
+        }
+        .table-row-empty > * {
+            width: 0;
+        }
+    }
+}
+
+.swat-status-text {
+    font-size: 0.9em;
+}
+
+.server-cell-passworded {
+    width: 2.5%;
+}
+
+.server-cell-locked:extend(.server-cell-passworded) {
+    background: url(../images/css/pict_locked.png) no-repeat center center;
+    background-size: 1em auto;
+}
+
+.server-cell-hostname {
+    width: 25%;
+}
+
+.server-cell-players {
+    width: 5%;
+}
+
+.server-cell-gametype {
+    width: 15%;
+}
+
+.server-cell-mapname {
+    width: 25%;
+}
+
+.server-cell-ip {
+    width: 15%;
+}
+
+.server-cell-gamename {
+    width: 7.5%;
+}
+
+.server-cell-gamever {
+    width: 5%;
+}
+
+.server-cell-location {
+    width: 2.5%;
+    text-align: center;
+}
+
+#player-search-form {
+    margin-bottom: 1em;
+
+    &.unbound {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 30em;
+        height: 3em;
+        margin-left: -15em;
+        margin-top: -1.5em;
+    }
+
+    .swat-input-block {
+        .width100();
+        .float();
+
+        & > .swat-input-field-wrapper {
+            float: left;
+            width: 25em;
+
+            input {
+                font-size: 1.9em;
+            }
+        }
+
+        & > button {
+            float: left;
+            margin-left: 1.5em;
+            font-size: 0.8em;
+        }
+    }
+
+    .swat-form-status {
+        margin-top: 0.5em;
+    }
+}
+
+#player-search-list {
+    .table-row > * {
+        &.cell-picture {
+            padding-left: 0.5em;
+            width: 1.5em;
+
+            & > * {
+                font-size: 0.65em;
+            }
+        }
+        &.cell-name {
+            text-align: left;
+
+            .profile-name {
+                font-size: 1.1em;
+            }
+        }
+        &.cell-time {
+            text-align: right;
+        }
+    }
+}
+
+.block-pane-two {
+    width: 100%;
+    overflow: hidden;
+
+    & > * {
+        width: 35%;
+        margin-right: 10%;
+        margin-left: 5%;
+    }
+}
+
+.padding(@direction, @size) {
+    padding-@{direction}: @size;
+}
+
+.block {
+    display: block;
+}
+
+.inline {
+    display: inline-block;
+}
+
+.height100 {
+    height: 100%;
+}
+
+.width100 {
+    width: 100%;
+}
+
+.width50 {
+    width: 50%;
+}
+
+.width33 {
+    width: 33.33%;
+}
+
+.width25 {
+    width: 25%;
+}
+
+.width30 {
+    width: 30%;
+}
+
+.width70 {
+    width: 70%;
+}
+
+.width75 {
+    width: 75%;
+}
+
+.clearfix {
+
+    &:after {
+        content: " ";
+        clear: both;
+        display: block;
+    }
+}
+
+.floatfix {
+    overflow: hidden;
+}
+
+.border-box {
+    .box-sizing(border-box);
+}
+
+.strong {
+    font-weight: bold;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.space-left {
+    padding-left: 0.5em;
+}
+
+.space-right {
+    padding-right: 0.5em;
+}
+
+.space-top {
+    .padding(top, 0.5em);
+
+    &.small {
+        .padding(top, 0.25em);
+    }
+    &.tiny {
+        .padding(top, 0.125em);
+    }
+}
+
+.space-bottom {
+    .padding(bottom, 0.5em);
+
+    &.bigger {
+        .padding(bottom, 1em);
+    }
+
+    &.big {
+        .padding(bottom, 0.75em);
+    }
+
+    &.small {
+        .padding(bottom, 0.25em);
+    }
+}
+
+.left {
+    text-align: left;
+}
+
+.right {
+    text-align: right;
+}
+
+.float {
+    .clearfix();
+    //.floatfix();
+
+    & > .left {
+        float: left;
+    }
+
+    & > .right {
+        float: right;
+    }
+}
+
+.center {
+    text-align: center;
+}
+
+.gray {
+    color: #999;
+}
+
+.dark-gray {
+    color: #555;
+}
+
+.scrollable {
+    overflow: auto;
+}
+
+.unhidden {
+    display: block;
+}
+
+.highlight {
+    color: @swat-yellow;
+}
+
+.article-list {
+    .article {
+        margin-top: 1.5em;
+
+        &:first-child {
+            margin-top: 0 !important;
+        }
+
+        .text {
+            p {
+                margin: 0.5em 0;
+
+                &:first-child {
+                    margin-top: 0 !important;
+                }
+            }
+        }
+    }
+}

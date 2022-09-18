@@ -6,8 +6,8 @@ __pycache__/
 /src
 /celerybeat*
 /node_modules
-/.cache
 /.pytest_cache
 /static
 /web/dist
 supervisord.log
+/.env

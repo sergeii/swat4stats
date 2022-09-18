@@ -1,4 +1,1 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-from .tracker import *
+from .tracker import *  # noqa

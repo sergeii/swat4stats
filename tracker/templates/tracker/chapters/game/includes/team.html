@@ -2,7 +2,7 @@
 
 <div class="swat-team-table">
     <div class="table-header">
-        <div class="player-cell-name">{% ifequal team 0 %}{% trans "Officer" %}{% else %}{% trans "Suspect" %}{% endifequal %}</div>
+        <div class="player-cell-name">{% if team == 0 %}{% trans "Officer" %}{% else %}{% trans "Suspect" %}{% endif %}</div>
         <div class="player-cell-score"></div>
         <div class="player-cell-arrests"></div>
         <div class="player-cell-arrested"></div>

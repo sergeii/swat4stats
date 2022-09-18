@@ -1,30 +1,21 @@
-# -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import, division)
-
 import re
 import datetime
 import json
-from functools import partial
-import importlib
 import math
 
-import six
-
 from django import template
-from django.core.urlresolvers import reverse, resolve
-from django.utils.encoding import force_text
+from django.urls import reverse, resolve
 from django.utils import html
 from django.utils.text import slugify
-from django.utils.translation import override, pgettext, ungettext_lazy, ugettext as _
+from django.utils.translation import ngettext_lazy, gettext as _
 from django.utils import timesince, timezone
 from django.contrib.humanize.templatetags import humanize
 from django.template import defaultfilters
-
-from julia import shortcuts
-from julia.node import BaseNodeError
 import django_countries
 
-from tracker import definitions, utils
+from vendor.julia import shortcuts
+from vendor.julia.node import BaseNodeError
+from tracker import definitions
 
 register = template.Library()
 trans = _
@@ -38,11 +29,6 @@ def highlight(text, word):
 
 
 @register.filter
-def times(number, step=1):
-    return six.moves.xrange(0, number, step)
-
-
-@register.filter
 def tojson(obj):
     return json.dumps(obj)
 
@@ -52,13 +38,13 @@ def tojson(obj):
 def ratio(divident, divisor, places=2):
     try:
         return round(divident/divisor, 2)
-    except:
+    except ZeroDivisionError:
         return 0
 
 
 @register.filter
 def percent(number):
-    return '{0}%'.format(int(number * 100))
+    return f'{int(number * 100)}%'
 
 
 @register.inclusion_tag('tracker/tags/show_game.html')
@@ -71,7 +57,9 @@ def show_game(game, *desc, **kwargs):
     }
     if not simple:
         context.update({
-            'score_readable': '%d/100' % game.coop_score_normal if game.coop_game else '%d:%d' % (game.score_swat, game.score_sus),
+            'score_readable': (f'{game.coop_score_normal}/100'
+                               if game.coop_game
+                               else f'{game.score_swat}:{game.score_sus}')
         })
     return context
 
@@ -108,10 +96,10 @@ def game_url(game, view='tracker:game', **kwargs):
     })
     try:
         kwargs.update({
-            'slug_year': game.date_finished.strftime('%Y'), 
-            'slug_month': game.date_finished.strftime('%m'), 
-            'slug_day': game.date_finished.strftime('%d'),
-            'slug_name': slugify(shortcuts.map(definitions.stream_pattern_node, 'mapname', force_text(game.mapname))),
+            'year': game.date_finished.strftime('%Y'),
+            'month': game.date_finished.strftime('%m'),
+            'day': game.date_finished.strftime('%d'),
+            'slug': slugify(shortcuts.map(definitions.stream_pattern_node, 'mapname', str(game.mapname))),
         })
     except BaseNodeError:
         pass
@@ -149,11 +137,6 @@ def show_profile_picture(profile, size=None, *args, **kwargs):
     return kwargs
 
 
-@register.inclusion_tag('tracker/tags/show_weapon_picture.html')
-def show_weapon_picture(name):
-    return locals()
-
-
 @register.inclusion_tag('tracker/tags/show_loadout_picture.html')
 def show_loadout_picture(loadout, slot, *args):
     return dict(locals(), **{
@@ -165,7 +148,7 @@ def show_loadout_picture(loadout, slot, *args):
 @register.filter
 def gamename(gamename):
     try:
-        return _(shortcuts.map(definitions.stream_pattern_node, 'gamename', force_text(gamename)))
+        return _(shortcuts.map(definitions.stream_pattern_node, 'gamename', str(gamename)))
     except BaseNodeError:
         return _('Unknown')
 
@@ -173,25 +156,25 @@ def gamename(gamename):
 @register.filter
 def gametype(gametype):
     try:
-        return _(shortcuts.map(definitions.stream_pattern_node, 'gametype', force_text(gametype)))
+        return _(shortcuts.map(definitions.stream_pattern_node, 'gametype', str(gametype)))
     except BaseNodeError:
         return _('Unknown')
 
 
 @register.filter
 def gametype_short(gametype):
-    return trans('MODE_SHORT_%s' % gametype)
+    return trans(f'MODE_SHORT_{gametype}')
 
 
 @register.filter
 def outcome(outcome):
-    return html.mark_safe(trans('OUTCOME_%s' % outcome))
+    return html.mark_safe(trans(f'OUTCOME_{outcome}'))
 
 
 @register.filter
 def mapname(mapname):
     try:
-        return _(shortcuts.map(definitions.stream_pattern_node, 'mapname', force_text(mapname)))
+        return _(shortcuts.map(definitions.stream_pattern_node, 'mapname', str(mapname)))
     except BaseNodeError:
         return _('Unknown')
 
@@ -199,39 +182,34 @@ def mapname(mapname):
 @register.filter
 def weapon(weapon):
     try:
-        return _(shortcuts.map(definitions.stream_pattern_node.item('players').item, 'loadout__primary', force_text(weapon)))
+        return _(shortcuts.map(definitions.stream_pattern_node.item('players').item, 'loadout__primary', str(weapon)))
     except BaseNodeError:
         return _('Unknown')
 
 
 @register.filter
 def procedure(procedure):
-    return trans('PROCEDURE_%s' % procedure)
+    return trans(f'PROCEDURE_{procedure}')
 
 
 @register.filter
 def objective(objective):
-    return trans('OBJECTIVE_%s' % objective)
+    return trans(f'OBJECTIVE_{objective}')
 
 
 @register.filter
 def objective_status(status):
-    return trans('OBJECTIVE_STATUS_%s' % status)
+    return trans(f'OBJECTIVE_STATUS_{status}')
 
 
 @register.filter
 def coop_status(status):
-    return trans('COOP_STATUS_%s' % status)
+    return trans(f'COOP_STATUS_{status}')
 
 
 @register.filter
 def statname(statid):
     return definitions.STATS[statid]
-
-
-@register.filter
-def colorless(string):
-    return utils.force_clean_name(string)
 
 
 @register.filter
@@ -244,7 +222,7 @@ def swattime(seconds):
         unit = int(seconds // value)
         if unit > 0:
             seconds -= unit*value
-            unit = force_text(unit)
+            unit = str(unit)
             time.append(unit)
         elif time:
             time.append('0')
@@ -268,7 +246,7 @@ def hours(seconds):
 
 @register.filter
 def humanhours(seconds):
-    return ungettext_lazy('%d hour', '%d hours') % hours(seconds)
+    return ngettext_lazy('%d hour', '%d hours') % hours(seconds)
 
 
 @register.filter
@@ -298,26 +276,16 @@ def valueformat(value, format):
     return {
         'hours': humanhours,
         'time': humantime,
-        'int': lambda value: humanize.intcomma(int(value)),
+        'int': lambda v: humanize.intcomma(int(v)),
         'ordinal': humanize.ordinal,
-        'ratio': lambda value: defaultfilters.floatformat(value, 2),
+        'ratio': lambda v: defaultfilters.floatformat(v, 2),
         'percent': percent,
-    # return the value as if the specified format is not present
+        # return the value as if the specified format is not present
     }.get(format, lambda value: value)(value)
 
 
-@register.filter
-def clean_name(value):
-    return utils.force_clean_name(value)
-
-
-@register.filter
-def format_name(value):
-    return utils.format_name(value)
-
-
 # credits: http://stackoverflow.com/questions/5749075/django-get-generic-view-class-from-url-name
-@register.assignment_tag
+@register.simple_tag
 def page_url(view, number, *args, **kwargs):
     """
     Attempt to reverse url for given view and append a querystring param 'page' to the url.
@@ -325,11 +293,9 @@ def page_url(view, number, *args, **kwargs):
     The view name must point to a class based view with the class attributes paginate_by and page_kwarg.
     """
     url = reverse(view, args=args, kwargs=kwargs)
-    func = resolve(url).func
-    # import the module
-    cls = getattr(importlib.import_module(func.__module__), func.__name__)
+    cls = resolve(url).func.view_class
     try:
         page = int(math.ceil(number / cls.paginate_by))
-    except:
+    except (ValueError, TypeError, ZeroDivisionError):
         return url
-    return '%s?%s=%s' % (url, cls.page_kwarg, page)
+    return f'{url}?{cls.page_kwarg}={page}'

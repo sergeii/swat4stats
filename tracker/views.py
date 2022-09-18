@@ -1,57 +1,31 @@
-# -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import, division)
-
 import datetime
 import random
 import logging
 import collections
 
-import six
+import pytz
 from dateutil import relativedelta
-
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.views import generic
 from django.utils.decorators import method_decorator
-from django.utils.translation import ngettext_lazy, pgettext, ugettext_lazy as _
-from django.views.decorators.csrf import csrf_exempt
+from django.utils.translation import ngettext_lazy, gettext_lazy as _
 from django import db
-from django.utils.encoding import force_text
-from django.utils import timezone, timesince
+from django.utils import timezone
 from django.contrib.humanize.templatetags import humanize
 from django.views.decorators.cache import never_cache
-from django.db.models import Q, F, Max, Min, Sum, Avg, Count, When, Case
-from django.template.loader import render_to_string
-from django.template.context import RequestContext
-import cacheops
-from julia import shortcuts
-from brake.decorators import ratelimit
+from django.db.models import Q, Max, Min, Sum, Avg, Count, When, Case
 
-from .signals import stream_data_received
-from . import decorators, models, forms, definitions, utils, const, templatetags
+from . import models, forms, definitions, utils, templatetags, jobs
 from .definitions import STAT
 
 logger = logging.getLogger(__name__)
 
 
-class AjaxTemplateViewMixin(object):
-
-    def get_ajax_template_names(self):
-        return [self.ajax_template_name]
-
-    def get_html_template_names(self):
-        return super(AjaxTemplateViewMixin, self).get_template_names()
-
-    def get_template_names(self, *args, **kwargs):
-        if self.request.is_ajax():
-            return self.get_ajax_template_names()
-        return self.get_html_template_names()
-
-
-class AnnualViewMixin(object):
-    # min days since jan 01 the new year will not considered interesting (since lack of data)
+class AnnualViewMixin:
+    # min days since jan 01 the new year will not consider interesting (since lack of data)
     MIN_YEAR_DAYS = 7
     # list of available years
     years = None
@@ -72,13 +46,14 @@ class AnnualViewMixin(object):
         self.year_now = timezone.now().year
         # get a range of all available years starting from the earliest one
         self.years = list(range(self.get_min_year() or self.year_now, self.year_now + 1))
-        super(AnnualViewMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
         if not kwargs.get('year'):
-            # skip the current year if its too early.. 
-            if (timezone.now() - models.Rank.get_period_for_year(self.year_max)[0]).days < self.MIN_YEAR_DAYS and len(self.years) > 1:
-                #..unless its the only year
+            start_of_the_year = models.Rank.get_period_for_year(self.year_max)[0]
+            # skip the current year if it's too early...
+            if (timezone.now() - start_of_the_year).days < self.MIN_YEAR_DAYS and len(self.years) > 1:
+                # ...unless it's the only year
                 self.year = self.years[-2]
             else:
                 self.year = self.years[-1]
@@ -86,11 +61,11 @@ class AnnualViewMixin(object):
             self.year = int(kwargs['year'])
         # raise 404 if the year is not in the list
         if self.year not in self.years:
-            raise Http404(_('%(year)s is not a valid year.') % {'year': self.year })
-        return super(AnnualViewMixin, self).get(*args, **kwargs)
+            raise Http404(_('%(year)s is not a valid year.') % {'year': self.year})
+        return super().get(*args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(AnnualViewMixin, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             # get the 2 close years for navigation
             'years': list(reversed([year for year in self.years if abs(self.year - year) <= 1])),
@@ -107,14 +82,10 @@ class AnnualViewMixin(object):
 
     @classmethod
     def get_min_year(cls):
-        # cache untill tomorrow
-        @cacheops.cached(timeout=(utils.tomorrow()-timezone.now()).seconds)
-        def _get_min_year():
-            return models.Rank.objects.aggregate(year=db.models.Min('year'))['year']
-        return _get_min_year()
+        return jobs.get_min_year()
 
 
-class FilterViewMixin(object):
+class FilterViewMixin:
 
     def get_context_data(self, *args, **kwargs):
         filters = self.request.GET.copy()
@@ -122,17 +93,17 @@ class FilterViewMixin(object):
         if 'page' in filters:
             del filters['page']
 
-        context_data = super(FilterViewMixin, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'filters': filters,
         })
         return context_data
 
 
-class SummaryViewMixin(object):
+class SummaryViewMixin:
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(SummaryViewMixin, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'summary': self.get_summary(),
         })
@@ -147,21 +118,21 @@ class SummaryViewMixin(object):
         today = utils.today()
         weekday = now.isoweekday()
         # get the curent month's date
-        month = datetime.datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+        month = datetime.datetime(now.year, now.month, 1, tzinfo=pytz.UTC)
         # get the current week's date
         week = today-datetime.timedelta(days=weekday-1)
         # display current month summary
         if now.day >= 25:
-            return (_('Monthly Summary'), month, now)
+            return _('Monthly Summary'), month, now
         # display past month summary
         elif now.day <= 5:
-            return (_('Monthly Summary'), month-relativedelta.relativedelta(months=1), now)
+            return _('Monthly Summary'), month-relativedelta.relativedelta(months=1), now
         # display current week summary
         elif weekday >= 4:
-            return (_('Weekly Summary'), week, now)
+            return _('Weekly Summary'), week, now
         # display past week summary
         elif weekday <= 2:
-            return (_('Weekly Summary'), week-datetime.timedelta(days=7), now)
+            return _('Weekly Summary'), week-datetime.timedelta(days=7), now
         else:
             return (None,)*3
 
@@ -173,7 +144,7 @@ class FeaturedViewMixin(AnnualViewMixin):
     min_score = 200
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(FeaturedViewMixin, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'featured': self.get_featured_games(),
         })
@@ -212,70 +183,6 @@ class FeaturedViewMixin(AnnualViewMixin):
         return qs[offset:offset+self.limit]
 
 
-class StreamView(generic.View):
-
-    STATUS_OK = '0'
-    STATUS_ERROR = '1'
-
-    @staticmethod
-    def status(request, code, messages=None):
-        """
-        Return an integer status code followed by an optional message.
-        The status and message are delimited with a new line
-
-        Examples:
-            1. 0
-            2. 0\nData has been accepted
-            3. 1\nOutdated mod version. Please update to 1.2.3
-            3. 1\nInvalid server key
-            4. 1\nThe server is not registered
-        """
-        if not isinstance(messages, (list, tuple)):
-            messages = [messages]
-        # send the status code along with optional list of messages
-        return HttpResponse(
-            '\n'.join(map(force_text, filter(None, [code] + list(messages))))
-        )
-
-    @method_decorator(decorators.requires_valid_request(definitions.stream_pattern_node))
-    @method_decorator(decorators.requires_authorized_source)
-    def post(self, request):
-        logger.info('received stream data from %s:%s (%s)',
-                    request.stream_source.ip, request.stream_source.port, request.META['REMOTE_ADDR'])
-        messages = []
-        error = False
-        # collect messages of the signal handlers
-        response = stream_data_received.send(
-            sender=None,
-            data=request.stream_data,
-            server=request.stream_source,
-            raw=request.stream_data_raw,
-            request=request
-        )
-        for _, message in response:
-            # response may itself be a list of messages
-            if isinstance(message, (tuple, list)):
-                messages.extend(message)
-            # or an exception..
-            elif isinstance(message, Exception):
-                messages.append(str(message))
-                error = True
-            else:
-                messages.append(message)
-
-        status = StreamView.STATUS_OK if not error else StreamView.STATUS_ERROR
-        return StreamView.status(request, status, messages)
-
-    def get(self, request):
-        """Display data streaming tutorial."""
-        return render(request, 'tracker/chapters/stream/stream.html', {})
-
-    @method_decorator(never_cache)
-    @method_decorator(csrf_exempt)
-    def dispatch(self, *args, **kwargs):
-        return super(StreamView, self).dispatch(*args, **kwargs)
-
-
 class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
     template_name = 'tracker/chapters/main/main.html'
     model = models.Article
@@ -283,33 +190,33 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
     sample = 0  # always return the same featured games
     summary = (
         (
-            _('Highest Score'), 
-            db.models.Sum('score'), 
+            _('Highest Score'),
+            db.models.Sum('score'),
             lambda value: ngettext_lazy('%d points', '%d points') % value
         ),
         (
-            _('Highest Playtime'), 
+            _('Highest Playtime'),
             Sum(Case(When(game__gametype__in=definitions.MODES_VERSUS, then='time'))),
             lambda value: templatetags.humantime(value)
         ),
         (
-            _('Best Round Score'), 
-            db.models.Max('score'), 
+            _('Best Round Score'),
+            db.models.Max('score'),
             lambda value: ngettext_lazy('%d point', '%d points') % value
         ),
         (
-            _('Most Kills'), 
-            db.models.Sum('kills'), 
+            _('Most Kills'),
+            db.models.Sum('kills'),
             lambda value: ngettext_lazy('%d kill', '%d kills') % value
         ),
         (
-            _('Most Arrests'), 
-            db.models.Sum('arrests'), 
+            _('Most Arrests'),
+            db.models.Sum('arrests'),
             lambda value: ngettext_lazy('%d arrest', '%d arrests') % value
         ),
         (
-            _('Highest Kill Streak'), 
-            db.models.Max('kill_streak'), 
+            _('Highest Kill Streak'),
+            db.models.Max('kill_streak'),
             lambda value: ngettext_lazy('%d kill', '%d kills') % value
         ),
     )
@@ -322,50 +229,46 @@ class MainView(SummaryViewMixin, FeaturedViewMixin, generic.ListView):
         return self.get_period()[1:]
 
     def get_summary(self):
-        # cache untill tomorrow
-        @cacheops.cached(timeout=(utils.tomorrow()-timezone.now()).seconds)
-        def _get_summary():
-            summary = []
-            period_title, start, end = self.get_period()
+        summary = []
+        period_title, start, end = self.get_period()
 
-            if start is None:
-                return None
+        if start is None:
+            return None
 
-            for title, agg_obj, translate in self.summary:
-                try:
-                    player = (
-                        models.Player.objects.qualified(start, end)
-                        .select_related('alias__profile')
-                        .filter(alias__profile__name__isnull=False)
-                        .values('alias__profile')
-                        .annotate(num=agg_obj)
-                        .filter(num__isnull=False)
-                        .order_by('-num')[0:1]
-                        .get()
-                    )
-                except ObjectDoesNotExist:
-                    pass
-                else:
-                    summary.append({
-                        'title': title,
-                        'profile': player['alias__profile'],
-                        'points': player['num'],
-                        'points_translated': translate(player['num'])
-                    })
-            # prefetch profile instances
-            qs = models.Profile.objects.select_related('loadout')
-            pks = [entry['profile'] for entry in summary]
-            prefetched = {obj.pk: obj for obj in list(qs.filter(pk__in=pks))}
+        for title, agg_obj, translate in self.summary:
+            try:
+                player = (
+                    models.Player.objects.qualified(start, end)
+                    .select_related('alias__profile')
+                    .filter(alias__profile__name__isnull=False)
+                    .values('alias__profile')
+                    .annotate(num=agg_obj)
+                    .filter(num__isnull=False)
+                    .order_by('-num')[0:1]
+                    .get()
+                )
+            except ObjectDoesNotExist:
+                pass
+            else:
+                summary.append({
+                    'title': title,
+                    'profile': player['alias__profile'],
+                    'points': player['num'],
+                    'points_translated': translate(player['num'])
+                })
+        # prefetch profile instances
+        qs = models.Profile.objects.select_related('loadout')
+        pks = [entry['profile'] for entry in summary]
+        prefetched = {obj.pk: obj for obj in list(qs.filter(pk__in=pks))}
 
-            # replace profile pks with actual Profile instances
-            for entry in summary:
-                entry['profile'] = prefetched[entry['profile']]
+        # replace profile pks with actual Profile instances
+        for entry in summary:
+            entry['profile'] = prefetched[entry['profile']]
 
-            return {
-                'title': period_title,
-                'object_list': summary,
-            }
-        return _get_summary()
+        return {
+            'title': period_title,
+            'object_list': summary,
+        }
 
 
 class TopListView(AnnualViewMixin, generic.ListView):
@@ -385,14 +288,14 @@ class TopListView(AnnualViewMixin, generic.ListView):
 
     def get_queryset(self, *args, **kwargs):
         return (
-            super(TopListView, self).get_queryset(*args, **kwargs)
+            super().get_queryset(*args, **kwargs)
             .select_related('profile', 'profile__loadout', 'profile__game_last')
             .filter(position__isnull=False, year=self.year)
             .order_by('position')
         )
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(TopListView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update(self.get_objects())
         return context_data
 
@@ -402,7 +305,7 @@ class TopListView(AnnualViewMixin, generic.ListView):
             self.get_queryset()
             .filter(
                 # get the ids of the specified categories
-                category__in=map(lambda board: board[0], self.boards), 
+                category__in=[board[0] for board in self.boards],
                 position__lte=self.limit
             )
         )
@@ -424,7 +327,6 @@ class BoardListView(TopListView):
     boards = (
         # Group name:
         #   stat id, human_name, stat display type
-        #   
         # the url/context name is obtained with defitions.STATS dict
         [_('Score'), (
             (STAT.SCORE, _('Score'), 'int'),
@@ -437,8 +339,6 @@ class BoardListView(TopListView):
         [_('Kills'), (
             (STAT.KILLS, _('Kills'), 'int'),
             (STAT.ARRESTS, _('Arrests'), 'int'),
-            #(STAT.TOP_KILLS, _('Top Kills'), 'int'),
-            #(STAT.TOP_ARRESTS, _('Top Arrests'), 'int'),
             (STAT.KDR, _('K/D Ratio'), 'ratio'),
             (STAT.AMMO_ACCURACY, _('Accuracy'), 'percent'),
             (STAT.KILL_STREAK, _('Best Kill Streak'), 'int'),
@@ -453,10 +353,6 @@ class BoardListView(TopListView):
         [_('Rapid Deployment'), (
             (STAT.RD_BOMBS_DEFUSED, _('Bombs Disarmed'), 'int'),
         )],
-        # [_('Smash and Grab'), (
-        #     (STAT.SG_ESCAPES, _('Case Escapes'), 'int'),
-        #     (STAT.SG_KILLS, _('Case Carrier Kills'), 'int'),
-        # )],
         [_('CO-OP'), (
             (STAT.COOP_SCORE, _('Score'), 'int'),
             (STAT.COOP_TIME, _('Time Played'), 'hours'),
@@ -464,13 +360,12 @@ class BoardListView(TopListView):
             (STAT.COOP_WINS, _('Missions Completed'), 'int'),
             (STAT.COOP_ENEMY_ARRESTS, _('Suspects Arrested'), 'int'),
             (STAT.COOP_ENEMY_KILLS, _('Suspects Neutralized'), 'int'),
-            #(STAT.COOP_HOSTAGE_ARRESTS, _('Civilians Arrested'), 'int'),
         )],
     )
     board_name_default = 'score'
 
     def __init__(self, *args, **kwargs):
-        super(BoardListView, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.board_list = self.get_boards()
 
     def get(self, *args, **kwargs):
@@ -484,16 +379,16 @@ class BoardListView(TopListView):
             raise Http404
         # get the board details
         self.board = self.board_list[board_name]
-        return super(BoardListView, self).get(*args, **kwargs)
+        return super().get(*args, **kwargs)
 
     def get_queryset(self, *args, **kwargs):
         return (
-            super(BoardListView, self).get_queryset(*args, **kwargs)
+            super().get_queryset(*args, **kwargs)
             .filter(category=self.board['id'])
         )
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(BoardListView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'board_list': self.board_list,
             'board': self.board,
@@ -539,18 +434,18 @@ class GameListView(FilterViewMixin, GameListBaseView):
 
     def get(self, request, *args, **kwargs):
         self.form = self.form_class(data=request.GET)
-        return super(GameListView, self).get(request, *args, **kwargs) 
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(GameListView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'form': self.form,
         })
         return context_data
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self, *args, **kwargs):  # noqa
         # cache the result
-        qs = super(GameListView, self).get_queryset(*args, **kwargs)
+        qs = super().get_queryset(*args, **kwargs)
         # only do further lookup if the form is bound and valid
         if not self.form.is_valid():
             return qs.none()
@@ -583,17 +478,7 @@ class GameListView(FilterViewMixin, GameListBaseView):
         if self.form.cleaned_data.get('day'):
             qs = qs.filter(date_finished__day=self.form.cleaned_data['day'])
         # cache the queryset
-        return qs.order_by('-date_finished')  # .distinct()  #.cache()
-
-
-class GameOnlineListView(GameListBaseView):
-    template_name = 'tracker/chapters/game/list_online.html'
-    model = models.Server
-    paginate_by = 50
-
-    def get_queryset(self):
-        """Return a list of ServerStatus objects."""
-        return self.model.objects.status.filter(player_num='[1-9]*').sort('-player_num')
+        return qs.order_by('-date_finished')
 
 
 class GameDetailView(generic.DetailView):
@@ -624,9 +509,9 @@ class GameDetailView(generic.DetailView):
 
     def get_context_data(self, *args, **kwargs):
         players = sorted(
-            models.Player.objects.prefetched().filter(game=self.object.pk), 
+            models.Player.objects.prefetched().filter(game=self.object.pk),
             # sort by score, kills, arrests, -deaths
-            key=lambda player: (player.score, player.kills, player.arrests, -player.deaths), 
+            key=lambda player: (player.score, player.kills, player.arrests, -player.deaths),
             reverse=True
         )
         # pick players that finished the game
@@ -634,7 +519,7 @@ class GameDetailView(generic.DetailView):
         # pick the ones that have dropped
         players_dropped = [player for player in players if player.dropped]
 
-        context_data = super(GameDetailView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'players': players,
             'players_online': players_online,
@@ -650,11 +535,11 @@ class GameDetailView(generic.DetailView):
         if self.object.coop_game:
             procedures = self.object.procedure_set.all()
             procedures_bonus = list(filter(
-                lambda procedure: procedure.name_translated.startswith('bonus'), 
+                lambda procedure: procedure.name_translated.startswith('bonus'),
                 procedures
             ))
             procedures_penalty = list(filter(
-                lambda procedure: procedure.name_translated.startswith('penalty') and procedure.score, 
+                lambda procedure: procedure.name_translated.startswith('penalty') and procedure.score,
                 procedures
             ))
             score_bonus = utils.calc_coop_score(procedures_bonus)
@@ -672,7 +557,7 @@ class GameDetailView(generic.DetailView):
         return context_data
 
     def get_queryset(self, *args, **kwargs):
-        return (super(GameDetailView, self).get_queryset(*args, **kwargs).select_related('server'))
+        return super().get_queryset(*args, **kwargs).select_related('server')
 
     def get_close_games(self):
         "Return the games preceding and following this one."
@@ -701,7 +586,7 @@ class GameDetailView(generic.DetailView):
                 if points:
                     best.append({
                         'category': category,
-                        'category_translated': category_translated, 
+                        'category_translated': category_translated,
                         'player': player,
                         'points': points,
                         'points_translated': points_translated % points,
@@ -711,7 +596,7 @@ class GameDetailView(generic.DetailView):
         return best
 
     @staticmethod
-    def get_coop_rank(score):
+    def get_coop_rank(score):  # noqa
         if score >= 100:
             return _('Chief Inspector')
         elif score >= 95:
@@ -739,135 +624,6 @@ class GameDetailView(generic.DetailView):
         return _('Cheater')
 
 
-class ServerListView(AjaxTemplateViewMixin, FilterViewMixin, generic.ListView):
-    template_name = 'tracker/chapters/server/list.html'
-    ajax_template_name = 'tracker/chapters/server/list_ajax.html'
-    model = models.Server
-    form_class = forms.ServerFilterForm
-    form = None
-
-    @method_decorator(never_cache)
-    def dispatch(self, *args, **kwargs):
-        return super(ServerListView, self).dispatch(*args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        self.form = self.form_class(data=request.GET)
-        return super(ServerListView, self).get(request, *args, **kwargs) 
-
-    def get_queryset(self, *args, **kwargs):
-        if not self.form.is_valid():
-            return super(ServerListView, self).get_queryset(*args, **kwargs).none()
-        # assemble filters
-        filters = {}
-        # filter empty servers
-        if self.form.cleaned_data.get('filter_empty'):
-            filters['is_empty'] = False
-        # filter full servers
-        if self.form.cleaned_data.get('filter_full'):
-            filters['is_full'] = False
-        # filter password protected servers
-        if self.form.cleaned_data.get('filter_passworded'):
-            filters['passworded'] = False
-        # filter by game label (SWAT4, SWAT4X)
-        if self.form.cleaned_data.get('gamename'):
-            filters['gamename'] = utils.escape_cache_key(self.form.cleaned_data['gamename'])
-        # filter by game version (1.0, 1.1)
-        if self.form.cleaned_data.get('gamever'):
-            filters['gamever'] = utils.escape_cache_key(self.form.cleaned_data['gamever'])
-        # filter servers by gametype (VIP, BS, etc)
-        if self.form.cleaned_data.get('gametype'):
-            filters['gametype'] = utils.escape_cache_key(self.form.cleaned_data['gametype'])
-
-        return self.model.objects.status.filter(**filters).sort('-pinned', '-player_num')
-
-    def get_context_data(self, *args, **kwargs):
-        context_data = super(ServerListView, self).get_context_data(*args, **kwargs)
-        context_data.update({
-            'form': self.form,
-        })
-        return context_data
-
-
-class ServerDetailView(AjaxTemplateViewMixin, generic.DetailView):
-    TEMPLATE_DEFAULT = 'tracker/chapters/server/detail.html'
-    TEMPLATE_MODE = 'tracker/chapters/server/detail_mode%(mode)s.html'
-    AJAX_TEMPLATE_DEFAULT = 'tracker/chapters/server/detail_ajax.html'
-    AJAX_TEMPLATE_MODE = 'tracker/chapters/server/detail_mode%(mode)s_ajax.html'
-
-    model = models.Server
-
-    class ServerNotAvailable(Exception):
-        pass
-
-    @method_decorator(never_cache)
-    def dispatch(self, *args, **kwargs):
-        return super(ServerDetailView, self).dispatch(*args, **kwargs)
-
-    def get_html_template_names(self, *args, **kwargs):
-        return [
-            self.TEMPLATE_MODE % {'mode': self.status.gametype},
-            self.TEMPLATE_DEFAULT
-        ]
-
-    def get_ajax_template_names(self):
-        return [
-            self.AJAX_TEMPLATE_MODE % {'mode': self.status.gametype},
-            self.AJAX_TEMPLATE_DEFAULT
-        ]
-
-    def get(self, request, *args, **kwargs):
-        try:
-            response = super(ServerDetailView, self).get(request, *args, **kwargs)
-        except self.ServerNotAvailable:
-            # Override ajax response so it returns 404 in case of an error
-            if self.request.is_ajax():
-                raise Http404('The server is not available.')
-            return render(request, 'tracker/chapters/server/cap.html', {})
-        else:
-            return response
-
-    def get_object(self, *args, **kwargs):
-        ip = self.kwargs.get('server_ip')
-        port = self.kwargs.get('server_port')
-
-        if not (ip and port):
-            raise AttributeError
-
-        try:
-            obj = self.get_queryset().get(ip=ip, port=port)
-        except ObjectDoesNotExist:
-            raise Http404('No server found matching ip=%(ip)s, port=%(port)s' % {'ip': ip, 'port': port})
-
-        if not (obj.enabled and obj.listed):
-            raise self.ServerNotAvailable
-
-        # attempt to fetch cached server status
-        self.status = obj.status
-
-        if not self.status:
-            raise self.ServerNotAvailable
-
-        return obj
-
-    def get_context_data(self, *args, **kwargs):
-        context_data = super(ServerDetailView, self).get_context_data(*args, **kwargs)
-
-        # sort players by score, kills, arrests, -deaths
-        players = sorted(
-            self.status.players, 
-            key=lambda player: (player.get('score', 0), player.get('kills', 0), player.get('arrests', 0), -player.get('deaths', 0)),
-            reverse=True
-        )
-
-        context_data.update({
-            'status': self.status,
-            'players': players,
-            'players_blue': [player for player in players if player.get('team', 0) == definitions.TEAM_BLUE],
-            'players_red': [player for player in players if player.get('team', 0) == definitions.TEAM_RED],
-        })
-        return context_data
-
-
 class ProfileBaseView(AnnualViewMixin, generic.DetailView):
     RECENT_TIME = 60*60*24
     RECENT_MAX = 50
@@ -880,118 +636,118 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
                 '%(ordinal)s best score/minute ratio in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.SPR,
             ngettext_lazy(
                 'Best score/round ratio in %(year)s',
                 '%(ordinal)s best score/round ratio in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.KDR,
             ngettext_lazy(
                 'Best kills/deaths ratio in %(year)s',
                 '%(ordinal)s best kills/deaths ratio in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.AMMO_ACCURACY,
             ngettext_lazy(
                 'Highest accuracy in %(year)s',
                 '%(ordinal)s highest accuracy in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.SCORE,
             ngettext_lazy(
                 'Highest score in %(year)s',
                 '%(ordinal)s highest score in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.TOP_SCORE,
             ngettext_lazy(
                 'Highest round score in %(year)s',
                 '%(ordinal)s highest round score in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.TIME,
             ngettext_lazy(
                 'Highest playtime in %(year)s',
                 '%(ordinal)s highest playtime in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.KILLS,
             ngettext_lazy(
                 'Most kills in %(year)s',
                 '%(ordinal)s most kills in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.ARRESTS,
             ngettext_lazy(
                 'Most arrests in %(year)s',
                 '%(ordinal)s most arrests in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.KILL_STREAK,
             ngettext_lazy(
                 'Highest kill streak in %(year)s',
                 '%(ordinal)s highest kill streak in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.VIP_ESCAPES,
             ngettext_lazy(
                 'Most VIP escapes in %(year)s',
                 '%(ordinal)s most VIP escapes in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.VIP_CAPTURES,
             ngettext_lazy(
                 'Most VIP captures in %(year)s',
                 '%(ordinal)s most VIP captures in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.VIP_RESCUES,
             ngettext_lazy(
                 'Most VIP rescues in %(year)s',
                 '%(ordinal)s most VIP rescues in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.COOP_SCORE,
             ngettext_lazy(
                 'Highest CO-OP score in %(year)s',
                 '%(ordinal)s highest CO-OP score in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.COOP_WINS,
             ngettext_lazy(
                 'Most CO-OP missions completed in %(year)s',
                 '%(ordinal)s most CO-OP missions completed in %(year)s',
                 'position'
             )
-        ),
+         ),
         (STAT.COOP_TIME,
             ngettext_lazy(
                 'Highest CO-OP playtime in %(year)s',
                 '%(ordinal)s highest CO-OP playtime in %(year)s',
                 'position'
             )
-        ),
+         ),
     )
 
     # max position which can be nominated for an award
     award_max_position = 5
 
-    class ProfileNotPrepared(Exception): 
+    class ProfileNotPrepared(Exception):
         pass
 
     model = models.Profile
@@ -1005,19 +761,22 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
         return a "Profile not available error page".
         """
         try:
-            response = super(ProfileBaseView, self).get(request, *args, **kwargs)
+            response = super().get(request, *args, **kwargs)
         except self.ProfileNotPrepared:
             return render(request, 'tracker/chapters/profile/cap.html', {})
         else:
             # redirect to the latest avaiable profile.. unless a year is specified
             if not kwargs.get('year') and self.object.last_seen.year != self.year_now:
                 return HttpResponseRedirect(
-                    templatetags.profile_url(self.object, request.resolver_match.view_name, **{'year': self.object.last_seen.year})
+                    templatetags.profile_url(self.object,
+                                             request.resolver_match.view_name,
+                                             **{'year': self.object.last_seen.year})
                 )
             return response
 
     def get_queryset(self, *args, **kwargs):
-        return (super(ProfileBaseView, self).get_queryset(*args, **kwargs)
+        return (
+            super().get_queryset(*args, **kwargs)
             .select_related('loadout', 'game_first', 'game_last')
         )
 
@@ -1025,10 +784,10 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
         """
         Obtain the object instance by calling the parent get_object method.
 
-        In case the profile object is not considered popular 
+        In case the profile object is not considered popular
         (i.e. it has no popular name or team set), raise ProfileBaseView.ProfileNotPrepared.
         """
-        obj = super(ProfileBaseView, self).get_object(*args, **kwargs)
+        obj = super().get_object(*args, **kwargs)
         if not obj.popular:
             raise self.ProfileNotPrepared
         return obj
@@ -1036,17 +795,17 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
     def get_context_data(self, *args, **kwargs):
         # limit the years list with the range of years the player played in
         self.years = list(range(self.object.first_seen.year, self.object.last_seen.year + 1))
-        context_data = super(ProfileBaseView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'recent': self.get_recent_games(),
             'award': self.get_award(),
-            #'all': self.object.aggregate_mode_stats(models.Profile.SET_STATS_ALL, *models.Rank.get_period_for_now()),
         })
         return context_data
 
     def get_games(self):
         """Return a queryset of profile related games sorted by id in descending order."""
-        return (models.Game.objects
+        return (
+            models.Game.objects
             .filter(player__alias__profile=self.object)
             .order_by('-date_finished')
             .distinct('pk', 'date_finished')
@@ -1057,20 +816,17 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
         Return a LIST of the latest profile related games limited by
         ProfileBaseView.GAMES_RECENT_MAX or ProfileBaseView.MAPS_RECENT_MAX (whichever is lower).
         """
-        @cacheops.cached(timeout=60*5, extra=self.object.pk)
-        def _get_recent_games():
-            recent = []
-            min_date = self.object.game_last.date_finished - datetime.timedelta(seconds=self.RECENT_TIME)
-            games = self.get_games().filter(date_finished__gte=min_date)[:self.RECENT_MAX]
-            # limit by number of maps
-            maps = set()
-            for game in games:
-                maps.add(game.mapname)
-                recent.append(game)
-                if len(maps) >= self.RECENT_MAX_MAPS:
-                    break
-            return recent
-        return _get_recent_games()
+        recent = []
+        min_date = self.object.game_last.date_finished - datetime.timedelta(seconds=self.RECENT_TIME)
+        games = self.get_games().filter(date_finished__gte=min_date)[:self.RECENT_MAX]
+        # limit by number of maps
+        maps = set()
+        for game in games:
+            maps.add(game.mapname)
+            recent.append(game)
+            if len(maps) >= self.RECENT_MAX_MAPS:
+                break
+        return recent
 
     def get_stats(self):
         """
@@ -1085,36 +841,38 @@ class ProfileBaseView(AnnualViewMixin, generic.DetailView):
         for score in self.object.rank_set.filter(year=self.year):
             stored[score.category] = score.points
         # set zeroes to the rest of the categories
-        return {value: stored[key] if key in stored else 0.0 for key, value in six.iteritems(mapping)}
+        return {
+            value: stored[key] if key in stored else 0.0
+            for key, value in mapping.items()
+        }
 
     def get_award(self):
         """
-        Return the first matching ranking position from the leaderboards specified in `rank_list` 
+        Return the first matching ranking position from the leaderboards specified in `rank_list`
         """
-        @cacheops.cached(timeout=60*60, extra=self.object.pk)
-        def _get_award():
-            # get the category ids
-            categories = tuple(map(lambda entry: entry[0], self.award_list))
-            qs = (models.Rank.objects
-                .filter(
-                    profile=self.object,
-                    position__lte=self.award_max_position,
-                    category__in=categories,
-                )
+        # get the category ids
+        categories = tuple(map(lambda entry: entry[0], self.award_list))
+        qs = (
+            models.Rank.objects
+            .filter(
+                profile=self.object,
+                position__lte=self.award_max_position,
+                category__in=categories,
             )
-            # sort entries of the same position by rank_list in asecending order and years in descending order
-            # return the very first entry
-            key = lambda entry: (entry.position, categories.index(entry.category), -entry.year)
-            return next(iter(sorted(qs, key=key)), None)
+        )
 
-        award = _get_award()
+        # sort entries of the same position by rank_list in asecending order and years in descending order
+        # return the very first entry
+        ranked = sorted(qs, key=lambda e: (e.position, categories.index(e.category), -e.year))
+        award = next(iter(ranked), None)
+
         if award:
             for category, text in self.award_list:
                 if award.category == category:
                     return {
                         'title': text % {
-                            'ordinal': humanize.ordinal(award.position), 
-                            'position': award.position, 
+                            'ordinal': humanize.ordinal(award.position),
+                            'position': award.position,
                             'year': award.year
                         },
                         'obj': award,
@@ -1129,7 +887,7 @@ class ProfileDetailView(ProfileBaseView):
         stats = self.get_stats()
         maps = []  # self.get_maps()
 
-        context_data = super(ProfileDetailView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             # calculate rank
             'rank': utils.Rank(definitions.RANKS, stats['score']),
@@ -1138,44 +896,41 @@ class ProfileDetailView(ProfileBaseView):
             # get the players best games
             'best': (
                 (
-                    _('First Appearance'), 
-                    self.object.game_first, 
+                    _('First Appearance'),
+                    self.object.game_first,
                     humanize.naturaltime(self.object.game_first.date_finished)
                 ),
                 (
-                    _('Best Score'), 
+                    _('Best Score'),
                     self.get_best_game('score', stats['top_score']),
-                    (ngettext_lazy('%(points)s point', '%(points)s points', int(stats['top_score'])) 
-                        % {'points': int(stats['top_score'])}
-                    )
+                    (ngettext_lazy('%(points)s point', '%(points)s points', int(stats['top_score']))
+                     % {'points': int(stats['top_score'])}),
                 ),
                 (
-                    _('Top Kills'), 
+                    _('Top Kills'),
                     self.get_best_game('kills', stats['top_kills']),
-                    (ngettext_lazy('%(points)d kill', '%(points)d kills', int(stats['top_kills'])) 
-                        % {'points': int(stats['top_kills'])}
-                    )
+                    (ngettext_lazy('%(points)d kill', '%(points)d kills', int(stats['top_kills']))
+                     % {'points': int(stats['top_kills'])}),
                 ),
                 (
-                    _('Top Arrests'), 
+                    _('Top Arrests'),
                     self.get_best_game('arrests', stats['top_arrests']),
-                    (ngettext_lazy('%(points)d arrest', '%(points)d arrests', int(stats['top_arrests'])) 
-                        % {'points': int(stats['top_arrests'])}
-                    )
+                    (ngettext_lazy('%(points)d arrest', '%(points)d arrests', int(stats['top_arrests']))
+                     % {'points': int(stats['top_arrests'])}),
                 ),
                 (
-                    _('Best Kill Streak'), 
+                    _('Best Kill Streak'),
                     self.get_best_game('kill_streak', stats['kill_streak']),
-                    (ngettext_lazy('%(points)d kill in a row', '%(points)d kills in a row', int(stats['kill_streak'])) 
-                        % {'points': int(stats['kill_streak'])}
-                    )
+                    (ngettext_lazy('%(points)d kill in a row', '%(points)d kills in a row', int(stats['kill_streak']))
+                     % {'points': int(stats['kill_streak'])})
                 ),
                 (
-                    _('Best Arrest Streak'), 
+                    _('Best Arrest Streak'),
                     self.get_best_game('arrest_streak', stats['arrest_streak']),
-                    (ngettext_lazy('%(points)d arrest in a row', '%(points)d arrests in a row', int(stats['arrest_streak'])) 
-                        % {'points': int(stats['arrest_streak'])}
-                    )
+                    (ngettext_lazy('%(points)d arrest in a row',
+                                   '%(points)d arrests in a row',
+                                   int(stats['arrest_streak']))
+                     % {'points': int(stats['arrest_streak'])}),
                 ),
             ),
             # maps + best maps
@@ -1187,7 +942,7 @@ class ProfileDetailView(ProfileBaseView):
         return context_data
 
     def get_maps(self):
-        """Aggegate map stats."""
+        """Aggregate map stats."""
         items = {
             'time': (
                 Sum(
@@ -1233,71 +988,58 @@ class ProfileDetailView(ProfileBaseView):
                 )
             ),
         }
-
-        @cacheops.cached(timeout=60*60, extra=(self.object.pk, self.year))
-        def _get_maps():
-            period = models.Rank.get_period_for_year(self.year)
-            aggregated = self.object.aggregate(items, *period, group_by='game__mapname', group_by_as='mapname')
-            return [item for item in aggregated if item['games']]
-        return _get_maps()
+        period = models.Rank.get_period_for_year(self.year)
+        aggregated = self.object.aggregate(items, *period, group_by='game__mapname', group_by_as='mapname')
+        return [item for item in aggregated if item['games']]
 
     def get_best_game(self, field, points):
         """
         Return a Player instance with `field` equal to `points`.
         """
-        @cacheops.cached(timeout=60*60, extra=(self.object.pk, field, self.year))
-        def _get_best_game():
-            try:
-                assert points > 0
-                period = models.Rank.get_period_for_year(self.year)
-                player = (self.object.qualified(*period)
-                    .select_related('game')
-                    .filter(**{field: points})[:1]
-                    .get()
-                )
-            except (AssertionError, ObjectDoesNotExist):
-                return None
-            else:
-                return player.game
-        return _get_best_game()
+        try:
+            assert points > 0
+            period = models.Rank.get_period_for_year(self.year)
+            player = (
+                self.object.qualified(*period)
+                .select_related('game')
+                .filter(**{field: points})[:1]
+                .get()
+            )
+        except (AssertionError, ObjectDoesNotExist):
+            return None
+        else:
+            return player.game
 
     def get_best_weapon(self, aggregated):
         """Return the weapon with most kills."""
-        return next(iter(sorted(six.itervalues(aggregated), key=lambda weapon: weapon['kills'], reverse=True)), None)
+        sorted_by_kills = sorted(aggregated.values(), key=lambda weapon: weapon['kills'], reverse=True)
+        try:
+            return sorted_by_kills[0]
+        except IndexError:
+            return None
 
     def get_max(self, *categories):
         "Return the max values for the K/D and S/M stats."
-        @cacheops.cached(timeout=60*60*24)
-        def _get_max():
-            return (
-                models.Rank.objects
-                .filter(year=self.year)
-                .aggregate(
-                    spm=Max(Case(When(category=STAT.SPM, then='points'))),
-                    kdr=Max(Case(When(category=STAT.KDR, then='points')))
-                )
-            )
-        return _get_max()
+        return jobs.get_best_kdr(self.year)
 
 
 class ProfileWeaponListView(ProfileBaseView):
-    
     template_name = 'tracker/chapters/profile/equipment.html'
 
     def get_context_data(self, *args, **kwargs):
         # get a list of used weapons (ie a weapon with at least one kill or a shot)
         weapons = {
-            weapon: stats for weapon, stats in six.iteritems(self.get_weapons()) 
+            weapon: stats for weapon, stats in self.get_weapons().items()
             if stats['kills'] or stats['shots']
         }
         # sort primary and secondary weapons by accuracy
         primary = sorted(
-            self.filter_weapons(definitions.WEAPONS_PRIMARY, weapons).values(), 
+            self.filter_weapons(definitions.WEAPONS_PRIMARY, weapons).values(),
             key=lambda weapon: weapon['accuracy'],
             reverse=True
         )
         secondary = sorted(
-            self.filter_weapons(definitions.WEAPONS_SECONDARY, weapons).values(), 
+            self.filter_weapons(definitions.WEAPONS_SECONDARY, weapons).values(),
             key=lambda weapon: weapon['accuracy'],
             reverse=True
         )
@@ -1307,13 +1049,13 @@ class ProfileWeaponListView(ProfileBaseView):
             key=lambda weapon: weapon['shots'],
             reverse=True
         )
-        context_data = super(ProfileWeaponListView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'primary': primary,
             'primary_best': utils.rank_dicts(primary),
             'secondary': secondary,
             'secondary_best': utils.rank_dicts(secondary),
-            'tactical': tactical, 
+            'tactical': tactical,
             'tactical_best': utils.rank_dicts(tactical),
             # retrieve the most popular loadout for the selected year
             # unless the selected year is the current year
@@ -1328,20 +1070,14 @@ class ProfileWeaponListView(ProfileBaseView):
         Example:
             {0: {'name': 0, 'kills': 123, ...}, 1: {...}, ...}
         """
-        @cacheops.cached(timeout=60*60*24, extra=(self.object.pk, self.year))
-        def _get_weapons():
-            aggregated = self.object.aggregate_weapon_stats(
-                *models.Rank.get_period_for_year(self.year), 
-                filters={'game__gametype__in': definitions.MODES_VERSUS}
-            )
-            return aggregated
-        return _get_weapons()
+        aggregated = self.object.aggregate_weapon_stats(
+            *models.Rank.get_period_for_year(self.year),
+            filters={'game__gametype__in': definitions.MODES_VERSUS}
+        )
+        return aggregated
 
     def get_favourite_loadout(self):
-        @cacheops.cached(timeout=60*60*24, extra=(self.object.pk, self.year))
-        def _get_favourite_loadout():
-            return self.object.fetch_popular_loadout(year=self.year)
-        return _get_favourite_loadout()
+        self.object.fetch_popular_loadout(year=self.year)
 
     @staticmethod
     def filter_weapons(pattern, weapons):
@@ -1357,7 +1093,7 @@ class ProfileCoopDetailView(ProfileBaseView):
     template_name = 'tracker/chapters/profile/coop.html'
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(ProfileCoopDetailView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
 
         maps = self.get_maps()
         equipment = self.get_favourite_equipment()
@@ -1366,7 +1102,7 @@ class ProfileCoopDetailView(ProfileBaseView):
             item['loadout'] = equipment[item['mapname']] if item['mapname'] in equipment else None
 
         context_data.update({
-            'stats':self.get_stats(),
+            'stats': self.get_stats(),
             'maps': maps,
         })
         return context_data
@@ -1408,46 +1144,41 @@ class ProfileCoopDetailView(ProfileBaseView):
                 )
             ),
         }
-        @cacheops.cached(timeout=60*60, extra=(self.object.pk, self.year))
-        def _coop_get_maps():
-            aggregated = self.object.aggregate(
-                items, 
-                *models.Rank.get_period_for_year(self.year), 
-                group_by='game__mapname',
-                group_by_as='mapname',
-                filters={'game__gametype__in': definitions.MODES_COOP, 'dropped': False}
-            )
-            return [item for item in aggregated if item['time_best']]
-        return _coop_get_maps()
+        aggregated = self.object.aggregate(
+            items,
+            *models.Rank.get_period_for_year(self.year),
+            group_by='game__mapname',
+            group_by_as='mapname',
+            filters={'game__gametype__in': definitions.MODES_COOP, 'dropped': False}
+        )
+        return [item for item in aggregated if item['time_best']]
 
     def get_favourite_equipment(self):
-        @cacheops.cached(timeout=60*60, extra=(self.object.pk, self.year))
-        def _coop_get_favourite_equipment():
-            maps = {}
-            period = models.Rank.get_period_for_year(self.year)
-            aggregated = (self.object
-                .qualified(*period)
-                .filter(game__gametype__in=definitions.MODES_COOP)
-                .values('game__mapname', 'loadout')
-                .annotate(count=db.models.Count('loadout')).order_by('-count')
-            )
-            for item in aggregated:
-                # filter out None entries
-                if item['game__mapname'] is None or item['loadout'] is None:
-                    continue
-                # since the aggregate query is ordered by loadout count, 
-                # we get the most popular loadout for every first occurence of a map
-                if item['game__mapname'] not in maps:
-                    maps[item['game__mapname']] = item['loadout']
-            # prefetch Loadout objects
-            # construct a pk => Loadout object dict from the queryset
-            prefetched = {
-                obj.pk: obj for obj in models.Loadout.objects.filter(pk__in=maps.values())
-            }
-            return {
-                mapname: prefetched[pk] for mapname, pk in six.iteritems(maps)
-            }
-        return _coop_get_favourite_equipment()
+        maps = {}
+        period = models.Rank.get_period_for_year(self.year)
+        aggregated = (
+            self.object
+            .qualified(*period)
+            .filter(game__gametype__in=definitions.MODES_COOP)
+            .values('game__mapname', 'loadout')
+            .annotate(count=db.models.Count('loadout')).order_by('-count')
+        )
+        for item in aggregated:
+            # filter out None entries
+            if item['game__mapname'] is None or item['loadout'] is None:
+                continue
+            # since the aggregate query is ordered by loadout count,
+            # we get the most popular loadout for every first occurence of a map
+            if item['game__mapname'] not in maps:
+                maps[item['game__mapname']] = item['loadout']
+        # prefetch Loadout objects
+        # construct a pk => Loadout object dict from the queryset
+        prefetched = {
+            obj.pk: obj for obj in models.Loadout.objects.filter(pk__in=maps.values())
+        }
+        return {
+            mapname: prefetched[pk] for mapname, pk in maps.items()
+        }
 
 
 class ProfileRankingListView(ProfileBaseView, generic.list.MultipleObjectMixin):
@@ -1455,7 +1186,7 @@ class ProfileRankingListView(ProfileBaseView, generic.list.MultipleObjectMixin):
 
     def get_context_data(self, *args, **kwargs):
         self.object_list = self.get_ranks()
-        context_data = super(ProfileRankingListView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'rank_list': self.object_list,
         })
@@ -1466,17 +1197,18 @@ class ProfileRankingListView(ProfileBaseView, generic.list.MultipleObjectMixin):
         # lend board list from the Leaderboad view
         ranks = BoardListView.get_boards()
         # set defaults and acqure a list of categories
-        for details in six.itervalues(ranks):
+        for details in ranks.values():
             details.update({
                 'points': 0,
                 'position': None,
             })
             categories.append(details['id'])
 
-        entries = (models.Rank.objects
+        entries = (
+            models.Rank.objects
             .filter(
-                profile=self.object, 
-                year=self.year, 
+                profile=self.object,
+                year=self.year,
                 category__in=categories
             )
         )
@@ -1497,10 +1229,11 @@ class ProfileHistoryListView(ProfileBaseView, generic.list.MultipleObjectMixin):
     def get_context_data(self, *args, **kwargs):
         start, end = models.Rank.get_period_for_year(self.year)
         # for paginator
-        self.object_list = (self.get_games()
+        self.object_list = (
+            self.get_games()
             .filter(date_finished__gte=start, date_finished__lte=end)
         )
-        context_data = super(ProfileHistoryListView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         return context_data
 
 
@@ -1513,18 +1246,19 @@ class PlayerSearchView(FilterViewMixin, generic.ListView):
 
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
-        return super(PlayerSearchView, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         self.form = self.form_class(data=request.GET or None)
-        return super(PlayerSearchView, self).get(request, *args, **kwargs) 
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self, *args, **kwargs):
-        qs = super(PlayerSearchView, self).get_queryset(*args, **kwargs)
+        qs = super().get_queryset(*args, **kwargs)
         if not self.form.is_valid():
             return qs.none()
         # search by player name
-        return (qs
+        return (
+            qs
             .select_related('profile', 'profile__game_last', 'profile__loadout')
             .filter(
                 name__icontains=self.form.cleaned_data['player'],
@@ -1537,23 +1271,12 @@ class PlayerSearchView(FilterViewMixin, generic.ListView):
         )
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(PlayerSearchView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'form': self.form,
-            'term_random': self.get_random_name(),
+            'term_random': jobs.get_random_name(),
         })
         return context_data
-
-    def get_random_name(self):
-        @cacheops.cached(timeout=60*60)
-        def _get_random_name():
-            queryset = models.Profile.objects.filter(name__isnull=False)
-            try:
-                profile = queryset[random.randrange(1, queryset.count())]
-            except (IndexError, ValueError):
-                return None
-            return profile.name
-        return _get_random_name()
 
 
 class ProfileRedirectView(generic.RedirectView):
@@ -1564,7 +1287,7 @@ class ProfileRedirectView(generic.RedirectView):
         return '%s?player=%s' % (reverse('tracker:search'), kwargs.get('name', ''))
 
 
-class APIMotdViewMixin(object):
+class APIMotdViewMixin:
     # default values
     time_initial = 60  # start displaying in 60 seconds after a map launch
     time_repeat = 0  # display once
@@ -1585,7 +1308,7 @@ class APIMotdViewMixin(object):
             # set default
             time_repeat = self.time_repeat
 
-        context_data = super(APIMotdViewMixin, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'time_initial': time_initial,
             'time_repeat': time_repeat,
@@ -1608,10 +1331,10 @@ class APIMotdLeaderboardView(APIMotdViewMixin, BoardListView):
     limit = 5
 
     def get_queryset(self, *args, **kwargs):
-        return super(APIMotdLeaderboardView, self).get_queryset(*args, **kwargs)[:self.limit]
+        return super().get_queryset(*args, **kwargs)[:self.limit]
 
     def get_context_data(self, *args, **kwargs):
-        context_data = super(APIMotdLeaderboardView, self).get_context_data(*args, **kwargs)
+        context_data = super().get_context_data(*args, **kwargs)
         context_data.update({
             'limit': self.limit,
         })
@@ -1620,108 +1343,3 @@ class APIMotdLeaderboardView(APIMotdViewMixin, BoardListView):
     def get_default_board(self):
         """Return a random leaderboard name."""
         return random.choice(list(self.board_list))
-
-
-class APIWhoisView(generic.View):
-    template_name = 'tracker/api/whois/%(command)s.html'
-    pattern_node = shortcuts.parse_pattern(const.WHOIS_PATTERN)
-
-    command_name = None
-
-    class CommandError(Exception):
-        pass
-
-
-    @staticmethod
-    def status(request, code, command, message=None):
-        """
-        Return an integer status code and command id followed by an optional message.
-        The response components are delimited with a newline.
-
-        Example:
-            0\nGBAh1La\n127.0.0.1 belongs to localhost
-            1\nNbaY1hd\nInvalid IP address
-        """
-        return HttpResponse('\n'.join(list(filter(None, [code, command, message]))))
-
-    # limit request rate to the whois api
-    @method_decorator(ratelimit(rate='60/m', block=False))
-    @method_decorator(decorators.requires_valid_source)
-    @method_decorator(decorators.requires_valid_request(pattern_node))
-    def dispatch(self, *args, **kwargs):
-        return super(APIWhoisView, self).dispatch(*args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        self.command_name = self.request.stream_data['command'].value
-
-        try:
-
-            # annotate request rate limit block reason
-            if getattr(request, 'limited', False):
-                raise self.CommandError(_('Request rate limit exceeded'))
-
-            context_data = self.get_context_data()
-
-        except self.CommandError as e:
-            # respond with an error code
-            return self.status(request, '1', request.stream_data['command_id'].value, str(e))
-
-        # respond with command result
-        return self.status(
-            request,
-            '0', 
-            request.stream_data['command_id'].value, 
-            render_to_string(self.get_template_names(), context_data, RequestContext(request))
-        )
-
-    def get_context_data(self, *args, **kwargs):
-        context_data = {}
-
-        # only handle commands that have assotiated handlers
-        try:
-            method = getattr(self, 'handle_%s' % self.command_name)
-        except AttributeError:
-            raise self.CommandError(_('%(command)s is not a valid command name') % {'command': self.command_name})
-        else:
-            # invoke an assotiated command context data handler
-            # passing the provided argument
-            context_data.update(method(self.request.stream_data['args'].value))
-
-        return context_data
-
-    def get_template_names(self, *args, **kwargs):
-        return self.template_name % {'command': self.command_name}
-
-    def handle_whois(self, arg):
-        """
-        Handle a whois command.
-
-        Args:
-            arg - command argument
-                  argument is expected to be a player name 
-                  and an IP address delimited by \t (tab character)
-        """
-        try:
-            name, ip = arg.split('\t')
-        except:
-            raise self.CommandError(_('%(arg)s is not a valid argument for the whois command') % {'arg': arg})
-        # get isp
-        try:
-            isp = models.ISP.objects.match_or_create(ip)[0]
-        except ObjectDoesNotExist:
-            isp = None
-        except ValueError:
-            raise self.CommandError(_('%(ip)s is not a valid IP address') % {'ip': ip})
-        # attempt to match profile
-        try:
-            profile = models.Profile.objects.match_smart(name=name, isp=isp, ip=ip)
-        except ObjectDoesNotExist:
-            profile = None
-
-        return {
-            'name': name,
-            'ip': ip,
-            'isp': isp.name if isp else None,
-            'country': isp.country if isp else None,
-            'profile': profile,
-        }

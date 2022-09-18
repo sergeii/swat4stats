@@ -55,9 +55,9 @@
                                 <div class="profile-name">
                                     <a href="{% profile_url object.profile %}">{{ object.profile.name|highlight:form.cleaned_data.player }}</a>
                                 </div>
-                                {% ifnotequal object.name object.profile.name %}
+                                {% if object.name != object.profile.name %}
                                     <div class="gray swat-status-text">{{ object.name|highlight:form.cleaned_data.player }}</div>
-                                {% endifnotequal %}
+                                {% endif %}
                             </div>
                             <div class="cell-time">{{ object.profile.last_seen|naturaltime }}</div>
                         </div>
@@ -71,10 +71,10 @@
                 {% include "tracker/includes/pagination.html" with page_obj=page_obj filters=filters only %}
             </div>
             {% endif %}
-            
+
         </div>
         {% endif %}
-        
+
     </div>
     {% endblock swat_frame_content %}
 </div>

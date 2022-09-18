@@ -9,11 +9,11 @@
 <div class="width100">
     <div class="swat-tab-block left">
         {% for available_year in years reversed %}
-            {% ifequal available_year year %}
-                <div class="swat-tab-button active">{{ available_year }}</div> 
+            {% if available_year == year %}
+                <div class="swat-tab-button active">{{ available_year }}</div>
             {% else %}
-                <a class="swat-tab-button" href="{% url 'tracker:top' year=available_year %}">{{ available_year }}</a> 
-            {% endifequal %}
+                <a class="swat-tab-button" href="{% url 'tracker:top' year=available_year %}">{{ available_year }}</a>
+            {% endif %}
         {% endfor %}
     </div>
 

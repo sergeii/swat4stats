@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import)
-
-from julia import node
+from vendor.julia import node
 
 
 EQUIPMENT = {
@@ -171,7 +168,6 @@ STREAM_PATTERN = {
             '2': 'Rapid Deployment',
             '3': 'CO-OP',
             '4': 'Smash And Grab',
-            #'5': 'CO-OP QMM',
         }
     },
     # Map
@@ -303,7 +299,8 @@ STREAM_PATTERN = {
             '116': '(SEALMAP)School',  # SP-School.s4m, MP-School.s4m
             '117': 'Diamond Center (Desrat\'s SAG)',  # MP-JewelryHeist-smash2.s4m
             '118': 'Newfort2xSus',  # SP-Newfort100Sus.s4m
-            '119': 'Ocean Avenue 112',  # MP-Amityville_Horror_VIP.s4m, SP-Amityville_Horror.s4m, MP-Amityville_Horror.s4m
+            # MP-Amityville_Horror_VIP.s4m, SP-Amityville_Horror.s4m, MP-Amityville_Horror.s4m
+            '119': 'Ocean Avenue 112',
             '120': '|ustt| Enemy Territory V2',  # MP-USTT_Enemy_Territory2.s4m
             '121': 'Project -SERO- 1.0',  # MP-ProjectSero.s4m, SP-ProjectSero.s4m
             '122': 'C-Block Taronne is back',  # SP-CBlock.s4m
@@ -486,16 +483,16 @@ STREAM_PATTERN = {
         'name': 'outcome',
         'required': True,
         'table': {
-            '0' : 'none',
-            '1' : 'swat_bs',            # SWAT victory in Barricaded Suspects
-            '2' : 'sus_bs',             # Suspects victory in Barricaded Suspects
-            '3' : 'swat_rd',            # SWAT victory in Rapid Deployment (all bombs have been exploded)
-            '4' : 'sus_rd',             # Suspects victory in Rapid Deployment (all bombs have been deactivated)
-            '5' : 'tie',                # A tie
-            '6' : 'swat_vip_escape',    # SWAT victory in VIP Escort - The VIP has escaped
-            '7' : 'sus_vip_good_kill',  # Suspects victory in VIP Escort - Suspects have executed the VIP
-            '8' : 'swat_vip_bad_kill',  # SWAT victory in VIP Escort - Suspects have killed the VIP
-            '9' : 'sus_vip_bad_kill',   # Suspects victory in VIP Escort - SWAT have killed the VIP
+            '0': 'none',
+            '1': 'swat_bs',            # SWAT victory in Barricaded Suspects
+            '2': 'sus_bs',             # Suspects victory in Barricaded Suspects
+            '3': 'swat_rd',            # SWAT victory in Rapid Deployment (all bombs have been exploded)
+            '4': 'sus_rd',             # Suspects victory in Rapid Deployment (all bombs have been deactivated)
+            '5': 'tie',                # A tie
+            '6': 'swat_vip_escape',    # SWAT victory in VIP Escort - The VIP has escaped
+            '7': 'sus_vip_good_kill',  # Suspects victory in VIP Escort - Suspects have executed the VIP
+            '8': 'swat_vip_bad_kill',  # SWAT victory in VIP Escort - Suspects have killed the VIP
+            '9': 'sus_vip_bad_kill',   # Suspects victory in VIP Escort - SWAT have killed the VIP
             '10': 'coop_completed',     # COOP objectives have been completed
             '11': 'coop_failed',        # COOP objectives have been failed
             '12': 'swat_sg',            # SWAT victory in Smash and Grab
@@ -529,16 +526,16 @@ STREAM_PATTERN = {
                     'name': 'name',
                     'required': True,
                     'table': {
-                        '0' : 'Arrest_Jennings',
-                        '1' : 'Custom_NoCiviliansInjured',
-                        '2' : 'Custom_NoOfficersInjured',
-                        '3' : 'Custom_NoOfficersKilled',
-                        '4' : 'Custom_NoSuspectsKilled',
-                        '5' : 'Custom_PlayerUninjured',
-                        '6' : 'Custom_Timed',
-                        '7' : 'Disable_Bombs',
-                        '8' : 'Disable_Office_Bombs',
-                        '9' : 'Investigate_Laundromat',
+                        '0': 'Arrest_Jennings',
+                        '1': 'Custom_NoCiviliansInjured',
+                        '2': 'Custom_NoOfficersInjured',
+                        '3': 'Custom_NoOfficersKilled',
+                        '4': 'Custom_NoSuspectsKilled',
+                        '5': 'Custom_PlayerUninjured',
+                        '6': 'Custom_Timed',
+                        '7': 'Disable_Bombs',
+                        '8': 'Disable_Office_Bombs',
+                        '9': 'Investigate_Laundromat',
                         '10': 'Neutralize_Alice',
                         '11': 'Neutralize_All_Enemies',
                         '12': 'Neutralize_Arias',
@@ -602,16 +599,16 @@ STREAM_PATTERN = {
                     'name': 'name',
                     'required': True,
                     'table': {
-                        '0' : 'bonus_suspect_incapped',
-                        '1' : 'bonus_suspect_arrested',
-                        '2' : 'bonus_mission_completed',
-                        '3' : 'penalty_officer_unevacuated',
-                        '4' : 'bonus_suspect_killed',
-                        '5' : 'bonus_all_hostages_uninjured',
-                        '6' : 'penalty_hostage_incapped',
-                        '7' : 'penalty_hostage_killed',
-                        '8' : 'penalty_officer_incapped',
-                        '9' : 'penalty_officer_injured',
+                        '0': 'bonus_suspect_incapped',
+                        '1': 'bonus_suspect_arrested',
+                        '2': 'bonus_mission_completed',
+                        '3': 'penalty_officer_unevacuated',
+                        '4': 'bonus_suspect_killed',
+                        '5': 'bonus_all_hostages_uninjured',
+                        '6': 'penalty_hostage_incapped',
+                        '7': 'penalty_hostage_killed',
+                        '8': 'penalty_officer_incapped',
+                        '9': 'penalty_officer_injured',
                         '10': 'bonus_officer_alive',
                         '11': 'bonus_all_suspects_alive',
                         '12': 'penalty_deadly_force',
@@ -1055,42 +1052,5 @@ STREAM_PATTERN = {
                 },
             },
         },
-    },
-}
-
-# julia pattern for whois api 
-WHOIS_PATTERN = {
-    '0': {
-        'type': node.StringPatternNode,
-        'name': 'hash',
-        'required': True,
-    },
-    '1': {
-        'type': node.StringPatternNode,
-        'name': 'command',
-        'required': True,
-    },
-    '2': {
-        'type': node.StringPatternNode,
-        'name': 'command_id',
-        'required': True,
-    },
-    '3': {
-        'type': node.StringPatternNode,
-        'name': 'args',
-        'required': False,
-        'default': '',
-    },
-    '4': {
-        'type': node.StringPatternNode,
-        'name': 'player_name',
-        'required': False,
-        'default': '',
-    },
-    '5': {
-        'type': node.StringPatternNode,
-        'name': 'player_ip',
-        'required': False,
-        'default': '',
     },
 }

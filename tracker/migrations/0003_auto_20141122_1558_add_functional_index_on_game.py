@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
-
+import django.db.models.expressions
 
 class Migration(migrations.Migration):
 
@@ -11,14 +8,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            """
-            CREATE INDEX tracker_game_date_finished_desc ON tracker_game (date_finished DESC);
-            CREATE INDEX tracker_game_score_swat_score_sus ON tracker_game ((score_swat+score_sus) DESC);
-            """,
-            """
-            DROP INDEX tracker_game_date_finished_desc;
-            DROP INDEX tracker_game_score_swat_score_sus;
-            """,
+        migrations.AddIndex(
+            model_name='game',
+            index=models.Index(models.OrderBy(
+                django.db.models.expressions.CombinedExpression(models.F('score_swat'), '+', models.F('score_sus')),
+                descending=True), name='tracker_game_score_swat_score_sus'),
+        ),
+        migrations.AddIndex(
+            model_name='game',
+            index=models.Index(models.OrderBy(models.F('date_finished'), descending=True),
+                               name='tracker_game_date_finished_desc'),
         ),
     ]

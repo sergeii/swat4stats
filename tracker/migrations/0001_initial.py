@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
 import tracker.models
 import django.db.models.deletion
@@ -111,7 +108,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('name', models.SmallIntegerField()),
                 ('status', models.SmallIntegerField(default=0)),
-                ('game', models.ForeignKey(to='tracker.Game')),
+                ('game', models.ForeignKey(to='tracker.Game', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -156,9 +153,9 @@ class Migration(migrations.Migration):
                 ('coop_enemy_incaps_invalid', models.SmallIntegerField(default=0)),
                 ('coop_enemy_kills_invalid', models.SmallIntegerField(default=0)),
                 ('coop_toc_reports', models.SmallIntegerField(default=0)),
-                ('alias', models.ForeignKey(to='tracker.Alias')),
-                ('game', models.ForeignKey(to='tracker.Game')),
-                ('loadout', models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, to='tracker.Loadout', null=True)),
+                ('alias', models.ForeignKey(to='tracker.Alias', on_delete=models.PROTECT)),
+                ('game', models.ForeignKey(to='tracker.Game', on_delete=models.CASCADE)),
+                ('loadout', models.ForeignKey(on_delete=models.PROTECT, to='tracker.Loadout', null=True)),
             ],
             options={
             },
@@ -171,7 +168,7 @@ class Migration(migrations.Migration):
                 ('name', models.SmallIntegerField()),
                 ('status', models.CharField(max_length=7)),
                 ('score', models.SmallIntegerField(default=0)),
-                ('game', models.ForeignKey(to='tracker.Game')),
+                ('game', models.ForeignKey(to='tracker.Game', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -200,7 +197,7 @@ class Migration(migrations.Migration):
                 ('year', models.SmallIntegerField()),
                 ('points', models.FloatField(default=0)),
                 ('position', models.PositiveIntegerField(db_index=True, null=True)),
-                ('profile', models.ForeignKey(to='tracker.Profile')),
+                ('profile', models.ForeignKey(to='tracker.Profile', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -236,7 +233,7 @@ class Migration(migrations.Migration):
                 ('kills', models.SmallIntegerField(default=0)),
                 ('teamkills', models.SmallIntegerField(default=0)),
                 ('distance', models.FloatField(default=0)),
-                ('player', models.ForeignKey(to='tracker.Player')),
+                ('player', models.ForeignKey(to='tracker.Player', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -244,25 +241,25 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='server',
-            unique_together=set([('ip', 'port')]),
+            unique_together={('ip', 'port')},
         ),
         migrations.AlterUniqueTogether(
             name='rank',
-            unique_together=set([('year', 'category', 'profile')]),
+            unique_together={('year', 'category', 'profile')},
         ),
         migrations.AlterIndexTogether(
             name='player',
-            index_together=set([('alias', 'score'), ('alias', 'arrests'), ('alias', 'kill_streak'), ('alias', 'arrest_streak'), ('alias', 'kills')]),
+            index_together={('alias', 'score'), ('alias', 'arrests'), ('alias', 'kill_streak'), ('alias', 'arrest_streak'), ('alias', 'kills')},
         ),
         migrations.AddField(
             model_name='ip',
             name='isp',
-            field=models.ForeignKey(to='tracker.ISP', null=True),
+            field=models.ForeignKey(to='tracker.ISP', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
             name='ip',
-            unique_together=set([('range_from', 'range_to')]),
+            unique_together={('range_from', 'range_to')},
         ),
         migrations.AddField(
             model_name='game',
@@ -279,11 +276,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='alias',
             name='profile',
-            field=models.ForeignKey(to='tracker.Profile'),
+            field=models.ForeignKey(to='tracker.Profile', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterIndexTogether(
             name='alias',
-            index_together=set([('name', 'isp')]),
+            index_together={('name', 'isp')},
         ),
     ]

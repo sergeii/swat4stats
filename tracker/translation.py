@@ -1,5 +1,5 @@
 # dummy python module for makemessages parser
-from django.utils.translation import ugettext_noop as _
+from django.utils.translation import gettext_noop as _
 
 
 _('PROCEDURE_0')

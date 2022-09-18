@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
-
+import django.db.models.expressions
 
 class Migration(migrations.Migration):
 
@@ -11,8 +8,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            "CREATE INDEX tracker_ip_length ON tracker_ip ((range_to - range_from));",
-            "DROP INDEX tracker_ip_length;",
+        migrations.AddIndex(
+            model_name='ip',
+            index=models.Index(
+                django.db.models.expressions.CombinedExpression(models.F('range_to'), '-', models.F('range_from')),
+                name='tracker_ip_length'),
         ),
     ]

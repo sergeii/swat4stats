@@ -12,11 +12,11 @@
         <div class="float">
             <div class="swat-tab-block left">
             {% for available_year in years reversed %}
-                {% ifequal available_year year %}
-                    <div class="swat-tab-button active">{{ available_year }}</div> 
+                {% if available_year == year %}
+                    <div class="swat-tab-button active">{{ available_year }}</div>
                 {% else %}
-                    <a class="swat-tab-button" href="{% url 'tracker:leaderboard' board_name=board.name year=available_year %}">{{ available_year }}</a> 
-                {% endifequal %}
+                    <a class="swat-tab-button" href="{% url 'tracker:leaderboard' board_name=board.name year=available_year %}">{{ available_year }}</a>
+                {% endif %}
             {% endfor %}
             </div>
             {% if page_obj.paginator.count %}
@@ -37,7 +37,7 @@
                     {% ifchanged leaderboard.category %}
                         <div class="category">{{ leaderboard.category }}</div>
                     {% endifchanged %}
-                    <a class="swat-player-row{% ifequal board.id leaderboard.id %} active{% endifequal %}" href="{% url 'tracker:leaderboard' year=year board_name=leaderboard.name %}">{{ leaderboard.title }}</a>
+                    <a class="swat-player-row{% if board.id == leaderboard.id %} active{% endif %}" href="{% url 'tracker:leaderboard' year=year board_name=leaderboard.name %}">{{ leaderboard.title }}</a>
                 {% endfor %}
                 </div>
             </div>

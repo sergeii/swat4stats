@@ -1,8 +1,0 @@
-{% extends "tracker/layout/black.html" %}
-{% load i18n %}
-
-{% block title %}{% trans "The connection to the server has failed" %}{% endblock title %}
-
-{% block message %}{% trans "The connection to the server has failed" %}{% endblock message %}
-
-{% block button_url %}{% url 'tracker:server_list' %}{% endblock button_url %}

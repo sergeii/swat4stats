@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import)
-
 import logging
 from functools import partial
-import six
 
-from django.utils.translation import ugettext_lazy as _
-from julia import node, shortcuts
+from django.utils.translation import gettext_lazy as _
+from vendor.julia import node, shortcuts
 
 from . import const
 from .utils import Enum
@@ -14,7 +10,7 @@ from .utils import Enum
 
 logger = logging.getLogger(__name__)
 
-# aquire a stream pattern node that will live in memory 
+# aquire a stream pattern node that will live in memory
 # and will be available application wide
 try:
     stream_pattern_node = shortcuts.parse_pattern(const.STREAM_PATTERN)
@@ -179,9 +175,9 @@ STATS = {
 }
 
 # inverse the mapping (e.g. score -> 0)
-STATS_INVERSED = dict((v, k) for k, v in six.iteritems(STATS))
+STATS_INVERSED = {v: k for k, v in STATS.items()}
 
-# translate the lethal and thrown weapon names 
+# translate the lethal and thrown weapon names
 # into a sequence of the corresponding numeric keys
 # The list is used to calculate overall accuracy
 WEAPONS_FIRED = unmap(
@@ -189,8 +185,6 @@ WEAPONS_FIRED = unmap(
         'M4 Super90',
         'Nova Pump',
         'Shotgun',
-        #'Less Lethal Shotgun',
-        #'Pepper-ball',
         'Colt M4A1 Carbine',
         'AK-47 Machinegun',
         'GB36s Assault Rifle',
@@ -201,16 +195,12 @@ WEAPONS_FIRED = unmap(
         'M1911 Handgun',
         '9mm Handgun',
         'Colt Python',
-        #'Taser Stun Gun',
         'VIP Colt M1911 Handgun',
         'Colt Accurized Rifle',
-        #'40mm Grenade Launcher',
         '5.56mm Light Machine Gun',
         '5.7x28mm Submachine Gun',
         'Mark 19 Semi-Automatic Pistol',
         '9mm Machine Pistol',
-        #'Cobra Stun Gun',
-        #'Baton',
     )
 )
 
@@ -259,7 +249,6 @@ WEAPONS_TACTICAL = unmap(
     stream_pattern_node.item('players').item, 'loadout__primary', (
         'Pepper Spray',
         'Stinger',
-        #'CS Gas',
         'Flashbang',
         'Shotgun',
         'Zip-cuffs',
@@ -309,6 +298,3 @@ OBJECTIVE_COMPLETED = unmap(
 OBJECTIVE_FAILED = unmap(
     stream_pattern_node.item('coop_objectives').item, 'status', 'failed'
 )
-
-PATTERN_IPV4 = r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
-PATTERN_PORT = r'\d{1,5}'

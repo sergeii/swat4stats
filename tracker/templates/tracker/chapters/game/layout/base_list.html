@@ -8,12 +8,6 @@
 <div class="swat-chapter-pane-container">
     <div class="swat-chapter-pane width75 left">
         <div class="float">
-            <div class="left">
-                <div class="swat-tab-block left">
-                    <a class="swat-tab-button{% ifequal current_view_name 'tracker:game_list_history' %} active{% endifequal %}" href="{% url 'tracker:game_list_history' %}">{% trans "History" %}</a> 
-                    <a class="swat-tab-button{% ifequal current_view_name 'tracker:game_list_online' %} active{% endifequal %}" href="{% url 'tracker:game_list_online' %}">{% trans "Online" %}</a> 
-                </div>
-            </div>
             <div class="right">
                 {% if page_obj.paginator.count %}
                     {% include "tracker/includes/pagination.html" with filters=filters page_obj=page_obj only %}

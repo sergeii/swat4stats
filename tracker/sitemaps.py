@@ -1,15 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, absolute_import)
-
-import six
-
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import sitemaps
 
 from . import views, models, templatetags
 
 
-class ViewSitemapMixin(object):
+class ViewSitemapMixin:
     priority = 0.7
     changefreq = 'daily'
 
@@ -42,7 +37,7 @@ class LeaderboardCategorySitemap(ViewSitemapMixin, sitemaps.Sitemap):
 
     def items(self):
         items = []
-        for category in six.itervalues(views.BoardListView.get_boards()):
+        for category in views.BoardListView.get_boards().values():
             items.append(('tracker:leaderboard', (), {'board_name': category['name']}))
         return items
 
@@ -51,7 +46,7 @@ class LeaderboardAnnualCategorySitemap(LeaderboardCategorySitemap, AnnualViewSit
 
     def items(self):
         items = []
-        views = super(LeaderboardAnnualCategorySitemap, self).items()
+        views = super().items()
         for year in self.years:
             # copy the list
             for view, args, kwargs in views:
@@ -78,22 +73,10 @@ class ChapterSitemap(ViewSitemapMixin, sitemaps.Sitemap):
         return [
             'tracker:top',
             'tracker:leaderboard',
-            'tracker:server_list', 
-            'tracker:game_list_history', 
+            'tracker:server_list',
+            'tracker:game_list_history',
             'tracker:game_list_online',
         ]
-
-
-class ServerSitemap(sitemaps.Sitemap):
-    priority = 0.5
-    changefreq = 'always'
-
-    def items(self):
-        return models.Server.objects.status
-
-    def location(self, item):
-        kwargs = {'server_ip': item.server.ip, 'server_port': item.server.port}
-        return reverse('tracker:server', args=(), kwargs=kwargs)
 
 
 class ProfileSitemap(sitemaps.Sitemap):

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
 
 
@@ -11,8 +8,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            "CREATE INDEX tracker_server_host_ip_port ON tracker_server (HOST(ip), port);",
-            "DROP INDEX tracker_server_host_ip_port;",
+        migrations.AddIndex(
+            model_name='server',
+            index=models.Index(models.Func(models.F('ip'), function='host'), models.F('port'),
+                               name='tracker_server_host_ip_port'),
         ),
     ]

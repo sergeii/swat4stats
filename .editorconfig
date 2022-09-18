@@ -1,0 +1,13 @@
+root = true
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.{rst,ini}]
+indent_style = space
+indent_size = 4
+
+[*.{html,js,css,less}]
+indent_style = space
+indent_size = 2

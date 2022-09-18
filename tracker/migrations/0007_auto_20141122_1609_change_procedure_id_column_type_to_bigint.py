@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
 
 
@@ -11,8 +8,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            "ALTER TABLE tracker_procedure ALTER COLUMN id TYPE bigint;",
-            "ALTER TABLE tracker_procedure ALTER COLUMN id TYPE int;",
-        ),
+        migrations.AlterField(
+            model_name='procedure',
+            name='id',
+            field=models.BigAutoField(primary_key=True, serialize=False),
+        )
     ]

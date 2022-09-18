@@ -1,0 +1,94 @@
+version: "3.2"
+
+services:
+  runserver:
+    build:
+      context: .
+      dockerfile: ./dockerfile/dev/app.Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - SETTINGS_DB_HOST=${SETTINGS_DB_HOST:-postgresql}
+      - SETTINGS_REDIS_HOST=${SETTINGS_REDIS_HOST:-redis}
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - redis
+    links:
+      - redis
+      - postgresql
+    ports:
+      - "8000:8000"
+    restart: always
+    volumes:
+      - .:/app/src
+
+  webpack:
+    build:
+      context: .
+      dockerfile: ./dockerfile/dev/webpack.Dockerfile
+    command: npm run watch
+    restart: always
+    volumes:
+      - ./web:/app/web
+
+  nginx:
+    image: nginx:1.23-alpine
+    links:
+      - runserver
+      - webpack
+    depends_on:
+      - runserver
+      - webpack
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./dockerfile/dev/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./dockerfile/dev/nginx/ssl:/etc/nginx/ssl
+      - ./web:/app/web
+
+  postgresql:
+    command: >
+      postgres
+        -c max_connections=50
+        -c shared_buffers=2GB
+        -c temp_buffers=256MB
+        -c work_mem=128MB
+        -c maintenance_work_mem=256MB
+        -c effective_cache_size=4GB
+        -c wal_buffers=16MB
+        -c max_wal_size=1GB
+        -c checkpoint_timeout=60min
+        -c checkpoint_completion_target=0.9
+        -c max_locks_per_transaction=1024
+        -c fsync=off
+        -c synchronous_commit=off
+        -c full_page_writes=off
+        -c log_statement=none
+        -c logging_collector=off
+        -c log_min_duration_statement=-1
+        -c log_min_error_statement=panic
+    environment:
+      - POSTGRES_INITDB_ARGS=--nosync
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=swat4stats
+      - POSTGRES_DB=swat4stats
+    image: postgres:14.5-alpine
+    ports:
+      - "5432:5432"
+    tmpfs:
+      - /run
+      - /var/run
+      - /tmp
+      - /var/lib/postgresql/data
+
+  redis:
+    image: redis:7.0.4-alpine
+    command: redis-server --save '' --databases 100 --loglevel warning
+    logging:
+        driver: none
+    ports:
+      - "6379:6379"
+    tmpfs:
+      - /data

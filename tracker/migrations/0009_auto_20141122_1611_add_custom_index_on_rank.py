@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
 
 
@@ -11,8 +8,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            "CREATE INDEX tracker_rank_year_category_position_lte on tracker_rank (year, category) WHERE position <= 5;",
-            "DROP INDEX tracker_rank_year_category_position_lte;",
+        migrations.AddIndex(
+            model_name='rank',
+            index=models.Index(models.F('year'), models.F('category'), condition=models.Q(('position__lte', 5)),
+                               name='tracker_rank_year_category_position_lte'),
         ),
     ]

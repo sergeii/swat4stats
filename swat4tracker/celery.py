@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
 import os
 
 from django.conf import settings
@@ -7,8 +5,11 @@ import celery
 import raven
 from celery.signals import setup_logging
 from raven.contrib.celery import register_signal, register_logger_signal
+from kombu.serialization import register
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'swat4tracker.settings')
+from utils import xjson
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 
 
 @setup_logging.connect
@@ -23,14 +24,18 @@ def configure_logging(sender=None, **kwargs):
 class Celery(celery.Celery):
 
     def on_configure(self):
-        if 'raven.contrib.django.raven_compat' in settings.INSTALLED_APPS:
-            client = raven.Client(**settings.RAVEN_CONFIG)
-            # register a custom filter to filter out duplicate logs
-            register_logger_signal(client)
-            # hook into the Celery error handler
-            register_signal(client)
+        if not ('raven.contrib.django.raven_compat' in settings.INSTALLED_APPS and getattr(settings, 'RAVEN_CONFIG')):
+            return
 
+        client = raven.Client(**settings.RAVEN_CONFIG)
+        # register a custom filter to filter out duplicate logs
+        register_logger_signal(client)
+        # hook into the Celery error handler
+        register_signal(client)
+
+
+register('xjson', xjson.dumps, xjson.loads, content_type='application/x-xjson', content_encoding='utf-8')
 
 app = Celery('swat4tracker')
-app.config_from_object(settings)
-app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+app.config_from_object('django.conf:settings', namespace='CELERY')
+app.autodiscover_tasks()

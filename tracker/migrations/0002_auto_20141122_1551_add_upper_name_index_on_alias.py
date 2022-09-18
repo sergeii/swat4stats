@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
+import django.db.models.functions.text
 
 
 class Migration(migrations.Migration):
@@ -11,8 +9,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            "CREATE INDEX tracker_alias_upper_name_isp_id ON tracker_alias (upper(name), isp_id);",
-            "DROP INDEX tracker_alias_upper_name_isp_id;",
+        migrations.AddIndex(
+            model_name='alias',
+            index=models.Index(django.db.models.functions.text.Upper('name'), models.F('isp_id'),
+                               name='tracker_alias_upper_name_isp_id'),
         ),
     ]

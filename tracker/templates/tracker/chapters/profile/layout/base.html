@@ -1,7 +1,7 @@
 {% extends "tracker/layout/chapter.html" %}
 {% load tracker humanize i18n %}
 
-{% block title %}{{ profile.name }}{% ifnotequal year year_now %} &middot; {{ year }}{% endifnotequal %}{% endblock %}
+{% block title %}{{ profile.name }}{% if year != year_now %} &middot; {{ year }}{% endif %}{% endblock %}
 
 {% block swat_chapter_header %}
 <div id="profile-title">
@@ -23,7 +23,7 @@
                     {% else %}
                         <a class="previous inactive">&nbsp;</a>
                     {% endif %}
-                    <span class="{% ifnotequal year year_now %}gray{% endifnotequal %}">{{ year }}</span>
+                    <span class="{% if year != year_now %}gray{% endif %}">{{ year }}</span>
                     {% if year_next %}
                         <a class="next" href="{% profile_url profile current_view_name year=year_next %}">&nbsp;</a>
                     {% else %}
@@ -39,15 +39,15 @@
 {% block swat_chapter_content %}
 <div id="profile-tab-bar">
     <div class="swat-tab-block left">
-        <a class="swat-tab-button{% ifequal current_view_name 'tracker:profile_overview' %} active{% endifequal %}" href="{% profile_url profile 'tracker:profile_overview' year=year %}">{% trans "Overview" %}</a> 
+        <a class="swat-tab-button{% if current_view_name == 'tracker:profile_overview' %} active{% endif %}" href="{% profile_url profile 'tracker:profile_overview' year=year %}">{% trans "Overview" %}</a>
 
-        <a class="swat-tab-button{% ifequal current_view_name 'tracker:profile_equipment' %} active{% endifequal %}" href="{% profile_url profile 'tracker:profile_equipment' year=year %}">{% trans "Equipment" %}</a>
+        <a class="swat-tab-button{% if current_view_name == 'tracker:profile_equipment' %} active{% endif %}" href="{% profile_url profile 'tracker:profile_equipment' year=year %}">{% trans "Equipment" %}</a>
 
-        <a class="swat-tab-button{% ifequal current_view_name 'tracker:profile_coop' %} active{% endifequal %}" href="{% profile_url profile 'tracker:profile_coop' year=year %}">{% trans "COOP" %}</a>
+        <a class="swat-tab-button{% if current_view_name == 'tracker:profile_coop' %} active{% endif %}" href="{% profile_url profile 'tracker:profile_coop' year=year %}">{% trans "COOP" %}</a>
 
-        <a class="swat-tab-button{% ifequal current_view_name 'tracker:profile_ranking' %} active{% endifequal %}" href="{% profile_url profile 'tracker:profile_ranking' year=year %}">{% trans "Ranking" %}</a>
+        <a class="swat-tab-button{% if current_view_name == 'tracker:profile_ranking' %} active{% endif %}" href="{% profile_url profile 'tracker:profile_ranking' year=year %}">{% trans "Ranking" %}</a>
 
-        <a class="swat-tab-button{% ifequal current_view_name 'tracker:profile_history' %} active{% endifequal %}" href="{% profile_url profile 'tracker:profile_history' year=year %}">{% trans "History" %}</a> 
+        <a class="swat-tab-button{% if current_view_name == 'tracker:profile_history' %} active{% endif %}" href="{% profile_url profile 'tracker:profile_history' year=year %}">{% trans "History" %}</a>
     </div>
 </div>
 

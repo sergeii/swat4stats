@@ -1,411 +1,45 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import, division
-
 import re
 import datetime
 import logging
-from functools import partial
-import copy
 
-from django.db import models, transaction, connection
-from django.db.models import F, Q, When, Case, Value, Count, Sum, Max, Min
-from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
+import pytz
+from django.conf import settings
+from django.db import models, transaction
+from django.db.models import Q, When, Case, Count, Sum, Max, Func, F
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.functions import Upper
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import force_text, python_2_unicode_compatible
+from django.utils.translation import gettext_lazy as _
 from django.utils.html import mark_safe, escape
-from django.core.cache import cache as redis
 
-import six
 import markdown
-import julia
 import bleach
-from serverquery.protocol import gamespy1
-from whois import whois
+
+from vendor import julia
 
 from .utils import lock, force_ipy, calc_ratio
-from . import definitions, const, utils, config
+from . import definitions, const, utils
 from .definitions import STAT
 
 logger = logging.getLogger(__name__)
 
 
-class GameMixin(object):
+class GameMixin:
 
     @property
     def gametype_translated(self):
         return julia.shortcuts.map(
-            definitions.stream_pattern_node, 'gametype', force_text(self.gametype)
+            definitions.stream_pattern_node, 'gametype', str(self.gametype)
         )
 
     @property
     def mapname_translated(self):
         return julia.shortcuts.map(
-            definitions.stream_pattern_node, 'mapname', force_text(self.mapname)
+            definitions.stream_pattern_node, 'mapname', str(self.mapname)
         )
-
-
-class ServerStatusManager(object):
-    STATUS_CACHE_PREFIX = 'server_status'
-    STATUS_CACHE_TIMEOUT = 120  # keep cached entries for this number of seconds
-                                # if a server went offline this would serve as cache
-    # these Status instance attributes are used in cache key construction,
-    # the order is important
-    STATUS_CACHE_SUFFIX = (
-        'player_num', 
-        'gametype', 
-        'mapname', 
-        'gamename', 
-        'gamever', 
-        'is_empty', 
-        'is_full', 
-        'passworded',
-        'pinned',
-    )
-
-    def __init__(self):
-        self._set_filters()
-        self._set_sortable()
-
-    def __iter__(self):
-        return iter(self.get_values(self.keys))
-
-    def __len__(self):
-        return len(self.keys)
-
-    def __getitem__(self, key):
-        # attempt to return a slice (index)
-        try:
-            keys = list.__getitem__(self.keys, key)
-        # attempt to return a singleton value
-        except TypeError:
-            # return a cached Status object for specific server
-            if isinstance(key, Server):
-                keys = redis.keys('%s*' % self.get_cache_key(key))
-                try:
-                    # return the last cached matching item
-                    return list(redis.get_many(keys).values())[-1]
-                except IndexError:
-                    return None
-            # return the cached value as is
-            else:
-                return redis.get(key)
-        else:
-            # return as a list
-            if isinstance(keys, list):
-                return list(self.get_values(keys))
-            # fetch the first item
-            try:
-                # iter because get_values may return a list or a dictview
-                # depending on the python version
-                return next(iter(self.get_values(keys)))
-            except StopIteration:
-                return None
-
-    def __setitem__(self, key, value):
-        """
-        Cache a ServerStatus instance.
-
-        Args:
-            key - a Server model instance
-            value - a ServerStatus instance
-        """
-        assert isinstance(key, Server)
-        assert isinstance(value, ServerStatus)
-        # delete previous entries
-        redis.delete_pattern('%s*' % self.get_cache_key(key))
-        # append extra key components
-        extra = [getattr(value, param) for param in self.STATUS_CACHE_SUFFIX]
-        redis.set(self.get_cache_key(key, *extra), value, timeout=self.STATUS_CACHE_TIMEOUT)
-
-    def filter(self, **kwargs):
-        clone = self.clone()
-        clone._set_filters(**kwargs)
-        return clone
-
-    def sort(self, *args):
-        clone = self.clone()
-        clone._set_sortable(*args)
-        return clone
-
-    @property
-    def keys(self):
-        # map param names to their positions in a cache key
-        params = {param: i for i, param in enumerate(self.STATUS_CACHE_SUFFIX)}
-        def sort(key):
-            # skip prefix, ip, port
-            components = key.split(':')[3:]
-            comparable = []
-            for item, direction in self._sortable:
-                value = components[params[item]]
-                if direction < 0:
-                    # attempt to reverse direction
-                    try:
-                        value = float(value) * -1
-                    except:
-                        pass
-                # get the param value from the key
-                comparable.append(value)
-            return comparable
-        return sorted(redis.keys(self.get_cache_key_pattern()), key=sort)
-
-    @property
-    def values(self):
-        return list(self)
-
-    def get_values(self, keys):
-        return redis.get_many(keys).values()
-
-    def get_cache_key_pattern(self):
-        """
-        Return a redis key search pattern according to filters
-        """
-        # prefix:ip:port:*extra
-        return utils.make_cache_key(self.STATUS_CACHE_PREFIX, '*', '*', *self._filters)
-
-    @classmethod
-    def get_cache_key(cls, server, *extra):
-        """
-        Assemble and return the instance status cache key.
-
-        Example:
-            server_status:81.19.209.212:10480:*:*:*:
-        """
-        return utils.make_cache_key(cls.STATUS_CACHE_PREFIX, server.ip, server.port, *extra)
-
-    def clone(self):
-        return copy.deepcopy(self)
-
-    def _set_sortable(self, *args):
-        sortable = []
-        for param in args:
-            if param.startswith('-'):
-                sortable.append((param[1:], -1))
-            else:
-                sortable.append((param, 1))
-        self._sortable = sortable
-
-    def _set_filters(self, **kwargs):
-        filters = []
-        for param in self.STATUS_CACHE_SUFFIX:
-            try:
-                value = kwargs[param]
-            except KeyError:
-                value = '*'
-            filters.append(value)
-        self._filters = filters
-
-
-class ServerStatus(GameMixin):
-     # query field map -> instance field, coerce function
-    vars_required = {
-        'hostname': ('hostname', force_text),
-        'gamename': (
-            'gamevariant', 
-            partial(julia.shortcuts.unmap, definitions.stream_pattern_node, 'gamename')
-        ),
-        'gamever': ('gamever', float),
-        'mapname': (
-            'mapname', 
-            partial(julia.shortcuts.unmap, definitions.stream_pattern_node, 'mapname')
-        ),
-        'gametype': (
-            'gametype', 
-            partial(julia.shortcuts.unmap, definitions.stream_pattern_node, 'gametype')
-        ),
-        'passworded': ('password', lambda value: value.lower() == 'true'),
-        'round_num': ('round', int),
-        'round_max': ('numrounds', int),
-        'player_num': ('numplayers', int),
-        'player_max': ('maxplayers', int),
-    }
-    # optional vars
-    vars_optional = {
-        'time': ('timeleft', int),
-        'rd_bombs_defused': ('bombsdefused', int),
-        'rd_bombs_total': ('bombstotal', int),
-        'score_swat': ('swatscore', int),
-        'score_sus': ('suspectsscore', int),
-        'vict_swat': ('swatwon', int),
-        'vict_sus': ('suspectswon', int),
-        'tocreports': ('tocreports', force_text),
-        'weaponssecured': ('weaponssecured', force_text),
-    }
-    # instance.players list item variables
-    vars_player_required = {
-        'name': ('player', force_text),
-        'score': ('score', int),
-        'ping': ('ping', lambda n: max(0, min(999, int(n)))),
-    }
-    vars_player_optional = {
-        'coop_status': ('coopstatus', int),
-        'coop_status_translated': (
-            'coopstatus', 
-            partial(julia.shortcuts.map, definitions.stream_pattern_node.item('players').item, 'coop_status')
-        ),
-        'kills': ('kills', int),
-        'deaths': ('deaths', int),
-        'arrests': ('arrests', int),
-        'arrested': ('arrested', int),
-        'vip': ('vip', lambda value: bool(int(value))),
-        'team': ('team', int),
-    }
-
-    # combine requried and optional params
-    vars_all = dict(vars_required, **vars_optional)
-    vars_player_all = dict(vars_player_required, **vars_player_optional)
-    # query timeout
-    timeout = 2
-
-    class ResponseError(Exception):
-        pass
-
-    def __init__(self, server):
-        """
-        initialize a server status instance
-
-        Args:
-            server - a Server model instance
-        """
-        self.server = server
-        self.date_updated = None
-        # initialize response variables
-        for attr, (param, coerce) in six.iteritems(self.vars_all):
-            setattr(self, attr, None)
-        # query the server
-        self.query()
-
-    @property
-    def pinned(self):
-        return int(self.server.pinned)
-
-    @property
-    def is_empty(self):
-        return not self.player_num
-
-    @property
-    def is_full(self):
-        return self.player_num == self.player_max
-
-    @property
-    def gamename_translated(self):
-        """
-        Map a SWAT mod name code to a human readable string
-
-        Example:
-            0 - SWAT4
-            1 - SWAT4X
-        """
-        return julia.shortcuts.map(
-            definitions.stream_pattern_node, 'gamename', force_text(self.gamename)
-        )
-
-    def query(self):
-        """
-        Query the server using gamespy1 protocol and sanitize the response. 
-
-        If the server returns nothing or the sanity check fails, raise ResponseError.
-        """
-        response = self.query_gamespy1_server(self.server.ip, self.server.port_gs1_default, self.timeout)
-        if response:
-            self.players = []
-            self.objectives = []
-            try:
-                # sanitize status params
-                for attr, (param, coerce) in six.iteritems(self.vars_all):
-                    # update variables
-                    if param in self.vars_required or param in response:
-                        # run the assotiated coerce function
-                        value = coerce(response[param])
-                        # update the attr with the coerced value
-                        setattr(self, attr, value)
-                # sanitize player params (score, 0 < ping < 999, etc)
-                for id, player in six.iteritems(response['players']):
-                    item = {
-                        'id': id,
-                    }
-                    for attr, (param, coerce) in six.iteritems(self.vars_player_all):
-                        # required or optional
-                        if param in self.vars_player_required or param in player:
-                            item[attr] = coerce(player[param])
-                    # add the player to the list
-                    self.players.append(item)
-                # sanitize coop objectives
-                for objective, status in six.iteritems(response['objectives']):
-                    try:
-                        # the name has to be detranslated
-                        obj_name = julia.shortcuts.unmap(
-                            definitions.stream_pattern_node.item('coop_objectives').item, 'name', objective
-                        )
-                        # map to human readable name
-                        obj_status = julia.shortcuts.map(
-                            definitions.stream_pattern_node.item('coop_objectives').item, 'status', status
-                        )
-                    except julia.node.BaseNodeError as e:
-                        logger.error('failed to unmap coop objectives (%s)', str(e), exc_info=True)
-                    else:
-                        # mimic an Objective instance
-                        self.objectives.append({
-                            'name': obj_name,
-                            'name_translated': objective,
-                            'status': status,
-                            'status_translated': obj_status,
-                        })
-            except Exception as e:
-                logger.debug('failed to parse %s from %s (%s, %s)' % (response, self.server, type(e).__name__, e))
-            else:
-                self.date_updated = timezone.now()
-                return response
-        # if everything else failed, raise an exception
-        raise self.ResponseError
-
-    @staticmethod
-    def query_gamespy1_server(ip_addr, port, timeout):
-        """
-        Query a gamespy1 server using provided address details.
-
-        If successful, attempt to parse players and COOP objectives.
-        """
-        response = gamespy1.Server(ip_addr, port, timeout).status()
-        if response:
-            response['objectives'] = {}
-            response['players'] = {}
-            for name, value in six.iteritems(response.copy()):
-                # format coop objectives, e.g. "obj_Rescue_All_Hostages"
-                matched = re.match(r'^obj_([A-Za-z_]+)$', name)
-                if matched:
-                    response['objectives'][matched.group(1)] = value
-                # format player list
-                matched = re.match(r'^([A-Za-z0-9]+)_(\d+)$', name)
-                if matched:
-                    id = int(matched.group(2))
-                    response['players'].setdefault(id, {})
-                    response['players'][id][matched.group(1)] = value
-        else:
-            logger.info('received empty response from %s:%s' % (ip_addr, port))
-        return response
 
 
 class ServerManager(models.Manager):
-
-    status = ServerStatusManager()
-
-    def get_queryset(self, *args, **kwargs):
-        return super(ServerManager, self).get_queryset(*args, **kwargs).order_by('-pinned')
-
-    def create_server(self, ip, port, **options):
-        """
-        Attempt to create a server.
-        Raise ValidationError in case of errors.
-        """
-        try:
-            self.get_queryset().get(ip=ip, port=port)
-        except ObjectDoesNotExist:
-            pass
-        else:
-            raise ValidationError(_('The server has already been registered.'))
-
-        return self.create(ip=ip, port=port, **options)
 
     def enabled(self):
         return self.get_queryset().filter(enabled=True)
@@ -413,11 +47,7 @@ class ServerManager(models.Manager):
     def streamed(self):
         return self.enabled().filter(streamed=True)
 
-    def listed(self):
-        return self.enabled().filter(listed=True)
 
-
-@python_2_unicode_compatible
 class Server(models.Model):
     ip = models.GenericIPAddressField(protocol='IPv4')
     port = models.PositiveIntegerField()
@@ -439,100 +69,50 @@ class Server(models.Model):
     objects = ServerManager()
 
     class Meta:
-        # +custom (HOST(ip), port) index
         unique_together = (('ip', 'port'),)
-
-    @property
-    def port_gs1_default(self):
-        """
-        Return the explicit gamespy1 query port if specified.
-
-        Otherwise, return the default value.
-        """
-        if not self.port_gs1:
-            return self.port + 1
-        return self.port_gs1
-
-    @property
-    def port_gs2_default(self):
-        """
-        Return the explicit gamespy2 query port if specified.
-
-        Otherwise, return the default value.
-        """
-        if not self.port_gs2:
-            return self.port + 2
-        return self.port_gs2
+        indexes = [
+            models.Index(Func(F('ip'), function='host'), F('port'), name='tracker_server_host_ip_port'),
+        ]
 
     @property
     def name(self):
         if self.hostname:
             return utils.force_clean_name(self.hostname)
-        return '{0.ip}:{0.port}'.format(self)
-
-    @property
-    def status(self):
-        """Attempt to retrieve a cached ServerStatus instance."""
-        return type(self).objects.status[self]
-
-    def query(self):
-        """
-        Retrieve the server status by querying it, then cache the instance for further use.
-        """
-        from . import signals
-        try:
-            status = ServerStatus(self)
-        except Exception as e:
-            logger.debug('failed to query %s (%s, %s)' % (self, type(e).__name__, e))
-            # emit a failure signal
-            signals.query_status_failed.send(sender=None, server=self)
-            # reraise the exception, so the caller is notified about the failure
-            raise
-        else:
-            # cache the status instance
-            type(self).objects.status[self] = status
-            # emit a success signal
-            signals.query_status_received.send(sender=None, server=self, status=status)
+        return f'{self.ip}:{self.port}'
 
     def __str__(self):
         return self.name
 
-    def clean(self):
-        self.port = int(self.port)
-        if not (1 <= self.port <= 65535):
-            raise ValidationError(_('Port number must be between 1 and 65535 inclusive.'))
 
-    def save(self, *args, **kwargs):
-        """Validate a server instance upon saving."""
-        self.clean()
-        super(Server, self).save(*args, **kwargs)
-
-
-@python_2_unicode_compatible
 class Game(models.Model, GameMixin):
     server = models.ForeignKey('Server', on_delete=models.PROTECT)
     tag = models.CharField(max_length=8, null=True, unique=True)
     time = models.SmallIntegerField(default=0)
     outcome = models.SmallIntegerField(default=0)
     gametype = models.SmallIntegerField(null=True)
-    mapname = models.SmallIntegerField(null=True)  # manual index
+    mapname = models.SmallIntegerField(null=True)
     player_num = models.SmallIntegerField(default=0)
-    score_swat = models.SmallIntegerField(default=0)  # index score_swat + score_sus
+    score_swat = models.SmallIntegerField(default=0)
     score_sus = models.SmallIntegerField(default=0)
     vict_swat = models.SmallIntegerField(default=0)
     vict_sus = models.SmallIntegerField(default=0)
     rd_bombs_defused = models.SmallIntegerField(default=0)
     rd_bombs_total = models.SmallIntegerField(default=0)
     coop_score = models.SmallIntegerField(default=0)
-    # set entry add time automatically
-    date_finished = models.DateTimeField(auto_now_add=True)  # manual index
+    date_finished = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index((F('score_swat') + F('score_sus')).desc(), name='tracker_game_score_swat_score_sus'),
+            models.Index(F('date_finished').desc(), name='tracker_game_date_finished_desc'),
+        ]
 
     @property
     def outcome_translated(self):
         """
-        Translate the outcome integer code to a human readable name.
+        Translate the outcome integer code to a human-readable name.
         """
-        return julia.shortcuts.map(definitions.stream_pattern_node, 'outcome', force_text(self.outcome))
+        return julia.shortcuts.map(definitions.stream_pattern_node, 'outcome', str(self.outcome))
 
     @property
     def date_started(self):
@@ -613,48 +193,26 @@ class Game(models.Model, GameMixin):
                 comparable = ['-vip_kills_invalid', 'vip_captures', 'vip_kills_valid'] + comparable
         else:
             pass
-            #raise NotImplementedError
         sortable = sorted(sortable, key=utils.sort_key(*comparable), reverse=True)
         return next(iter(sortable), None)
 
     def __str__(self):
-        return '{0.date_finished} - {0.time} - {0.outcome}'.format(self)
+        return f'{self.date_finished} - {self.time} - {self.outcome}'
 
 
-class LoadoutManager(models.Manager):
-
-    def get_or_create(self, defaults=None, **kwargs):
-        """
-        Pass the arguments to the original manager method after performing a couple of checks:
-            * Lookup attributes must contain all of the fields. 
-              Raise AssertionError in case of afailure
-
-            * At least one of the fields must contain a non-zero (non-empty) loadout item.
-              If the check fails, return None without performing a get_or_create call
-        """
-        # all fields are required for a call
-        for field in self.model.FIELDS:
-            assert field in kwargs
-        # dont create an entry if all of the fields miss an item
-        if not any(map(int, kwargs.values())):
-            return (None, False)
-        return super(LoadoutManager, self).get_or_create(defaults=defaults or {}, **kwargs)
-
-
-@python_2_unicode_compatible
 class Loadout(models.Model):
     FIELDS = (
-        'primary', 
-        'secondary', 
-        'primary_ammo', 
-        'secondary_ammo', 
-        'head', 
-        'body', 
-        'equip_one', 
-        'equip_two', 
-        'equip_three', 
-        'equip_four', 
-        'equip_five', 
+        'primary',
+        'secondary',
+        'primary_ammo',
+        'secondary_ammo',
+        'head',
+        'body',
+        'equip_one',
+        'equip_two',
+        'equip_three',
+        'equip_four',
+        'equip_five',
         'breacher',
     )
 
@@ -671,18 +229,16 @@ class Loadout(models.Model):
     head = models.SmallIntegerField(default=0)
     body = models.SmallIntegerField(default=0)
 
-    objects = LoadoutManager()
-
     def __str__(self):
         # Pepper-ball:Taser Stun Gun, etc
         return ':'.join([
-            const.EQUIPMENT[force_text(getattr(self, key))] for key in self.FIELDS
+            const.EQUIPMENT[str(getattr(self, key))] for key in self.FIELDS
         ])
 
 
-@python_2_unicode_compatible
 class Weapon(models.Model):
-    player = models.ForeignKey('Player')
+    id = models.BigAutoField(primary_key=True)
+    player = models.ForeignKey('Player', on_delete=models.CASCADE)
     name = models.SmallIntegerField()
     time = models.SmallIntegerField(default=0)
     shots = models.SmallIntegerField(default=0)
@@ -693,71 +249,37 @@ class Weapon(models.Model):
     distance = models.FloatField(default=0)  # in meters
 
     def __str__(self):
-        # +fix bignum
-        return const.EQUIPMENT[force_text(self.name)]
+        return const.EQUIPMENT[str(self.name)]
 
 
 class AliasManager(models.Manager):
 
     def get_queryset(self):
-        return super(AliasManager, self).get_queryset().select_related()
-
-    def match_or_create(self, defaults=None, **kwargs):
-        # name is required for a get_or_create call upon AliasManager
-        assert('name' in kwargs)
-        # use ip for lookup
-        ip = kwargs.pop('ip', None)
-        # acquire an isp
-        if not kwargs.get('isp') and ip:
-            kwargs['isp'] = ISP.objects.match_or_create(ip)[0]
-        # attempt to match an existing entry by either name or name+isp pair
-        filters = kwargs.copy()
-        # replace None with notnull lookup
-        if 'isp' in filters and not filters['isp']:
-            del filters['isp']
-            filters['isp__isnull'] = True
-        try:
-            return (self.get_queryset().filter(**filters)[:1].get(), False)
-        # create a new entry
-        except ObjectDoesNotExist:
-            with transaction.atomic():
-                # get a profile by name and optionally by ip and isp 
-                # ISP could as well be empty
-                if not kwargs.get('profile'):
-                    filters = {
-                        'name': kwargs['name'],
-                        'isp': kwargs.get('isp')
-                    }
-                    # ip must not be empty
-                    if ip:
-                        filters.update({
-                            'ip': ip,
-                        })
-                    kwargs['profile'] = Profile.objects.match_smart_or_create(**filters)[0]
-                return (self.get_queryset().create(**kwargs), True)
+        return super().get_queryset().select_related()
 
 
-@python_2_unicode_compatible
 class Alias(models.Model):
-    profile = models.ForeignKey('Profile')
-    name = models.CharField(max_length=64)  # db_index?
+    profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
+    name = models.CharField(max_length=64)
     isp = models.ForeignKey('ISP', related_name='+', null=True, on_delete=models.PROTECT)
 
     objects = AliasManager()
 
     class Meta:
-        # + custom (upper(name), isp_id) index
         index_together = (('name', 'isp'),)
+        indexes = [
+            models.Index(Upper('name'), F('isp_id'), name='tracker_alias_upper_name_isp_id')
+        ]
 
     def __str__(self):
-        return '{0.name}, {0.isp}'.format(self)
+        return f'{self.name}, {self.isp}'
 
 
 class PlayerManager(models.Manager):
 
     def get_queryset(self):
-        return (super(PlayerManager, self)
-            .get_queryset()
+        return (
+            super().get_queryset()
             .select_related('loadout', 'alias', 'alias__isp', 'alias__profile')
         )
 
@@ -775,15 +297,12 @@ class PlayerManager(models.Manager):
         """
         args = [
             # limit the queryset to the specified period
-            models.Q(
-                game__date_finished__gte=start, 
-                game__date_finished__lte=end
-            ),
+            models.Q(game__date_finished__gte=start,
+                     game__date_finished__lte=end),
             # limit the queryset with the min number of players played in a game
-            (models.Q(game__player_num__gte=Profile.MIN_PLAYERS) | 
-                # unless its a COOP game
-                models.Q(game__gametype__in=definitions.MODES_COOP)
-            ),
+            (models.Q(game__player_num__gte=Profile.MIN_PLAYERS)
+             # unless it's a COOP game
+             | models.Q(game__gametype__in=definitions.MODES_COOP)),
         ]
         # append extra filters
         if filters:
@@ -791,12 +310,11 @@ class PlayerManager(models.Manager):
         return self.filter(*args)
 
 
-@python_2_unicode_compatible
 class Player(models.Model):
     MIN_AMMO = 30  # min ammo required for accuracy calculation
 
-    game = models.ForeignKey('Game')
-    alias = models.ForeignKey('Alias')
+    game = models.ForeignKey('Game', on_delete=models.CASCADE)
+    alias = models.ForeignKey('Alias', on_delete=models.PROTECT)
     loadout = models.ForeignKey('Loadout', null=True, on_delete=models.PROTECT)
     ip = models.GenericIPAddressField(protocol='IPv4')
 
@@ -839,14 +357,15 @@ class Player(models.Model):
     objects = PlayerManager()
 
     class Meta:
-        # custom (HOST(ip), id DESC) index
+        indexes = [
+            models.Index(Func(F('ip'), function='host'), F('id').desc(), name='tracker_player_host_ip_id_desc'),
+        ]
         index_together = (
-            ('alias', 'score'), 
-            ('alias', 'kills'), 
+            ('alias', 'score'),
+            ('alias', 'kills'),
             ('alias', 'arrests'),
             ('alias', 'kill_streak'),
             ('alias', 'arrest_streak'),
-            #('alias', 'death_streak'),
         )
 
     @property
@@ -867,14 +386,15 @@ class Player(models.Model):
     @property
     def coop_status_translated(self):
         return julia.shortcuts.map(
-            definitions.stream_pattern_node.item('players').item, 'coop_status', 
-            force_text(self.coop_status)
+            definitions.stream_pattern_node.item('players').item,
+            'coop_status',
+            str(self.coop_status)
         )
 
     @property
     def special(self):
         return (
-            self.vip_escapes + 
+            self.vip_escapes +
             self.vip_captures +
             self.vip_rescues +
             self.rd_bombs_defused +
@@ -897,54 +417,52 @@ class Player(models.Model):
         return utils.calc_accuracy(self.weapon_set.all(), definitions.WEAPONS_FIRED, self.MIN_AMMO)
 
     def __str__(self):
-        return '{0.name}, {0.ip}'.format(self)
+        return f'{self.name}, {self.ip}'
 
 
-@python_2_unicode_compatible
 class Objective(models.Model):
-    game = models.ForeignKey('Game')
+    id = models.BigAutoField(primary_key=True)
+    game = models.ForeignKey('Game', on_delete=models.CASCADE)
     name = models.SmallIntegerField()
     status = models.SmallIntegerField(default=0)
 
-    class Meta:
-        # fix bignum
-        pass
-
     @property
     def name_translated(self):
-        return utils.map(
-            definitions.stream_pattern_node.item('coop_objectives').item, 'name', force_text(self.name)
+        return julia.shortcuts.map(
+            definitions.stream_pattern_node.item('coop_objectives').item,
+            'name',
+            str(self.name)
         )
 
     @property
     def status_translated(self):
         return julia.shortcuts.map(
-            definitions.stream_pattern_node.item('coop_objectives').item, 'status', force_text(self.status)
+            definitions.stream_pattern_node.item('coop_objectives').item,
+            'status',
+            str(self.status)
         )
 
     def __str__(self):
-        return '{0.name}, {0.status}'.format(self)
+        return f'{self.name}, {self.status}'
 
 
-@python_2_unicode_compatible
 class Procedure(models.Model):
-    game = models.ForeignKey('Game')
+    id = models.BigAutoField(primary_key=True)
+    game = models.ForeignKey('Game', on_delete=models.CASCADE)
     name = models.SmallIntegerField()
     status = models.CharField(max_length=7)  # xxx/yyy
     score = models.SmallIntegerField(default=0)
 
-    class Meta:
-        # fix bignum
-        pass
-
     @property
     def name_translated(self):
         return julia.shortcuts.map(
-            definitions.stream_pattern_node.item('coop_procedures').item, 'name', force_text(self.name)
+            definitions.stream_pattern_node.item('coop_procedures').item,
+            'name',
+            str(self.name)
         )
 
     def __str__(self):
-        return '{0.name}, {0.score} ({0.status})'.format(self)
+        return f'{self.name}, {self.score} ({self.status})'
 
 
 class IPManager(models.Manager):
@@ -955,27 +473,13 @@ class IPManager(models.Manager):
         is equal to the number of ip addresses in the ip range.
         """
         return (
-            super(IPManager, self).get_queryset()
+            super().get_queryset()
             .extra(select={'length': '(range_to - range_from)'})
         )
 
-    def expired(self):
-        """
-        Return a queryset of IP enties 
-        that were created just earlier than IP.TIME_ACTUAL seconds ago.
-        """
-        return self.get_queryset().filter(date_created__lt=self.model.fetch_min_actual_date())
 
-    def prune_expired(self):
-        """Prune no longer actual IP range entries."""
-        return self.expired().delete()
-
-
-@python_2_unicode_compatible
 class IP(models.Model):
-    TIME_ACTUAL = 3600*24*180  # an ip range will be actual for 6 months
-
-    isp = models.ForeignKey('ISP', null=True)
+    isp = models.ForeignKey('ISP', on_delete=models.SET_NULL, null=True)
     range_from = models.BigIntegerField()
     range_to = models.BigIntegerField()
     date_created = models.DateTimeField(auto_now_add=True)
@@ -983,238 +487,41 @@ class IP(models.Model):
     objects = IPManager()
 
     class Meta:
-        # + custom index
         unique_together = (('range_from', 'range_to'),)
-
-    def is_actual(self):
-        """Tell whether an IP entry should be considered actual."""
-        return self.date_created > self.fetch_min_actual_date()
+        indexes = [
+            models.Index(F('range_to') - F('range_from'), name='tracker_ip_length'),
+        ]
 
     def range_from_normal(self):
         """Return the range start address in dotted form."""
         return force_ipy(self.range_from).strNormal(3)
+    range_from_normal.admin_order_field = 'range_from'
 
     def range_to_normal(self):
         """Return the range end address in dotted form."""
         return force_ipy(self.range_to).strNormal(3)
+    range_to_normal.admin_order_field = 'range_to'
 
     def length(self, obj):
         return obj.length
-
-    def __str__(self):
-        return '%s-%s' % (self.range_from_normal(), self.range_to_normal())
-
-    @classmethod
-    def fetch_min_actual_date(cls):
-        """Return the min possible relative date for an actual IP range entry."""
-        return timezone.now()-datetime.timedelta(seconds=cls.TIME_ACTUAL)
-
-    range_from_normal.admin_order_field = 'range_from'
-    range_to_normal.admin_order_field = 'range_to'
     length.admin_order_field = 'length'
 
-
-class ISPManager(models.Manager):
-
-    def match(self, ip_address):
-        """
-        Attempt to find an ISP entry matching the provided IP address.
-
-        Return a tuple containing the matched isp object 
-        alongside with the number of addresses in the matched ip range .
-
-        Args:
-            ip_address - dotted/numeric IP address or a IPy.IP instance 
-        """
-        # convert to a IPy.IP instance
-        ip_address = force_ipy(ip_address)
-        # do an inclusive ip lookup
-        obj = (
-            IP.objects
-            .select_related('isp')
-            .filter(
-                range_from__lte=ip_address.int(), 
-                range_to__gte=ip_address.int(),
-            )
-            .extra(order_by=('length',))[0:1]
-            .get()
-        )
-        return (obj.isp, obj.length)
-
-    def match_or_create(self, ip_address):
-        ip_address = force_ipy(ip_address)
-        # match against the known networks
-        try:
-            matched_obj, length = self.match(ip_address)
-            # do an extra lookup if the addr num exceedes the limit
-            if length > self.model.MAX_LENGTH:
-                logger.debug(
-                    'the returned range for {} is too large ({})'
-                    .format(ip_address.strNormal(3), length)
-                )
-                raise ObjectDoesNotExist
-            return (matched_obj, False)
-        except ObjectDoesNotExist:
-                try:
-                    data = whois.whois(ip_address.strNormal(3))
-                    logger.debug(
-                        'received whois for {}: {}, {}, {}'
-                        .format(ip_address.strNormal(3), data.get('ipv4range'), data.get('orgname'), data.get('country'))
-                    )
-                except Exception as e:
-                    logger.error('failed to get whois for %s (%s)', ip_address, e)
-                    data = {}
-                # attempt to unpack ip range tuple
-                ipv4range = data.get('ipv4range')
-                try:
-                    ipv4range_from = force_ipy(ipv4range[0])
-                    ipv4range_to = force_ipy(ipv4range[1])
-                    # range end address must be always greater than the range start address
-                    assert ipv4range_from.int() <= ipv4range_to.int()
-                    # the ip must fit into the resolved range
-                    assert ipv4range_from.int() <= ip_address.int() <= ipv4range_to.int()
-                except (IndexError, ValueError, TypeError, AssertionError) as e:
-                    logger.warning(
-                        'whois for {} does not contain a valid range {}'
-                        .format(ip_address.strNormal(3), data)
-                    )
-                    return (None, False)
-                # prepare lookup/create data
-                items = {}
-                if data.get('orgname'):
-                    items['name'] = data['orgname']
-                if data.get('country'):
-                    items['country'] = data['country']
-                with transaction.atomic():
-                    # attempt to insert the ip range details
-                    ip_obj, created = IP.objects.get_or_create(
-                        range_from=ipv4range_from.int(), 
-                        range_to=ipv4range_to.int()
-                    )
-                    # we performed an extra lookup but it the same ip range was resolved
-                    if not created:
-                        logger.debug(
-                            'the range {}-{} already exists'
-                            .format(ipv4range_from.strNormal(3), ipv4range_to.strNormal(3))
-                        )
-                        return (ip_obj.isp, False)
-                    # if isp name is empty, return a new entry without further lookup
-                    if 'name' not in items:
-                        isp = self.get_queryset().create(**items)
-                        created = True
-                    # otherwise perform a lookup (still with a possibility of creating a brand new object)
-                    else:
-                        isp, created = (
-                            self.get_queryset()
-                            .filter(
-                                name__isnull=False,
-                                country__isnull=('country' not in items)  # country may be null
-                            )
-                            .get_or_create(**items)
-                        )
-                    # append the created ip range entry
-                    isp.ip_set.add(ip_obj)
-                    return (isp, created)
+    def __str__(self):
+        return f'{self.range_from_normal()}-{self.range_to_normal()}'
 
 
-@python_2_unicode_compatible
 class ISP(models.Model):
-    MAX_LENGTH = 256*256*64  # an extra whois lookup will be performed
-                             # in case the existing ip range is too large
-                             # for instance, 69.240.0.0-69.245.255.255 is okay
-                             # while 77.0.0.0-95.255.255.255 is not
-
     name = models.CharField(max_length=255, null=True)
     country = models.CharField(max_length=2, null=True)
-    objects = ISPManager()
-
-    class Meta:
-        pass
-        #unique_together = (('name', 'country'),)
 
     def __str__(self):
-        return '{0.name}, {0.country}'.format(self)
+        return f'{self.name}, {self.country}'
 
 
 class ProfileManager(models.Manager):
 
     def get_queryset(self, *args, **kwargs):
-        return super(ProfileManager, self).get_queryset(*args, **kwargs).select_related('game_last')
-
-    def match(self, **kwargs):
-        recent = kwargs.pop('recent', False)
-        queryset = kwargs.pop('queryset', Alias.objects.all())
-        # filter by min played date
-        if recent:
-            min_date = timezone.now() - datetime.timedelta(seconds=self.model.TIME_RECENT)
-            kwargs['player__game__date_finished__gte'] = min_date
-        # limit query in case of a lookup different from name+ip pair
-        return queryset.select_related('profile').filter(**kwargs)[0:1].get().profile
-
-    def match_recent(self, **kwargs):
-        return self.match(recent=True, **kwargs)
-
-    def match_smart(self, **kwargs):
-        """
-        Attempt to find a profile property of a player in a sequence of steps:
-
-            1.  if `name` and `ip` are provided, perform a `name`+`ip` 
-                case insensitive lookup.
-            2   if `name` and `isp` are provided and the `isp` is not None, perform a
-                `name`+`isp` case-insensitive lookup
-            3.  As an extra step also perform a case sensitive lookup for a recently
-                created name+non empty country Player entry.
-            4.  if `ip` is provided, perform an ip lookup against related Player entries
-                that have been created right now or or `Profile.TIME_RECENT` seconds earlier.
-
-        In case neither of the steps return an object, raise a Profile.DoesNotExist exception
-        """
-        steps = []
-
-        # skip Player, afk and the other popular names
-        skip_name = 'name' in kwargs and self.model.is_name_popular(kwargs['name'])
-
-        if skip_name:
-            logger.debug('will skip name lookup for {}'.format(kwargs['name']))
-
-        if 'ip' in kwargs:
-            if 'name' in kwargs:
-                # match a player with a case insensitive lookup unless the name is way too popular
-                if not skip_name:
-                    steps.append((self.match, {'name__iexact': kwargs['name'], 'player__ip': kwargs['ip']}))
-            # isp may as well be None 
-            # in that case we should not perform a lookup
-            if 'isp' not in kwargs:
-                kwargs['isp'] = ISP.objects.match_or_create(kwargs['ip'])[0]
-
-        # isp must not be None for a name+isp lookup
-        if 'name' in kwargs and (not skip_name) and kwargs.get('isp'):
-            # search for a player by case insensitive name and non-None isp
-            steps.append((self.match, {'name__iexact': kwargs['name'], 'isp': kwargs['isp']}))
-            # search by name+non-empty country
-            if kwargs['isp'].country:
-                steps.append((self.match_recent, {'name__iexact': kwargs['name'], 'isp__country': kwargs['isp'].country}))
-
-        if 'ip' in kwargs:
-            # search for a player who has recently played with the same ip 
-            steps.append((self.match_recent, {'player__ip': kwargs['ip']}))
-
-        for method, attrs in steps:
-            try:
-                obj = method(**attrs)
-            except ObjectDoesNotExist:
-                continue
-            else:
-                logger.debug('found obj with {} by {}'.format(method.__name__, attrs))
-                return obj
-        # nothing has been found
-        raise self.model.DoesNotExist
-
-    def match_smart_or_create(self, **kwargs):
-        try:
-            return (self.match_smart(**kwargs), False)
-        except ObjectDoesNotExist:
-            return (super(ProfileManager, self).get_queryset().create(), True)
+        return super().get_queryset(*args, **kwargs).select_related('game_last')
 
     def popular(self):
         """
@@ -1223,25 +530,23 @@ class ProfileManager(models.Manager):
         return (
             self.get_queryset()
             .filter(
-                name__isnull=False, 
-                team__isnull=False, 
-                game_first__isnull=False, 
+                name__isnull=False,
+                team__isnull=False,
+                game_first__isnull=False,
                 game_last__isnull=False
             )
         )
 
 
-@python_2_unicode_compatible
 class Profile(models.Model):
     TIME_RECENT = 3600*24*30*6
     TIME_POPULAR = 3600*24*7
-    MIN_KILLS = 500   # min kills required for kd ratio calculation
-    MIN_TIME = 60*60*10  # min time for score per minute and other time-based ratio
+    MIN_KILLS = 500     # min kills required for kd ratio calculation
+    MIN_TIME = 60*60*10     # min time for score per minute and other time-based ratio
     MIN_GAMES = 250
-    MIN_AMMO = 1000    # min ammo required for accuracy calculation
-    MIN_PLAYERS = 10  # min players needed for profile stats 
-                      # to be aggregated from the game being quialified
-    MIN_NAME_LENGTH = 3  # name with length shorter than this number is considered popular. 
+    MIN_AMMO = 1000     # min ammo required for accuracy calculation
+    MIN_PLAYERS = 10    # min players needed for profile stats to be aggregated from the game being quialified
+    MIN_NAME_LENGTH = 3     # name with length shorter than this number is considered popular.
 
     SET_STATS_COMMON = 1
     SET_STATS_KILLS = 2
@@ -1270,7 +575,7 @@ class Profile(models.Model):
     objects = ProfileManager()
 
     def __str__(self):
-        return '{0.name}, {0.country}'.format(self)
+        return f'{self.name}, {self.country}'
 
     @property
     def popular(self):
@@ -1280,14 +585,14 @@ class Profile(models.Model):
     def first_seen(self):
         try:
             return self.game_first.date_finished
-        except:
+        except Exception:
             return None
 
     @property
     def last_seen(self):
         try:
             return self.game_last.date_finished
-        except:
+        except Exception:
             return None
 
     def fetch_popular_name(self, year=None):
@@ -1323,7 +628,7 @@ class Profile(models.Model):
 
     def fetch_popular(self, field, year=None, cond=None):
         """
-        Return a profile's most popular item described 
+        Return a profile's most popular item described
         by the `field` name of the related Player entries.
 
         Item popularity is calculated by aggregating on the number
@@ -1354,7 +659,7 @@ class Profile(models.Model):
         # common stats
         if options & Profile.SET_STATS_COMMON:
             categories.extend([
-                STAT.SCORE, 
+                STAT.SCORE,
                 STAT.TOP_SCORE,
                 STAT.TIME,
                 STAT.GAMES,
@@ -1400,7 +705,6 @@ class Profile(models.Model):
                 STAT.VIP_RESCUES,
                 STAT.VIP_KILLS_VALID,
                 STAT.VIP_KILLS_INVALID,
-                #STAT.VIP_TIMES,
             ])
         # Rapid Deployment stats
         if options & Profile.SET_STATS_RD:
@@ -1509,7 +813,8 @@ class Profile(models.Model):
                     Count(
                         Case(
                             When(
-                                Q(game__outcome__in=definitions.DRAW_GAMES, game__gametype__in=definitions.MODES_VERSUS),
+                                Q(game__outcome__in=definitions.DRAW_GAMES,
+                                  game__gametype__in=definitions.MODES_VERSUS),
                                 then='game'
                             ),
                         ),
@@ -1661,7 +966,8 @@ class Profile(models.Model):
                     Sum(
                         Case(
                             When(
-                                Q(weapon__name__in=definitions.WEAPONS_FIRED, game__gametype__in=definitions.MODES_VERSUS),
+                                Q(weapon__name__in=definitions.WEAPONS_FIRED,
+                                  game__gametype__in=definitions.MODES_VERSUS),
                                 then='weapon__shots'
                             )
                         )
@@ -1671,7 +977,8 @@ class Profile(models.Model):
                     Sum(
                         Case(
                             When(
-                                Q(weapon__name__in=definitions.WEAPONS_FIRED, game__gametype__in=definitions.MODES_VERSUS),
+                                Q(weapon__name__in=definitions.WEAPONS_FIRED,
+                                  game__gametype__in=definitions.MODES_VERSUS),
                                 then='weapon__hits'
                             )
                         )
@@ -1681,7 +988,8 @@ class Profile(models.Model):
                     Max(
                         Case(
                             When(
-                                Q(weapon__name__in=definitions.WEAPONS_FIRED, game__gametype__in=definitions.MODES_VERSUS),
+                                Q(weapon__name__in=definitions.WEAPONS_FIRED,
+                                  game__gametype__in=definitions.MODES_VERSUS),
                                 then='weapon__distance'
                             )
                         )
@@ -1691,14 +999,18 @@ class Profile(models.Model):
         }
         aggregated = {}
         # remove uninteresting aggregates
-        for group, items in six.iteritems(aggregates.copy()):
+        for group in list(aggregates.keys()):
+            items = aggregates[group]
             for stat in items.copy():
-                if not stat in stats:
+                if stat not in stats:
                     del aggregates[group][stat]
-        for items in six.itervalues(aggregates):
+        for items in aggregates.values():
             aggregated.update(self.aggregate(items, start, end))
         # convert null values to zeroes
-        return {key: value if value else 0 for key, value in six.iteritems(aggregated)}
+        return {
+            key: value if value else 0
+            for key, value in aggregated.items()
+        }
 
     def aggregate_weapon_stats(self, start, end, filters=None):
         """
@@ -1720,7 +1032,7 @@ class Profile(models.Model):
                 'teamkills': Sum('weapon__teamkills'),
                 'distance': Max('weapon__distance'),
             },
-            start, 
+            start,
             end,
             # group by weapon name
             group_by='weapon__name',
@@ -1749,9 +1061,10 @@ class Profile(models.Model):
         """
         keys = {}
         # force dict keys to be strings
-        for key, value in six.iteritems(items.copy()):
+        for key in list(items.keys()):
+            value = items[key]
             del items[key]
-            new_key = force_text(key)
+            new_key = str(key)
             items[new_key] = value
             keys[new_key] = key
 
@@ -1765,17 +1078,18 @@ class Profile(models.Model):
 
         # replace with the original keys
         if not group_by:
-            for key, value in six.iteritems(aggregated.copy()):
+            for key in list(aggregated.keys()):
+                value = aggregated[key]
                 del aggregated[key]
                 aggregated[keys[key]] = value
         else:
             # skip None entries that were formed thanks to LEFT OUTER JOIN
             aggregated = list(filter(lambda entry: entry[group_by] is not None, aggregated))
             for entry in aggregated:
-                for key, value in six.iteritems(entry):
+                for key, value in entry.items():
                     # replace None values with zeroes
                     entry[key] = value or 0
-                # replace the group identifier with a custom one 
+                # replace the group identifier with a custom one
                 # e.g. player__game__mapname -> mapname
                 if group_by_as:
                     val = entry[group_by]
@@ -1808,9 +1122,9 @@ class Profile(models.Model):
         """
         Tell whether a given name should be considered popular:
 
-            1.  Check length of the name. 
+            1.  Check length of the name.
                 If it's shorter than the predefined value, return True.
-            2.  In case the name passes the length validiation, 
+            2.  In case the name passes the length validiation,
                 attempt to check it against the patterns defined in the const module.
                 If the name matches against one of the patterns, return True.
                 Return False otherwise.
@@ -1819,7 +1133,7 @@ class Profile(models.Model):
         """
         if len(name) < cls.MIN_NAME_LENGTH:
             return True
-        for pattern in config.POPULAR_NAMES:
+        for pattern in settings.TRACKER_POPULAR_NAMES:
             if re.search(pattern, name, re.I):
                 return True
         return False
@@ -1828,7 +1142,7 @@ class Profile(models.Model):
 class RankManager(models.Manager):
 
     def get_queryset(self):
-        return super(RankManager, self).get_queryset().select_related('profile')
+        return super().get_queryset().select_related('profile')
 
     def numbered(self):
         """
@@ -1836,11 +1150,12 @@ class RankManager(models.Manager):
         in a unique set of category id of ranking period and sorted in ascending order
         by the number of points earned in the specified period.
         """
-        return (self.get_queryset()
+        return (
+            self.get_queryset()
             .extra(
                 select={
-                'row_number': 'ROW_NUMBER() OVER(PARTITION BY %s, %s ORDER BY %s DESC, %s ASC)' %
-                    ('category', 'year', 'points', 'id')
+                    'row_number': ('ROW_NUMBER() OVER(PARTITION BY %s, %s ORDER BY %s DESC, %s ASC)'
+                                   % ('category', 'year', 'points', 'id'))
                 },
             )
             .order_by('row_number')
@@ -1850,7 +1165,6 @@ class RankManager(models.Manager):
         self.store_many({category: points}, year, profile)
 
     def store_many(self, items, year, profile):
-        result = {}
         # set a list of deleteable categories
         deletable = []
         # assemble a list of categores in question
@@ -1877,7 +1191,7 @@ class RankManager(models.Manager):
             self.filter(pk__in=deletable).delete()
 
             creatable = []
-            for category, points in six.iteritems(items):
+            for category, points in items.items():
                 if points > 0:
                     creatable.append(self.model(profile=profile, year=year, category=category, points=points))
             # bulk insert the categories that are not present in db
@@ -1885,82 +1199,84 @@ class RankManager(models.Manager):
                 self.bulk_create(creatable)
 
     def rank(self, year):
-        with transaction.atomic(), lock('EXCLUSIVE', self.model):
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    UPDATE {table} AS t1 SET position = t2.row_number
-                    FROM 
-                    (
-                        SELECT ROW_NUMBER() OVER(PARTITION BY {0}, {1} ORDER BY {2} DESC, {3} ASC), id 
-                        FROM {table}
-                    ) AS t2
-                    WHERE t1.id=t2.id AND t1.year = %(year)s
-                    """.format('category', 'year', 'points', 'id', table=self.model._meta.db_table), 
-                    {'year': year}
-                )
+        sql = f"""
+        UPDATE {self.model._meta.db_table} AS t1 SET position = t2.row_number
+        FROM
+        (
+            SELECT ROW_NUMBER() OVER(PARTITION BY category, year ORDER BY points DESC, id ASC), id
+            FROM {self.model._meta.db_table}
+        ) AS t2
+        WHERE t1.id=t2.id AND t1.year = %(year)s
+        """
+        with transaction.atomic():
+            with lock('EXCLUSIVE', self.model) as cursor:
+                cursor.execute(sql, {'year': year})
 
 
-@python_2_unicode_compatible
 class Rank(models.Model):
     category = models.SmallIntegerField()
     year = models.SmallIntegerField()
-    profile = models.ForeignKey('Profile')
+    profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
     points = models.FloatField(default=0)
     position = models.PositiveIntegerField(null=True, db_index=True)
     objects = RankManager()
 
     class Meta:
-        #index_together = (('year', 'category'),)
         unique_together = (('year', 'category', 'profile',),)
+        indexes = [
+            # FIXME: custom index
+            models.Index('year', 'category',
+                         condition=Q(position__lte=5),
+                         name='tracker_rank_year_category_position_lte')
+        ]
 
     def __str__(self):
-        return '{0.year}:{0.category} #{0.position} {0.profile} ({0.points})'.format(self)
+        return f'{self.year}:{self.category} #{self.position} {self.profile} ({self.points})'
 
     @classmethod
-    def get_period_for_now(model):
+    def get_period_for_now(cls):
         """
         Return a 2-tuple of start and end dates for the current year.
 
         Example:
             (2014-1-1 0:0:0+00, 2014-12-31 23:59:59+00)
         """
-        return model.get_period_for_year(int(timezone.now().strftime('%Y')))
+        return cls.get_period_for_year(int(timezone.now().strftime('%Y')))
 
     @classmethod
-    def get_period_for_year(model, year):
+    def get_period_for_year(cls, year):
         """
-        Return a 2-tuple containing start and end dates 
+        Return a 2-tuple containing start and end dates
         for given year number with respect to given date.
 
         Args:
             year - year number (eg 2014)
         """
         return (
-            datetime.datetime(year, 1, 1, tzinfo=timezone.utc), 
-            datetime.datetime(year, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+            datetime.datetime(year, 1, 1, tzinfo=pytz.UTC),
+            datetime.datetime(year, 12, 31, 23, 59, 59, tzinfo=pytz.UTC)
         )
 
     @classmethod
-    def get_period_for_date(model, date):
+    def get_period_for_date(cls, date):
         """
         Return a 2-tuple containing start and end dates for given date.
 
         Args:
             date - datetime object
         """
-        return model.get_period_for_year(date.year)
+        return cls.get_period_for_year(date.year)
 
 
 class PublishedArticleManager(models.Manager):
 
     def get_queryset(self, *args, **kwargs):
         """
-        Return a queryset that would fetch articles with 
+        Return a queryset that would fetch articles with
         the `date_published` column greater or equal to the current time.
         """
         return (
-            super(PublishedArticleManager, self)
-            .get_queryset(*args, **kwargs)
+            super().get_queryset(*args, **kwargs)
             .filter(is_published=True, date_published__lte=timezone.now())
         )
 
@@ -1969,7 +1285,6 @@ class PublishedArticleManager(models.Manager):
         return self.get_queryset().order_by('-date_published')[:limit]
 
 
-@python_2_unicode_compatible
 class Article(models.Model):
     RENDERER_PLAINTEXT = 1
     RENDERER_HTML = 2
@@ -2012,11 +1327,8 @@ class Article(models.Model):
         'iframe': ['src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen'],
     }
 
-    ALLOWED_STYLES = []
-
-
     def __init__(self, *args, **kwargs):
-        super(Article, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         cls = type(self)
         # cache renderers
         if not hasattr(cls, 'renderers'):
@@ -2050,7 +1362,9 @@ class Article(models.Model):
     @classmethod
     def render_html(cls, value):
         value = bleach.clean(
-            value, tags=cls.ALLOWED_TAGS, attributes=cls.ALLOWED_ATTRIBUTES, styles=cls.ALLOWED_STYLES,
+            value,
+            tags=cls.ALLOWED_TAGS,
+            attributes=cls.ALLOWED_ATTRIBUTES,
         )
         return mark_safe(value)
 
