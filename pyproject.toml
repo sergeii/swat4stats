@@ -29,6 +29,9 @@ flake8 = "5.0.4"
 pre-commit = "^2.20.0"
 pyupgrade = "2.38.0"
 
+[tool.poetry.group.dev.dependencies]
+flake8 = "5.0.4"
+
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "settings"
 python_files = "test_*.py"

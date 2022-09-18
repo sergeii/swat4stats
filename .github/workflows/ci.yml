@@ -48,3 +48,25 @@ jobs:
 
       - name: Run tests
         run: poetry run pytest -v
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version-file: .python-version
+          cache: poetry
+
+      - name: Install dev dependencies
+        run: poetry install --only dev
+
+      - name: Run flake8
+        run: poetry run flake8 -v
