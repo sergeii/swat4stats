@@ -63,7 +63,7 @@ ENV PATH /app/.venv/bin:/home/builder/.local/bin:$PATH
 COPY --chown=builder:builder pyproject.toml poetry.lock /app/
 RUN poetry install --no-interaction
 
-COPY --from=webpack --chown=builder:builder /app/web/dist /app/src/web/dist
+COPY --from=webpack --chown=builder:builder /app/web/dist/. /app/src/web/dist
 
 COPY --chown=builder:builder . /app/src
 COPY --chown=builder:builder dockerfile/prod/uwsgi.ini /app/

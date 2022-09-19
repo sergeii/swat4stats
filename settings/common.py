@@ -91,7 +91,7 @@ STATICFILES_FINDERS = (
 )
 STATICFILES_DIRS = (
     str(BASE_DIR / 'web' / 'raw'),
-    str(BASE_DIR / 'web' / 'dist' / 'app'),
+    str(BASE_DIR / 'web' / 'dist'),
 )
 
 STATIC_URL = '/static/'

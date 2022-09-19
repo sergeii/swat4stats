@@ -43,7 +43,7 @@ module.exports = {
    minimize: isProd,
   },
   output: {
-    path: path.join(distPath),
+    path: distPath,
     filename: '[name].js',
   },
   devtool: 'inline-source-map',
