@@ -150,13 +150,13 @@ LOGGING = {
         },
         'syslog': {
             'level': 'DEBUG',
-            'formatter': 'syslog',
-            'class': 'logging.handlers.SysLogHandler',
-            'address': LOGGING_SYSLOG_ADDRESS,
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
         },
         'sentry': {
-            'level': 'WARNING',
-            'class': 'raven.contrib.django.handlers.SentryHandler',
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
         },
     },
     'loggers': {},
