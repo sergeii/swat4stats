@@ -89,6 +89,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+STATICFILES_STORAGE = 'utils.staticfiles.ManifestStaticFilesStorage'
 STATICFILES_DIRS = (
     str(BASE_DIR / 'web' / 'raw'),
     str(BASE_DIR / 'web' / 'dist'),
