@@ -3,13 +3,13 @@ ARG _build_user_id=10000
 ARG _app_user_id=10001
 
 
-FROM node:18.9-alpine AS webpack
+FROM node:18.9 AS webpack
 
 ENV NODE_ENV production
 
 ARG _build_user_id
-RUN addgroup builder --gid $_build_user_id \
-  && adduser --disabled-password --ingroup builder --uid $_build_user_id builder
+RUN groupadd builder --gid $_build_user_id && \
+    useradd --create-home -g builder --uid $_build_user_id builder
 
 RUN mkdir -p /app/web/dist \
     && chown -R builder:builder /app
@@ -27,7 +27,7 @@ COPY --chown=builder:builder web/src /app/web/src
 RUN npm run build
 
 
-FROM python:3.10.7-alpine
+FROM python:3.10.7
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -38,27 +38,16 @@ ENV LANG en_US.UTF-8
 ENV POETRY_VIRTUALENVS_IN_PROJECT true
 ENV STAGE prod
 
-RUN apk add --no-cache \
-  bash \
-  rsync \
-  postgresql-dev \
-  libffi-dev \
-  libressl-dev
-
-# build time only dependencies
-RUN apk add --no-cache --virtual \
-    .build-deps \
-    gcc \
-    make \
-    musl-dev \
-    libc-dev
+RUN apt install -y --no-install-recommends \
+    bash \
+  && rm -rf /var/lib/apt/lists/*
 
 ARG _build_user_id
 ARG _app_user_id
-RUN addgroup builder --gid $_build_user_id \
-  && adduser --disabled-password --ingroup builder --uid $_build_user_id builder \
-  && addgroup app --gid $_app_user_id \
-  && adduser --disabled-password --no-create-home --ingroup app --uid $_app_user_id --shell /bin/bash app
+RUN groupadd builder --gid $_build_user_id &&  \
+    useradd --create-home -g builder --uid $_build_user_id builder && \
+    groupadd app --gid $_app_user_id &&  \
+    useradd -g app --uid $_app_user_id --shell /bin/bash app
 
 RUN mkdir -p /app/src \
     && mkdir -p /app/static \
@@ -76,14 +65,6 @@ RUN poetry install --no-interaction
 
 COPY --from=webpack --chown=builder:builder /app/web/dist /app/src/web/dist
 
-USER root
-RUN apk del \
-    .build-deps \
-    gcc \
-    musl-dev \
-    libc-dev
-
-USER builder
 COPY --chown=builder:builder . /app/src
 COPY --chown=builder:builder dockerfile/prod/uwsgi.ini /app/
 
