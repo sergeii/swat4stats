@@ -7,7 +7,7 @@ from .utils import env
 
 
 SECRET_KEY = env('SETTINGS_SECRET_KEY', '-secret-')
-ALLOWED_HOSTS = ['swat4stats.com']
+ALLOWED_HOSTS = ['.swat4stats.com']
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
