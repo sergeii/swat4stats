@@ -163,6 +163,7 @@ LOGGING = {
 }
 
 CACHEBACK_CACHE_ALIAS = 'cacheback'
+CACHEBACK_TASK_IGNORE_RESULT = True
 
 # celery
 CELERY_ENABLE_UTC = True
@@ -176,6 +177,11 @@ CELERY_TASK_DEFAULT_QUEUE = 'default'
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 
+CELERY_TASK_ROUTES = {
+    'cacheback.tasks.refresh_cache': {
+        'queue': 'cacheback',
+    },
+}
 CELERY_TASK_ANNOTATIONS = {
     'cacheback.tasks.refresh_cache': {
         'expires': 600,
