@@ -2,7 +2,6 @@ import importlib
 import os
 import sys
 
-
 STAGE = os.environ.get('STAGE', 'local').lower()
 
 modules = ['common', STAGE]
