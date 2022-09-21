@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.sitemaps',
     'django_countries',
+    'cacheback',
     'raven.contrib.django.raven_compat',
     'tracker',
 )
