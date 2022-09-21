@@ -7,7 +7,7 @@ from tracker.definitions import STAT
 from tracker.models import Rank, Profile
 
 
-@cacheback(lifetime=24 * 3600, fetch_on_miss=True)
+@cacheback(lifetime=5, fetch_on_miss=True)
 def get_min_year():
     return Rank.objects.aggregate(year=Min('year'))['year']
 
@@ -24,7 +24,7 @@ def get_best_kdr(year):
     )
 
 
-@cacheback(lifetime=24 * 3600, fetch_on_miss=True)
+@cacheback(lifetime=5, fetch_on_miss=True)
 def get_random_name():
     queryset = Profile.objects.filter(name__isnull=False)
     try:
