@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 from pathlib import Path
 
 from celery.schedules import crontab
@@ -168,10 +167,10 @@ CACHEBACK_CACHE_ALIAS = 'cacheback'
 # celery
 CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = TIME_ZONE
-CELERY_ACCEPT_CONTENT = ['xjson']
-CELERY_RESULT_SERIALIZER = 'xjson'
-CELERY_EVENT_SERIALIZER = 'xjson'
-CELERY_TASK_SERIALIZER = 'xjson'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_EVENT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
 CELERY_TASK_IGNORE_RESULT = True
 CELERY_TASK_DEFAULT_QUEUE = 'default'
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
@@ -188,13 +187,13 @@ CELERY_BEAT_SCHEDULE = {
     'update-popular': {
         'task': 'tracker.tasks.update_popular',
         'schedule': crontab(minute='10'),
-        'kwargs': {'time_delta': timedelta(hours=2)},
+        'args': (2 * 3600,),
     },
     # update profile ranks every 2 hours
     'update-ranks': {
         'task': 'tracker.tasks.update_ranks',
         'schedule': crontab(minute='20', hour='*/2'),
-        'kwargs': {'time_delta': timedelta(hours=4)},
+        'args': (4 * 3600,),
     },
     # update positions every 6 hours
     'update-positions': {

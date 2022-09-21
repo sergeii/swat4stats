@@ -5,9 +5,7 @@ import celery
 import raven
 from celery.signals import setup_logging
 from raven.contrib.celery import register_signal, register_logger_signal
-from kombu.serialization import register
 
-from utils import xjson
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 
@@ -33,8 +31,6 @@ class Celery(celery.Celery):
         # hook into the Celery error handler
         register_signal(client)
 
-
-register('xjson', xjson.dumps, xjson.loads, content_type='application/x-xjson', content_encoding='utf-8')
 
 app = Celery('swat4tracker')
 app.config_from_object('django.conf:settings', namespace='CELERY')

@@ -1,17 +1,18 @@
 import logging
+from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
 
 from swat4tracker.celery import app
-from tracker import models, utils
+from tracker import models
 
 
 logger = logging.getLogger(__name__)
 
 
 @app.task()
-def update_popular(time_delta):
+def update_popular(seconds_ago):
     """
     Update the profile popular fields such as name, country, loadout, etc
     that belong to players who have played just now or ``time_delta`` ago.
@@ -19,7 +20,7 @@ def update_popular(time_delta):
     Args:
         time_delta - time in past relative to the current time (seconds/timedelta obj)
     """
-    min_date = timezone.now() - utils.force_timedelta(time_delta)
+    min_date = timezone.now() - timedelta(seconds=seconds_ago)
 
     queryset = (
         models.Profile.objects
@@ -36,14 +37,14 @@ def update_popular(time_delta):
 
 
 @app.task()
-def update_ranks(time_delta):
+def update_ranks(seconds_ago):
     """
     Update Rank entries that belong to players who have played just now or ``time_delta`` ago.
 
     Args:
         time_delta - time in past relative to the current time (seconds/timedelta obj)
     """
-    min_date = timezone.now() - utils.force_timedelta(time_delta)
+    min_date = timezone.now() - timedelta(seconds=seconds_ago)
 
     queryset = (
         models.Profile.objects
