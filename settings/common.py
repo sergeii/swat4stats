@@ -112,6 +112,13 @@ WSGI_APPLICATION = 'swat4tracker.wsgi.application'
 ALLOWED_HOSTS = []
 INTERNAL_IPS = ()
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 SITE_ID = 1
 
 ADMINS = (

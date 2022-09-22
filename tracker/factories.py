@@ -113,12 +113,20 @@ class GameFactory(factory.django.DjangoModelFactory):
 
     @factory.post_generation
     def players(obj, created, extracted, **kwargs):
-        if created and extracted:
+        if not created:
+            return
+        if kwargs.get('batch'):
+            batch = kwargs.pop('batch')
+            PlayerFactory.create_batch(batch, game=obj, **kwargs)
+        elif extracted:
             for player_kwargs in extracted:
                 PlayerFactory(game=obj, **player_kwargs)
 
 
 class ProfileFactory(factory.django.DjangoModelFactory):
+    name = factory.Faker('name')
+    team = factory.LazyAttribute(lambda o: random.randint(0, 1))
+    loadout = factory.SubFactory(LoadoutFactory)
 
     class Meta:
         model = Profile
