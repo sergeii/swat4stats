@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "swat4tracker.fullname" . }}
+  labels:
+    {{- include "swat4tracker.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.uwsgi.port }}
+      targetPort: {{ .Values.uwsgi.targetPort }}
+      protocol: TCP
+      name: uwsgi
+    - port: {{ .Values.staticfiles.port }}
+      targetPort: {{ .Values.staticfiles.targetPort }}
+      protocol: TCP
+      name: staticfiles
+  selector:
+    {{- include "swat4tracker.selectorLabels" . | nindent 4 }}

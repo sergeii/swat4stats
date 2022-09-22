@@ -1,0 +1,158 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "swat4tracker.podname" (set . "Name" "uwsgi") }}
+  labels:
+    {{- include "swat4tracker.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.uwsgi.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      {{- include "swat4tracker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "swat4tracker.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: {{ include "swat4tracker.podname" (set . "Name" "copystatic") }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["cp", "-r", "/app/static/.", "/var/www/static"]
+          envFrom:
+          {{- range .Values.envFromSecrets }}
+            - secretRef:
+                name: {{ tpl .name $ }}
+                optional: {{ .optional | default false }}
+          {{- end }}
+          volumeMounts:
+            - name: staticfiles
+              mountPath: /var/www/static
+      containers:
+        - name: {{ include "swat4tracker.podname" (set . "Name" "sc-staticfiles") }}
+          {{- with .Values.staticfiles.image }}
+          image: "{{ .repository }}:{{ .tag | default "latest" }}"
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- end }}
+          ports:
+            - name: static
+              containerPort: {{ .Values.staticfiles.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: staticfiles
+              mountPath: /var/www/static
+            - name: config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: staticfiles.conf
+        - name: {{ include "swat4tracker.podname" (set . "Name" "uwsgi") }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: uwsgi
+              containerPort: {{ .Values.uwsgi.port }}
+              protocol: TCP
+          env:
+            - name: UWSGI_WORKERS
+              value: "{{ .Values.uwsgi.workers }}"
+          envFrom:
+          {{- range .Values.envFromSecrets }}
+            - secretRef:
+                name: {{ tpl .name $ }}
+                optional: {{ .optional | default false }}
+          {{- end }}
+          livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 12 }}
+          readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 12 }}
+      volumes:
+        - name: staticfiles
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: {{ include "swat4tracker.fullname" . }}
+
+
+{{- range .Values.celery.workers }}
+{{- $workerName := printf "%s-%s-%s" "celery" "worker" .name -}}
+{{- $workerCmd := concat ( list "celery" "-A" .app "worker" ) .args ( list "--pidfile=" ) }}
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "swat4tracker.podname" (set $ "Name" $workerName) }}
+  labels:
+    {{- include "swat4tracker.labels" $ | nindent 4 }}
+spec:
+  replicas: {{ .replicas }}
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- include "swat4tracker.selectorLabels" $ | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "swat4tracker.selectorLabels" $ | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "swat4tracker.podname" (set $ "Name" $workerName) }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          command:
+            {{- toYaml $workerCmd | nindent 12 }}
+          envFrom:
+          {{- range $.Values.envFromSecrets }}
+            - secretRef:
+                name: {{ tpl .name $ }}
+                optional: {{ .optional | default false }}
+          {{- end }}
+{{ end }}
+
+{{- with .Values.celery.beat }}
+{{- $beatName := printf "%s-%s" "celery" "beat" -}}
+{{- $beatCmd := concat ( list "celery" "-A" .app "beat" ) .args ( list "--pidfile="  "--schedule=/tmp/celerybeat.db" ) }}
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "swat4tracker.podname" (set $ "Name" $beatName) }}
+  labels:
+    {{- include "swat4tracker.labels" $ | nindent 4 }}
+spec:
+  replicas: {{ .replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "swat4tracker.selectorLabels" $ | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "swat4tracker.selectorLabels" $ | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "swat4tracker.podname" (set $ "Name" $beatName) }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          command:
+            {{- toYaml $beatCmd | nindent 12 }}
+          envFrom:
+          {{- range $.Values.envFromSecrets }}
+            - secretRef:
+                name: {{ tpl .name $ }}
+                optional: {{ .optional | default false }}
+          {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{ end -}}

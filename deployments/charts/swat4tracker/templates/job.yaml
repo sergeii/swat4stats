@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "swat4tracker.podname" (set . "Name" "migrate") }}
+  labels:
+    {{- include "swat4tracker.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: {{ include "swat4tracker.podname" (set . "Name" "migrate") }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["python", "manage.py", "migrate", "--noinput"]
+        envFrom:
+        {{- range .Values.envFromSecrets }}
+          - secretRef:
+              name: {{ tpl .name $ }}
+              optional: {{ .optional | default false }}
+        {{- end }}
