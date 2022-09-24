@@ -1,4 +1,4 @@
-from settings.common import LOGGING
+from .common import DATABASES, LOGGING, INSTALLED_APPS, MIDDLEWARE  # noqa
 
 
 REDIS_DB = {
@@ -7,10 +7,16 @@ REDIS_DB = {
     'celery': 13,
 }
 
+DEBUG = False
+
 LOGGING.update({
     'loggers': {
         '': {
             'level': 'DEBUG',
+            'handlers': ['null'],
+        },
+        'factory': {
+            'level': 'ERROR',
             'handlers': ['null'],
         },
         'faker': {

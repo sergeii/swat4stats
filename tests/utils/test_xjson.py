@@ -1,9 +1,11 @@
 from datetime import datetime, date
+from decimal import Decimal
+from uuid import uuid4, UUID
 
 from django.utils import timezone
 from pytz import UTC
 
-from utils import xjson
+from apps.utils import xjson
 
 
 def test_datetime_encoder():
@@ -31,6 +33,34 @@ def test_date_encoder():
 
     assert xjson.dumps(date(2016, 5, 2)) == '{"__type__": "__date__", "isoformat": "2016-05-02"}'
     assert xjson.loads('{"__type__": "__date__", "isoformat": "2016-05-02"}') == date(2016, 5, 2)
+
+
+def test_uuid_encoder():
+    uuid = uuid4()
+
+    assert xjson.loads(xjson.dumps(uuid)) == uuid
+    assert xjson.loads(xjson.dumps([uuid])) == [uuid]
+    assert xjson.loads(xjson.dumps({'objs': {'uid': uuid}})) == {'objs': {'uid': uuid}}
+
+    assert xjson.dumps(
+        UUID('a1c242c9-e16f-4211-81ee-d5cd01cea013')
+    ) == '{"__type__": "__uuid__", "uuid": "a1c242c9-e16f-4211-81ee-d5cd01cea013"}'
+    uuid_loaded = xjson.loads('{"__type__": "__uuid__", "uuid": "a1c242c9-e16f-4211-81ee-d5cd01cea013"}')
+    assert isinstance(uuid_loaded, UUID)
+    assert uuid_loaded == UUID('a1c242c9-e16f-4211-81ee-d5cd01cea013')
+
+
+def test_decimal_encoder():
+    pi = Decimal('3.14')
+
+    assert xjson.loads(xjson.dumps(pi)) == pi
+    assert xjson.loads(xjson.dumps([pi])) == [pi]
+    assert xjson.loads(xjson.dumps({'numbers': {'pi': pi}})) == {'numbers': {'pi': pi}}
+
+    assert xjson.dumps(pi) == '{"__type__": "__decimal__", "decimal": "3.14"}'
+    pi_loaded = xjson.loads('{"__type__": "__decimal__", "decimal": "3.14"}')
+    assert isinstance(pi_loaded, Decimal)
+    assert pi_loaded == pi
 
 
 def test_regression_tests():

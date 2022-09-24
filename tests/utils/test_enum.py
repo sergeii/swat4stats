@@ -1,17 +1,22 @@
+import unittest
 import uuid
 
-from tracker.utils import Enum
+from apps.utils.enum import Enum
 
 
-def test_enum_member_values_are_sequential():
-    members = [uuid.uuid4().hex for _ in range(1000)]
-    # 1000-member enum
-    enum = Enum(*members)
+class EnumTestCase(unittest.TestCase):
 
-    assert getattr(enum, members[0]) == 0
+    def setUp(self):
+        self.members = [str(uuid.uuid4()) for _ in range(1000)]
+        # 1000-member enum
+        self.enum = Enum(*self.members)
 
-    x = -1
-    for member in members:
-        member_value = getattr(enum, member)
-        assert member_value-x == 1
-        x = member_value
+    def test_enums_begin_with_zero(self):
+        assert getattr(self.enum, self.members[0]) == 0
+
+    def test_enum_member_values_are_sequential(self):
+        x = -1
+        for member in self.members:
+            member_value = getattr(self.enum, member)
+            assert member_value-x == 1
+            x = member_value

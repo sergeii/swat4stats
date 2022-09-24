@@ -1,0 +1,10 @@
+.swp
+.git/
+.idea/
+.DS_Store/
+__pycache__/
+.coverage
+.pytest_cache/
+/static/
+/media/
+/.env

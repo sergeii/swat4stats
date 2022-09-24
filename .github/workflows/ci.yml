@@ -8,10 +8,12 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14.5
+        image: postgres:15.2
         env:
           POSTGRES_USER: swat4stats
           POSTGRES_PASSWORD: swat4stats
+          LANG: en_US.UTF-8
+          LC_ALL: en_US.UTF-8
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -20,7 +22,7 @@ jobs:
         ports:
           - 5432:5432
       redis:
-        image: redis:7.0
+        image: redis:7.0.10
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s

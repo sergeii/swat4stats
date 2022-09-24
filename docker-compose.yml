@@ -8,6 +8,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     environment:
       - SETTINGS_DB_HOST=${SETTINGS_DB_HOST:-postgresql}
+      - SETTINGS_DB_REPLICA_HOST=${SETTINGS_DB_REPLICA_HOST:-postgresql}
       - SETTINGS_REDIS_HOST=${SETTINGS_REDIS_HOST:-redis}
     env_file:
       - .env
@@ -22,31 +23,6 @@ services:
     restart: always
     volumes:
       - .:/app/src
-
-  webpack:
-    build:
-      context: .
-      dockerfile: ./dockerfile/dev/webpack.Dockerfile
-    command: npm run watch
-    restart: always
-    volumes:
-      - ./web:/app/web
-
-  nginx:
-    image: nginx:1.23-alpine
-    links:
-      - runserver
-      - webpack
-    depends_on:
-      - runserver
-      - webpack
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./dockerfile/dev/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./dockerfile/dev/nginx/ssl:/etc/nginx/ssl
-      - ./web:/app/web
 
   postgresql:
     command: >
@@ -74,7 +50,9 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=swat4stats
       - POSTGRES_DB=swat4stats
-    image: postgres:14.5-alpine
+      - LANG=en_US.UTF-8
+      - LC_ALL=en_US.UTF-8
+    image: postgres:15.2
     ports:
       - "5432:5432"
     tmpfs:
@@ -84,7 +62,7 @@ services:
       - /var/lib/postgresql/data
 
   redis:
-    image: redis:7.0.4-alpine
+    image: redis:7.0.10-alpine
     command: redis-server --save '' --databases 100 --loglevel warning
     logging:
         driver: none

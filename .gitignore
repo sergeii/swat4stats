@@ -1,13 +1,11 @@
 ~*
 .swp
 *.py[cod]
+.coverage.xml
 .coverage
+/htmlcov
 __pycache__/
-/src
 /celerybeat*
-/node_modules
 /.pytest_cache
 /static
-/web/dist
-supervisord.log
-/.env
+.env

@@ -1,0 +1,8 @@
+{% load i18n tracker %}{% if players %}{{ initial }}	{{ repeat }}
+[c=FFFF00]{{ request.site.name }} [b]-[\b] {% blocktrans with title=title limit=limit %}TOP {{ limit }} by {{ title }}{% endblocktrans %}
+{% for obj in players %}
+{% if nodelay %}{{ initial }}{% else %}{{ initial|add:forloop.counter }}{% endif %}	{{ repeat }}
+[c=FFFFFF]#{{ obj.position }} [c=555555]- [c=FFFF00][b]{{ obj.profile.name|truncatechars:30 }}[\b]
+{% endfor %}
+{% with count=players|length %}{% if nodelay %}{{ initial }}{% else %}{{ initial|add:count|add:1 }}{% endif %}	{{ repeat }}{% endwith %}
+[c=FFFF00]{% blocktrans with domain=request.site.domain %}Feel free to visit {{ domain }} to see more{% endblocktrans %}{% endif %}

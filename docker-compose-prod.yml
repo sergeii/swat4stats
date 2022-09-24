@@ -1,0 +1,275 @@
+version: "3.8"
+
+x-common-volumes: &common-volumes
+  - type: tmpfs
+    target: /tmp
+  - type: tmpfs
+    target: /app/run
+
+x-common-environment: &common-environment
+  SETTINGS_SYSLOG_ADDRESS: "ha.int.swat4stats.com:514"
+
+services:
+  adhoc:
+    deploy:
+      replicas: 0
+    hostname: adhoc.swat4stats.${DOCKER_NODE_HOSTNAME}
+    image: sergeii/swat4stats:app
+    logging:
+      driver: syslog
+      options:
+        tag: swat4stats.docker.adhoc
+    volumes: *common-volumes
+
+  celery_beat:
+    command: >
+      celery beat
+      --app=swat4stats
+      --loglevel=INFO
+      --pidfile=
+      --schedule=/tmp/celerybeat.db
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 60s
+      update_config:
+        parallelism: 1
+        order: stop-first
+    env_file:
+      - /etc/docker-conf/swat4stats/secrets.env
+    environment: *common-environment
+    image: sergeii/swat4stats:app
+    hostname: "id{{.Task.Slot}}.beat.celery.swat4stats"
+    logging:
+      driver: syslog
+      options:
+        tag: swat4stats.docker.celerybeat
+    networks:
+      - swat4stats
+    stop_grace_period: 10s
+    stop_signal: SIGTERM
+    volumes: *common-volumes
+
+  celery_worker_default:
+    command: >
+      celery worker
+      --app=swat4stats
+      --concurrency=2
+      --events
+      --loglevel=INFO
+      --hostname=worker@%h
+      --max-memory-per-child=500000
+      --pidfile=
+      --soft-time-limit=100
+      --time-limit=120
+      --queues=default
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        condition: any
+        delay: 60s
+      update_config:
+        parallelism: 1
+        delay: 30s
+        order: start-first
+    environment: *common-environment
+    env_file:
+      - /etc/docker-conf/swat4stats/secrets.env
+    image: sergeii/swat4stats:app
+    hostname: "id{{.Task.Slot}}.default-worker.celery.swat4stats"
+    logging:
+      driver: syslog
+      options:
+        tag: swat4stats.docker.celery
+    networks:
+      - swat4stats
+    stop_grace_period: 120s
+    stop_signal: SIGTERM
+    volumes: *common-volumes
+
+  celery_worker_sq:
+    command: >
+      celery worker
+      --app=swat4stats
+      --concurrency=2
+      --events
+      --loglevel=INFO
+      --hostname=worker@%h
+      --max-memory-per-child=500000
+      --pidfile=
+      --soft-time-limit=100
+      --time-limit=120
+      --queues=serverquery
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        condition: any
+        delay: 60s
+      update_config:
+        parallelism: 1
+        delay: 30s
+        order: start-first
+    env_file:
+      - /etc/docker-conf/swat4stats/secrets.env
+    environment: *common-environment
+    image: sergeii/swat4stats:app
+    hostname: "id{{.Task.Slot}}.sq-worker.celery.swat4stats"
+    logging:
+      driver: syslog
+      options:
+        tag: swat4stats.docker.celery
+    networks:
+      - swat4stats
+    stop_grace_period: 10s
+    stop_signal: SIGTERM
+    volumes: *common-volumes
+
+  gamespy_query_server:
+    command: >
+        python manage.py queryserver 0.0.0.0
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+        delay: 30s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+    env_file:
+      - /etc/docker-conf/swat4stats/secrets.env
+    environment: *common-environment
+    image: sergeii/swat4stats:app
+    hostname: "id{{.Task.Slot}}.gamespy-query.swat4stats"
+    logging:
+      driver: syslog
+      options:
+        tag: swat4stats.docker.gamespy-query
+    networks:
+      - swat4stats
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 28910
+        target: 28910
+    stop_grace_period: 1s
+    stop_signal: SIGINT
+    sysctls:
+      - net.core.somaxconn=1024
+    volumes: *common-volumes
+
+  gamespy_master_server:
+    command: >
+        python manage.py masterserver 0.0.0.0
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+        delay: 30s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+    env_file:
+      - /etc/docker-conf/swat4stats/secrets.env
+    environment: *common-environment
+    image: sergeii/swat4stats:app
+    hostname: "id{{.Task.Slot}}.gamespy-master.swat4stats"
+    logging:
+      driver: syslog
+      options:
+        tag: swat4stats.docker.gamespy-master
+    networks:
+      - swat4stats
+    ports:
+      - mode: host
+        protocol: udp
+        published: 27900
+        target: 27900
+    stop_grace_period: 1s
+    stop_signal: SIGINT
+    sysctls:
+      - net.core.somaxconn=1024
+    volumes: *common-volumes
+
+  redis:
+    image: redis:5.0.7-alpine
+    networks:
+      swat4stats:
+        aliases:
+          - redis
+    restart: always
+    volumes:
+      - /var/docker-data/swat4stats/redis:/data
+
+  uwsgi:
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        condition: any
+        delay: 30s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+    env_file:
+      - /etc/docker-conf/swat4stats/secrets.env
+    environment: *common-environment
+    image: sergeii/swat4stats:app
+    hostname: "id{{.Task.Slot}}.uwsgi.swat4stats"
+    logging:
+      driver: syslog
+      options:
+        tag: swat4stats.docker.uwsgi
+    networks:
+      - swat4stats
+    ports:
+      - "9095:9090"
+    stop_grace_period: 30s
+    stop_signal: SIGINT
+    sysctls:
+      - net.core.somaxconn=1024
+    volumes: *common-volumes
+
+  web:
+    deploy:
+      mode: replicated
+      replicas: 4
+      restart_policy:
+        condition: any
+        delay: 30s
+      update_config:
+        parallelism: 2
+        delay: 10s
+        order: start-first
+    environment: *common-environment
+    image: sergeii/swat4stats:web
+    hostname: "id{{.Task.Slot}}.web.swat4stats"
+    logging:
+      driver: syslog
+      options:
+        tag: swat4stats.docker.web
+    networks:
+      - swat4stats
+    ports:
+      - "3000:3000"
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    sysctls:
+      - net.core.somaxconn=1024
+    volumes: *common-volumes
+
+networks:
+  swat4stats:
+    driver: overlay

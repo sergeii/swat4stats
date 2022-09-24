@@ -5,11 +5,15 @@ from raven.transport import ThreadedRequestsHTTPTransport
 from .common import LOGGING
 from .utils import env
 
+REDIS_HOST = 'redis'
 
 SECRET_KEY = env('SETTINGS_SECRET_KEY', '-secret-')
+
 ALLOWED_HOSTS = ['.swat4stats.com']
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+SERVER_EMAIL = 'django@dev.swat4stats.com'
+DEFAULT_FROM_EMAIL = 'noreply@dev.swat4stats.com'
 
 STATIC_ROOT = '/app/static'
 

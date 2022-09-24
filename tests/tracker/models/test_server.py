@@ -1,0 +1,95 @@
+from django.core import exceptions
+import pytest
+
+from apps.tracker.factories import ServerFactory, ServerQueryFactory
+from apps.tracker.models import Server
+
+
+def test_create_server_valid_port_number(db):
+    valid_port_values = (1, '2', 1023, '1024', 10468, 24511, 65535)
+    for port in valid_port_values:
+        Server.objects.create_server('127.0.0.1', port)
+
+
+def test_create_server_invalid_port_number(db):
+    invalid_port_values = (-1000, -1, '0', 0, 65536, 100000)
+    for port in invalid_port_values:
+        with pytest.raises(exceptions.ValidationError):
+            Server.objects.create_server('127.0.0.1', port)
+
+
+def test_create_server_duplicate_raises_exception(db):
+    Server.objects.create(ip='127.0.0.1', port=10480)
+    with pytest.raises(exceptions.ValidationError):
+        Server.objects.create_server('127.0.0.1', 10480)
+
+
+def test_queryset_refresh_status(db, create_udpservers):
+    with create_udpservers(3) as udp_servers:
+        servers = []
+        for udp_server in udp_servers:
+            server_ip, server_port = udp_server.server_address
+            servers.append(ServerFactory(ip=server_ip, port=server_port-1))
+
+        failed_server, vip_server, coop_server = udp_servers
+        failed_server.responses.append(b'')
+        vip_server.responses.append(ServerQueryFactory(gametype='VIP Escort',
+                                                       hostname='-==MYT Team Svr==-',
+                                                       hostport=vip_server.server_address[1] - 1,
+                                                       with_players_count=15).as_gamespy())
+        coop_server.responses.append(ServerQueryFactory(gametype='CO-OP',
+                                                        hostname='-==MYT Co-Op Svr==-',
+                                                        hostport=coop_server.server_address[1] - 1,
+                                                        with_players_count=4).as_gamespy())
+
+        status, errors = Server.objects.refresh_status()
+        assert len(status) == 2
+        assert len(errors) == 1
+
+        obj, result = errors[0]
+        assert obj == servers[0]
+        assert isinstance(result, Exception)
+
+        obj, result = status[0]
+        assert obj == servers[1]
+        assert result['hostname'] == '-==MYT Team Svr==-'
+        assert result['gametype'] == 'VIP Escort'
+        assert len(result['players']) == 15
+
+        obj, result = status[1]
+        assert obj == servers[2]
+        assert result['hostname'] == '-==MYT Co-Op Svr==-'
+        assert result['gametype'] == 'CO-OP'
+        assert len(result['players']) == 4
+
+    servers_with_status = Server.objects.order_by('-pk').with_status()
+    assert isinstance(servers_with_status, list)
+    assert len(servers_with_status) == 2
+
+    assert servers_with_status[0].pk == servers[2].pk
+    assert servers_with_status[0].status['hostname'] == '-==MYT Co-Op Svr==-'
+
+    assert servers_with_status[1].pk == servers[1].pk
+    assert servers_with_status[1].status['hostname'] == '-==MYT Team Svr==-'
+
+
+def test_negative_timers_are_supported(db, udp_server):
+    server_ip, server_query_port = udp_server.server_address
+    server_join_port = server_query_port-1
+    ServerFactory(ip=server_ip, port=server_join_port)
+
+    udp_server.responses.append(ServerQueryFactory(gametype='VIP Escort',
+                                                   hostname='-==MYT Team Svr==-',
+                                                   hostport=server_join_port,
+                                                   timespecial='-1',
+                                                   timeleft='-1').as_gamespy())
+
+    status, errors = Server.objects.refresh_status()
+    assert len(status) == 1
+    assert len(errors) == 0
+
+    obj, result = status[0]
+    assert result['hostname'] == '-==MYT Team Svr==-'
+    assert result['gametype'] == 'VIP Escort'
+    assert result['timeleft'] is None
+    assert result['timespecial'] is None

@@ -1,6 +1,0 @@
-apiVersion: v2
-name: swat4tracker
-description: A Helm chart for deployment of swat4stats.com
-type: application
-version: 0.1.0
-appVersion: 0.1.0

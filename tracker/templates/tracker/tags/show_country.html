@@ -1,4 +1,0 @@
-{% load static tracker %}
-{% with country_name=country|country %}
-<img title="{{ country_name }}" alt="{{ country_name }}" class="country-flag" src="{% get_static_prefix %}images/flags/22/{% if country %}{{ country }}{% else %}unknown{% endif %}.png"/>
-{% endwith %}

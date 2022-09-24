@@ -1,7 +1,7 @@
 ARG _user_id=10001
 
 
-FROM python:3.10.7-alpine
+FROM python:3.11.2-slim
 
 ENV PIP_NO_CACHE_DIR on
 ENV PIP_DISABLE_PIP_VERSION_CHECK on
@@ -11,24 +11,15 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV LANG en_US.UTF-8
 ENV POETRY_VIRTUALENVS_IN_PROJECT true
 
-# run time dependencies
-RUN apk add --no-cache \
-  bash \
-  git \
-  postgresql-dev \
-  libffi-dev \
-  libressl-dev
-# build time only dependencies
-RUN apk add --no-cache --virtual \
-    .build-deps \
-    gcc \
-    make \
-    musl-dev \
-    libc-dev
+RUN apt update && \
+    apt install -y --no-install-recommends \
+    build-essential \
+    bash \
+  && rm -rf /var/lib/apt/lists/*
 
 ARG _user_id
-RUN addgroup app --gid $_user_id \
-  && adduser --disabled-password --ingroup app --uid $_user_id --shell /bin/bash app
+RUN groupadd app --gid $_user_id &&  \
+    useradd --create-home -g app --uid $_user_id app
 
 RUN mkdir -p /app/src \
     && chown -R app:app /app
@@ -42,13 +33,6 @@ ENV PATH /app/.venv/bin:/home/app/.local/bin:$PATH
 
 COPY --chown=app:app pyproject.toml poetry.lock /app/
 RUN poetry install --no-interaction
-
-USER root
-RUN apk del \
-    .build-deps \
-    gcc \
-    musl-dev \
-    libc-dev
 
 USER app
 WORKDIR /app/src
