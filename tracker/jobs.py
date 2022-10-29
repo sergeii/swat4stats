@@ -26,7 +26,7 @@ def get_best_kdr(year):
 
 @cacheback(lifetime=24 * 3600, fetch_on_miss=True)
 def get_random_name():
-    queryset = Profile.objects.filter(name__isnull = False)
+    queryset = Profile.objects.filter(name__isnull=False)
     try:
         profile = queryset[random.randrange(1, queryset.count())]
     except (IndexError, ValueError):
