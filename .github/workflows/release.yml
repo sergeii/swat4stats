@@ -1,21 +1,18 @@
 name: release
 
 on:
-  push:
-    branches:
-      - legacy
-
-#on:
-#  workflow_run:
-#    workflows: [ci]
-#    branches: [legacy]
-#    types:
-#      - completed
+  workflow_run:
+    workflows: [ci]
+    branches: [legacy]
+    types: [completed]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    #    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      new_tag: ${{ steps.version.outputs.new_tag }}
+      changelog: ${{ steps.version.outputs.changelog }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,19 +20,34 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
+      - name: Build a test image
+        uses: docker/build-push-action@v3
         with:
-          images: |
-            ghcr.io/sergeii/swat4stats.com
-          tags: |
-            type=sha,prefix=
-            type=ref,event=tag,prefix=
-          flavor: |
-            latest=true
-            prefix=
-            suffix=
+          context: .
+          file:  dockerfile/prod/app.Dockerfile
+          load: true
+          tags: testing
+
+      - name: Test built image
+        run: docker run testing python manage.py check
+
+      - name: Bump release version and push tag
+        id: version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: false
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    if: needs.build.outputs.new_tag != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
       - name: Login to Github Packages
         uses: docker/login-action@v1
@@ -44,6 +56,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Prepare tags for docker image
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ghcr.io/sergeii/swat4stats.com
+          tags: |
+            type=raw,prefix=,value=${{ needs.build.outputs.new_tag }}
+          flavor: |
+            latest=true
+            prefix=
+            suffix=
+
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -51,3 +76,10 @@ jobs:
           file: dockerfile/prod/app.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.build.outputs.new_tag }}
+          name: Release ${{ needs.build.outputs.new_tag }}
+          body: ${{ needs.build.outputs.changelog }}
