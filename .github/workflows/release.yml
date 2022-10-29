@@ -3,7 +3,7 @@ name: release
 on:
   workflow_run:
     workflows: [ci]
-    branches: [legacy]
+    branches: [main]
     types: [completed]
 
 jobs:
