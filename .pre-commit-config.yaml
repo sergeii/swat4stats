@@ -10,6 +10,12 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
 
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v2.1.1
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+
   - repo: local
     hooks:
       - id: pyupgrade
