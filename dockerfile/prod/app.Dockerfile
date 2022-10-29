@@ -27,7 +27,7 @@ COPY --chown=builder:builder web/src /app/web/src
 RUN npm run build
 
 
-FROM python:3.10.7
+FROM python:3.10.8
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1

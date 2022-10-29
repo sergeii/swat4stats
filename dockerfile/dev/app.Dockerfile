@@ -1,7 +1,7 @@
 ARG _user_id=10001
 
 
-FROM python:3.10.7-alpine
+FROM python:3.10.8-alpine
 
 ENV PIP_NO_CACHE_DIR on
 ENV PIP_DISABLE_PIP_VERSION_CHECK on
