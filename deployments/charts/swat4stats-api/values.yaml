@@ -1,0 +1,96 @@
+image:
+  repository: ghcr.io/sergeii/swat4stats
+  pullPolicy: IfNotPresent
+  pullSecrets: ""
+  tag: ""
+
+uwsgi:
+  port: 9090
+  targetPort: 9090
+  replicas: 4
+  env:
+    UWSGI_CHDIR: /app/src
+    UWSGI_ENABLE_THREADS: "true"
+    UWSGI_DISABLE_WRITE_EXCEPTION: "true"
+    UWSGI_GID: 10001
+    UWSGI_HARAKIRI: 5
+    UWSGI_HARAKIRI_VERBOSE: "true"
+    UWSGI_HTTP_SOCKET: 0.0.0.0:9090
+    UWSGI_IGNORE_SIGPIPE: "true"
+    UWSGI_IGNORE_WRITE_ERRORS: "true"
+    UWSGI_MODULE: swat4stats.wsgi
+    UWSGI_THREADS: 6
+    UWSGI_UID: 10001
+    UWSGI_VIRTUALENV: /app/.venv
+
+celery:
+  app: swat4stats
+  log_level: INFO
+  workers:
+    - name: default
+      replicas: 4
+      queues: [default]
+      time_limit: 120
+    - name: serverquery
+      replicas: 2
+      queues: [serverquery]
+      time_limit: 120
+    - name: cacheback
+      replicas: 2
+      queues: [cacheback]
+      time_limit: 60
+  beat:
+    replicas: 1
+
+staticfiles:
+  port: 10081
+  targetPort: 80
+  image:
+    repository: nginx
+    pullPolicy: IfNotPresent
+    tag: ""
+
+service:
+  type: ClusterIP
+
+ingress:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: api.swat4stats.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend: uwsgi
+        - path: /static
+          pathType: Prefix
+          backend: staticfiles
+        - path: /robots.txt
+          pathType: Exact
+          backend: staticfiles
+        - path: /favicon.ico
+          pathType: Exact
+          backend: staticfiles
+
+envFromSecrets: []
+## - name: secret-name
+##   optional: true
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: uwsgi
+    httpHeaders:
+      - name: Host
+        value: api.swat4stats.com
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: uwsgi
+    httpHeaders:
+      - name: Host
+        value: api.swat4stats.com
+  initialDelaySeconds: 60
+  timeoutSeconds: 30
+  failureThreshold: 10

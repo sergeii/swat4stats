@@ -5,8 +5,6 @@ from raven.transport import ThreadedRequestsHTTPTransport
 from .common import LOGGING
 from .utils import env
 
-REDIS_HOST = 'redis'
-
 SECRET_KEY = env('SETTINGS_SECRET_KEY', '-secret-')
 
 ALLOWED_HOSTS = ['.swat4stats.com']

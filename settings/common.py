@@ -9,9 +9,9 @@ from settings.utils import env
 REDIS_HOST = env('SETTINGS_REDIS_HOST', '127.0.0.1')
 REDIS_PORT = env('SETTINGS_REDIS_PORT', 6379)
 REDIS_DB = {
-    'default': 1,
-    'cacheback': 1,
-    'celery': 3,
+    'default': 4,
+    'cacheback': 4,
+    'celery': 5,
 }
 
 BASE_DIR = Path(os.path.dirname(__file__)).resolve().parent
