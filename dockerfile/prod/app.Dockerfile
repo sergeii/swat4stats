@@ -1,6 +1,8 @@
 FROM python:3.11.2-slim
 
+ARG git_release_ver="-"
 ARG git_release_sha="-"
+
 ARG _build_user_id=10000
 ARG _app_user_id=10001
 
@@ -47,6 +49,7 @@ ENV SETTINGS_SENTRY_DSN secret
 WORKDIR /app/src
 RUN ./manage.py collectstatic --noinput
 
+ENV GIT_RELEASE_VER $git_release_ver
 ENV GIT_RELEASE_SHA $git_release_sha
 
 WORKDIR /app/src

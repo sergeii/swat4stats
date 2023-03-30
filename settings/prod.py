@@ -54,7 +54,7 @@ LOGGING.update({
 RAVEN_CONFIG = {
     'dsn': env('SETTINGS_SENTRY_DSN', '-secret-'),
     'auto_log_stacks': True,
-    'release': os.environ.get('GIT_RELEASE_SHA'),
+    'release': os.environ.get('GIT_RELEASE_VER'),
     'include_versions': False,
     'transport': ThreadedRequestsHTTPTransport,
     'processors': (),

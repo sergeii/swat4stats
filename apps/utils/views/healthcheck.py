@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 def status(_: HttpRequest) -> JsonResponse:
     return JsonResponse({
-        'release': os.environ.get('GIT_RELEASE_SHA'),
+        'version': os.environ.get('GIT_RELEASE_VER'),
+        'commit': os.environ.get('GIT_RELEASE_SHA'),
     })
 
 

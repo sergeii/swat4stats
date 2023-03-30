@@ -76,6 +76,9 @@ jobs:
           file: dockerfile/prod/app.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            git_release_ver=${{ needs.build.outputs.new_tag }}
+            git_release_sha=${{ github.sha }}
 
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
