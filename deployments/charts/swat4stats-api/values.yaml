@@ -78,7 +78,7 @@ envFromSecrets: []
 
 readinessProbe:
   httpGet:
-    path: /
+    path: /info/
     port: uwsgi
     httpHeaders:
       - name: Host
@@ -86,11 +86,12 @@ readinessProbe:
 
 livenessProbe:
   httpGet:
-    path: /
+    path: /healthcheck/
     port: uwsgi
     httpHeaders:
       - name: Host
         value: api.swat4stats.com
+  periodSeconds: 10
   initialDelaySeconds: 60
-  timeoutSeconds: 30
-  failureThreshold: 10
+  timeoutSeconds: 10
+  failureThreshold: 6

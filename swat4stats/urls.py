@@ -12,6 +12,7 @@ from apps.api.views import (ServerViewSet, ArticleViewSet,
 from apps.tracker.sitemaps import ServerSitemap, ProfileSitemap, GameSitemap
 from apps.tracker.views import APIWhoisView, DataStreamView
 from apps.tracker.views.motd import APIMotdLeaderboardView, APILegacySummaryView
+from apps.utils.views import healthcheck
 
 
 def noop(*args, **kwargs):
@@ -74,8 +75,10 @@ urlpatterns = [
             path('', noop, name='detail'),
         ], 'servers'), namespace='servers')
     ),
-]
 
+    path('info/', healthcheck.status),
+    path('healthcheck/', healthcheck.HealthcheckView.as_view()),
+]
 
 if settings.DEBUG:
     import debug_toolbar
