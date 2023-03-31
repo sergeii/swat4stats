@@ -1318,22 +1318,6 @@ files = [
 tokenize-rt = ">=3.2.0"
 
 [[package]]
-name = "raven"
-version = "6.10.0"
-description = "Raven is a client for Sentry (https://getsentry.com)"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "raven-6.10.0-py2.py3-none-any.whl", hash = "sha256:44a13f87670836e153951af9a3c80405d36b43097db869a36e92809673692ce4"},
-    {file = "raven-6.10.0.tar.gz", hash = "sha256:3fa6de6efa2493a7c827472e984ce9b020797d0da16f1db67197bcc23c8fae54"},
-]
-
-[package.extras]
-flask = ["Flask (>=0.8)", "blinker (>=1.1)"]
-tests = ["Flask (>=0.8)", "Flask-Login (>=0.2.0)", "ZConfig", "aiohttp", "anyjson", "blinker (>=1.1)", "blinker (>=1.1)", "bottle", "celery (>=2.5)", "coverage (<4)", "exam (>=0.5.2)", "flake8 (==3.5.0)", "logbook", "mock", "nose", "pytest (>=3.2.0,<3.3.0)", "pytest-cov (==2.5.1)", "pytest-flake8 (==1.0.0)", "pytest-pythonpath (==0.7.2)", "pytest-timeout (==1.2.1)", "pytest-xdist (==1.18.2)", "pytz", "requests", "sanic (>=0.7.0)", "tornado (>=4.1,<5.0)", "tox", "webob", "webtest", "wheel"]
-
-[[package]]
 name = "redis"
 version = "4.5.4"
 description = "Python client for Redis database and key-value store"
@@ -1373,6 +1357,47 @@ urllib3 = ">=1.21.1,<1.27"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
+
+[[package]]
+name = "sentry-sdk"
+version = "1.18.0"
+description = "Python client for Sentry (https://sentry.io)"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sentry-sdk-1.18.0.tar.gz", hash = "sha256:d07b9569a151033b462f7a7113ada94cc41ecf49daa83d35f5f852a0b9cf3b44"},
+    {file = "sentry_sdk-1.18.0-py2.py3-none-any.whl", hash = "sha256:714203a9adcac4a4a35e348dc9d3e294ad0200a66cdca26c068967d728f34fcb"},
+]
+
+[package.dependencies]
+certifi = "*"
+urllib3 = {version = ">=1.26.11", markers = "python_version >= \"3.6\""}
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.5)"]
+arq = ["arq (>=0.23)"]
+beam = ["apache-beam (>=2.12)"]
+bottle = ["bottle (>=0.12.13)"]
+celery = ["celery (>=3)"]
+chalice = ["chalice (>=1.16.0)"]
+django = ["django (>=1.8)"]
+falcon = ["falcon (>=1.4)"]
+fastapi = ["fastapi (>=0.79.0)"]
+flask = ["blinker (>=1.1)", "flask (>=0.11)"]
+httpx = ["httpx (>=0.16.0)"]
+huey = ["huey (>=2)"]
+opentelemetry = ["opentelemetry-distro (>=0.35b0)"]
+pure-eval = ["asttokens", "executing", "pure-eval"]
+pymongo = ["pymongo (>=3.1)"]
+pyspark = ["pyspark (>=2.4.4)"]
+quart = ["blinker (>=1.1)", "quart (>=0.16.1)"]
+rq = ["rq (>=0.6)"]
+sanic = ["sanic (>=0.8)"]
+sqlalchemy = ["sqlalchemy (>=1.2)"]
+starlette = ["starlette (>=0.19.1)"]
+starlite = ["starlite (>=1.48)"]
+tornado = ["tornado (>=5)"]
 
 [[package]]
 name = "six"
@@ -1619,4 +1644,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "703f9a52ebe3d12bc88f48d0b9cd8102fdac011e07634386fd4eccdc6f9238e4"
+content-hash = "fdaf43f9ae18c5a2bf9ced92c5839ba1201e12d68bf8e465ede7deff7182e0e5"

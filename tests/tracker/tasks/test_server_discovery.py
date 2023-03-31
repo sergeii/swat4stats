@@ -1,9 +1,12 @@
 from django.test import override_settings
 
-from settings.common import re_ipv4, re_port
 from apps.tracker.factories import ServerFactory, ServerQueryFactory
 from apps.tracker.models import Server
 from apps.tracker.tasks import discover_servers, discover_extra_query_ports
+
+
+re_ipv4 = r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+re_port = r'\d{1,5}'
 
 
 class QueryServerAddress:

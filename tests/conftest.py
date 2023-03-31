@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import socketserver
 import threading
 import asyncio
@@ -11,6 +12,28 @@ from rest_framework.test import APIClient
 from ipwhois import IPWhois
 
 from apps.tracker.utils.aio import with_timeout
+
+
+@pytest.fixture(scope='session', autouse=True)
+def _enable_celery_eager_mode():
+    from swat4stats.celery import app
+    app.conf.task_always_eager = True
+    app.conf.task_eager_propagates = True
+
+
+@pytest.fixture(autouse=True)
+def _configure_default_storage(settings):
+    settings.STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+
+@pytest.fixture(autouse=True)
+def _disable_debug(settings):
+    settings.DEBUG = False
+
+
+@pytest.fixture(scope='session', autouse=True)
+def _disable_logging():
+    logging.disable()
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -140,12 +163,10 @@ class UDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
         self.thread = threading.Thread(target=self.serve_forever)
         self.thread.daemon = True
         self.thread.start()
-        print('started server %s with thread %s' % (self, self.thread))  # noqa
 
     def stop(self):
         self.shutdown()
         self.server_close()
-        print('closed server %s with thread %s' % (self, self.thread))  # noqa
 
 
 @pytest.fixture

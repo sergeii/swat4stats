@@ -57,7 +57,7 @@ class ServerAdmin(admin.ModelAdmin):
     actions = ['merge_servers']
 
     def has_delete_permission(self, *args, **kwargs):
-        return settings.STAGE in ('local',)
+        return settings.DEBUG
 
     @atomic
     def merge_servers(self, request, queryset):

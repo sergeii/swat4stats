@@ -1,24 +1,62 @@
+import logging
 import os
 from datetime import timedelta
 from pathlib import Path
+import warnings
 
 from celery.schedules import crontab
+from django.utils.deprecation import RemovedInDjango50Warning
 
-from settings.utils import env
+from apps.utils.settings import env, env_bool, env_list, env_log_level
+
+
+warnings.simplefilter('ignore', RemovedInDjango50Warning)
+warnings.simplefilter('ignore', DeprecationWarning)
+
+
+def redis_url(alias):
+    db = REDIS_DB[alias]
+    return f'redis://{REDIS_HOST}:{REDIS_PORT}/{db}',
+
 
 REDIS_HOST = env('SETTINGS_REDIS_HOST', '127.0.0.1')
 REDIS_PORT = env('SETTINGS_REDIS_PORT', 6379)
 REDIS_DB = {
-    'default': 4,
-    'cacheback': 4,
-    'celery': 5,
+    'default': int(env('SETTINGS_REDIS_CACHE_DB', 1)),
+    'cacheback': int(env('SETTINGS_REDIS_CACHE_DB', 1)),
+    'celery': int(env('SETTINGS_REDIS_BROKER_DB', 2)),
+}
+
+EMAIL_BACKENDS = {
+    'console': 'django.core.mail.backends.console.EmailBackend',
+    'smtp': 'django.core.mail.backends.smtp.EmailBackend',
 }
 
 BASE_DIR = Path(os.path.dirname(__file__)).resolve().parent
 
-DEBUG = False
+ALLOWED_HOSTS = env_list('SETTINGS_ALLOWED_HOSTS')
 
-SECRET_KEY = 'secret'
+DEBUG = env_bool('SETTINGS_DEBUG', False)
+
+if DEBUG:
+    INTERNAL_IPS = ('127.0.0.1',)
+    DEBUG_TOOLBAR_PATCH_SETTINGS = False
+
+SECRET_KEY = env('SETTINGS_SECRET_KEY', '-secret-')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': redis_url('default'),
+    },
+    'cacheback': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': redis_url('cacheback'),
+        'OPTIONS': {
+            'SERIALIZER': 'apps.utils.xjson.XJSONRedisSerializer',
+        },
+    },
+}
 
 DATABASES = {
     'default': {
@@ -61,7 +99,6 @@ INSTALLED_APPS = (
     'django_countries',
     'django_filters',
     'rest_framework',
-    'raven.contrib.django.raven_compat',
 
     'apps.tracker',
     'apps.news',
@@ -70,9 +107,8 @@ INSTALLED_APPS = (
     'apps.api',
 )
 
-SILENCED_SYSTEM_CHECKS = [
-    'models.E034',  # The index name 'X' cannot be longer than 30 characters.
-]
+if DEBUG:
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 
 MIDDLEWARE = (
     'apps.utils.middleware.RealRemoteAddrMiddleware',
@@ -84,6 +120,12 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.contrib.sites.middleware.CurrentSiteMiddleware',
 )
+
+if DEBUG:
+    MIDDLEWARE = (
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+        'apps.utils.middleware.ProfileMiddleware',
+    ) + MIDDLEWARE
 
 TEMPLATES = [
     {
@@ -107,6 +149,10 @@ TEMPLATES = [
     },
 ]
 
+SILENCED_SYSTEM_CHECKS = [
+    'models.E034',  # The index name 'X' cannot be longer than 30 characters.
+]
+
 STATICFILES_STORAGE = 'apps.utils.staticfiles.ManifestStaticFilesStorage'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -119,8 +165,8 @@ STATICFILES_DIRS = (
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
-STATIC_ROOT = BASE_DIR / 'static'
-MEDIA_ROOT = BASE_DIR / 'media'
+STATIC_ROOT = env('SETTINGS_STATIC_ROOT', BASE_DIR / 'static')
+MEDIA_ROOT = env('SETTINGS_MEDIA_ROOT', BASE_DIR / 'media')
 
 LOCALE_PATHS = (
     BASE_DIR / 'locale',
@@ -137,9 +183,6 @@ TIME_FORMAT = 'H:i'
 ROOT_URLCONF = 'swat4stats.urls'
 WSGI_APPLICATION = 'swat4stats.wsgi.application'
 
-ALLOWED_HOSTS = []
-INTERNAL_IPS = ()
-
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
@@ -155,17 +198,32 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-SERVER_EMAIL = 'django@swat4stats.com'
-DEFAULT_FROM_EMAIL = 'noreply@swat4stats.com'
+EMAIL_BACKEND = EMAIL_BACKENDS[env('SETTINGS_EMAIL_BACKEND_ALIAS', 'console')]
+EMAIL_HOST = env('SETTINGS_EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(env('SETTINGS_EMAIL_PORT', 25))
+EMAIL_HOST_USER = env('SETTINGS_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = env('SETTINGS_EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = env_bool('SETTINGS_EMAIL_USE_TLS', False)
+
+SERVER_EMAIL = env('SETTINGS_SERVER_EMAIL', 'django@swat4stats.com')
+DEFAULT_FROM_EMAIL = env('SETTINGS_DEFAULT_FROM_EMAIL', 'noreply@swat4stats.com')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-if syslog_address := os.environ.get('SETTINGS_SYSLOG_ADDRESS'):
+if syslog_address := env('SETTINGS_SYSLOG_ADDRESS', None):
     syslog_host, syslog_port = syslog_address.split(':')
-    LOGGING_SYSLOG_ADDRESS = (syslog_host, int(syslog_port))
+    default_logging_handler = {
+        'level': 'DEBUG',
+        'formatter': 'syslog',
+        'class': 'logging.handlers.SysLogHandler',
+        'address': (syslog_host, int(syslog_port)),
+    }
 else:
-    LOGGING_SYSLOG_ADDRESS = ('localhost', 514)
+    default_logging_handler = {
+        'level': 'DEBUG',
+        'class': 'logging.StreamHandler',
+        'formatter': 'simple'
+    }
 
 LOGGING = {
     'version': 1,
@@ -179,36 +237,37 @@ LOGGING = {
         },
     },
     'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
+        'default': default_logging_handler,
+    },
+    'loggers': {
+        '': {
+            'level': env_log_level('SETTINGS_LOG_LEVEL', 'INFO'),
+            'handlers': ['default'],
         },
-        'syslog': {
-            'level': 'DEBUG',
-            'formatter': 'syslog',
-            'class': 'logging.handlers.SysLogHandler',
-            'address': LOGGING_SYSLOG_ADDRESS,
+        'django.db.backends': {
+            'level': env_log_level('SETTINGS_LOG_LEVEL', 'INFO', logging.WARNING),
+            'handlers': ['default'],
+            'propagate': False,
         },
-        'sentry': {
-            'level': 'WARNING',
-            'class': 'raven.contrib.django.handlers.SentryHandler',
+        'factory': {
+            'level': env_log_level('SETTINGS_LOG_LEVEL', 'INFO', logging.ERROR),
+            'handlers': ['default'],
+            'propagate': False,
         },
     },
-    'loggers': {},
 }
 
 CACHEBACK_CACHE_ALIAS = 'cacheback'
 CACHEBACK_TASK_IGNORE_RESULT = True
 
 # celery
+CELERY_BROKER_URL = redis_url('celery')
 CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_ACCEPT_CONTENT = ['json', 'xjson']
 CELERY_TASK_SERIALIZER = 'xjson'
 CELERY_TASK_IGNORE_RESULT = True
 CELERY_TASK_DEFAULT_QUEUE = 'default'
-CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 
 CELERY_TASK_ROUTES = {
@@ -286,8 +345,6 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
-RAVEN_CONFIG = {}
-
 REST_FRAMEWORK = {
     # builtin settings
     'DEFAULT_AUTHENTICATION_CLASSES': (),
@@ -311,6 +368,11 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
+if DEBUG:
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    )
 
 # tracker settings
 ##
@@ -341,7 +403,7 @@ TRACKER_MIN_GAME_GRENADES = 10
 # max number of concurrent server status requests
 TRACKER_STATUS_CONCURRENCY = 200
 # time a task should be waited for
-TRACKER_STATUS_TIMEOUT = 0.5
+TRACKER_STATUS_TIMEOUT = 1
 # max number of failures a server considered offline
 TRACKER_STATUS_FAILURES = 12
 # min day to make new appear in leaderboards
@@ -391,13 +453,8 @@ TRACKER_SERVER_DISCOVERY = (
     ('https://www.markmods.com/swat4serverlist/',
         fr'\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b'),
     # clan pages
-    ('http://mytteam.com/',
+    ('https://mytteam.com/',
         fr'\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b'),
-) + tuple(
-    # gametracker
-    (f'https://www.gametracker.com/search/swat4/?&searchipp=50&searchpge={page}',
-        fr'\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b')
-    for page in range(1, 4)
 )
 TRACKER_SERVER_DISCOVERY_TIMEOUT = 10
 

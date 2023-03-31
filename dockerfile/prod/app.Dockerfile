@@ -41,9 +41,9 @@ RUN poetry install --no-interaction
 
 COPY --chown=builder:builder . /app/src
 
-ENV STAGE prod
 ENV SETTINGS_SECRET_KEY stub
 ENV SETTINGS_SENTRY_DSN secret
+ENV SETTINGS_STATIC_ROOT /app/static
 
 # build django static
 WORKDIR /app/src

@@ -467,11 +467,6 @@ def flatten_stats(stat_items, *keys):
 
 @pytest.mark.django_db(databases=['default', 'replica'])
 def test_update_player_stats(db, settings, spieler, jogador):
-    # settings.TRACKER_MIN_TIME = 20
-    # settings.TRACKER_MIN_GAMES = 3
-    # settings.TRACKER_MIN_GRENADE_SHOTS = 10
-    # settings.TRACKER_MIN_WEAPON_SHOTS = 10
-
     jogador.update_stats()
     spieler.update_stats()
 
@@ -699,10 +694,6 @@ def test_update_weapon_stats(db, settings, jogador, spieler):
 
 @pytest.mark.django_db(databases=['default', 'replica'])
 def test_update_server_stats(db, settings, spieler, jogador, myt, wm, sef):
-    # settings.TRACKER_MIN_GAMES = 2
-    # settings.TRACKER_MIN_KILLS = 50
-    # settings.TRACKER_MIN_TIME = 10
-
     jogador.update_stats()
     spieler.update_stats()
 

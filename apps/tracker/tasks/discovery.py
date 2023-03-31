@@ -1,4 +1,5 @@
 import logging
+
 from apps.tracker.models import Server
 from swat4stats.celery import app
 
