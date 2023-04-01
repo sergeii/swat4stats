@@ -1,12 +1,17 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import pytest
+from django.utils import timezone
 from pytz import UTC
 
 from apps.tracker.factories import (MapFactory, GameFactory,
                                     ServerFactory, PlayerFactory, WeaponFactory)
 
 
+@pytest.mark.django_db(databases=['default', 'replica'])
 def test_get_popular_servers(db, api_client):
+    now = timezone.now()
+
     myt_coop = ServerFactory(hostname='-==MYT Co-op Svr==-')
     myt_vip = ServerFactory(hostname='-==MYT Team Svr==-')
     esa = ServerFactory(hostname=None, ip='62.21.98.150', port=9485)
@@ -17,10 +22,12 @@ def test_get_popular_servers(db, api_client):
     # no games
     assert resp.data == []
 
+    GameFactory.create_batch(3, server=default, date_finished=now - timedelta(days=400))  # old games
     GameFactory.create_batch(3, server=myt_vip)
-    GameFactory(server=myt_coop)
+    GameFactory(server=myt_coop, date_finished=now - timedelta(days=30))
     GameFactory(server=esa)
-    GameFactory.create_batch(2, server=soh)
+    GameFactory.create_batch(4, server=esa, date_finished=now - timedelta(days=370))  # old games
+    GameFactory.create_batch(2, server=soh, date_finished=now - timedelta(days=180))
 
     resp = api_client.get('/api/data-popular-servers/')
     assert [(obj['id'], obj['name_clean']) for obj in resp.data] == [

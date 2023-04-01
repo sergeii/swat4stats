@@ -403,7 +403,7 @@ TRACKER_MIN_GAME_GRENADES = 10
 # max number of concurrent server status requests
 TRACKER_STATUS_CONCURRENCY = 200
 # time a task should be waited for
-TRACKER_STATUS_TIMEOUT = 1
+TRACKER_STATUS_TIMEOUT = 0.5
 # max number of failures a server considered offline
 TRACKER_STATUS_FAILURES = 12
 # min day to make new appear in leaderboards

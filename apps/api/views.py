@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.db.models import Count, Case, When, Value, BooleanField, Prefetch
 from django.http import Http404
+from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -129,12 +132,35 @@ class PopularServersViewSet(ListModelMixin, GenericViewSet):
     serializer_class = ServerBaseSerializer
     pagination_class = None
 
-    def get_queryset(self):
-        queryset = (Server.objects
-                    .annotate(game_num=Count('game'))
-                    .filter(game_num__gt=0)
-                    .order_by('-game_num', 'hostname', 'pk'))
-        return queryset
+    max_servers = 50
+    for_period = timedelta(days=365)
+
+    def get_queryset(self) -> list[Server]:
+        # get ids of the top N servers that have seen
+        # the most games since the specified number of days
+        popular_servers_qs = (
+            Game.objects
+            .using('replica')
+            .filter(date_finished__gte=timezone.now() - self.for_period)
+            .order_by('server')
+            .values('server')
+            .annotate(game_cnt=Count('pk'))
+            .order_by('-game_cnt')
+        )[:self.max_servers]
+        # map server id to the number of played games,
+        # so we can use the latter number to sort the servers
+        # in the next query, where the ordering will be lost
+        popular_servers_ids = {
+            row['server']: row['game_cnt']
+            for row in popular_servers_qs
+        }
+
+        popular_servers = Server.objects.filter(pk__in=popular_servers_ids)
+        return sorted(
+            popular_servers,
+            key=lambda s: (popular_servers_ids[s.pk], s.hostname or '', s.pk),
+            reverse=True
+        )
 
 
 class ServerLeaderboardViewSet(ListModelMixin, GenericViewSet):
