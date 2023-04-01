@@ -4,7 +4,7 @@ services:
   runserver:
     build:
       context: .
-      dockerfile: ./dockerfile/dev/app.Dockerfile
+      dockerfile: dockerfile/dev/Dockerfile
     command: python manage.py runserver 0.0.0.0:8000
     environment:
       - SETTINGS_DB_HOST=${SETTINGS_DB_HOST:-postgresql}

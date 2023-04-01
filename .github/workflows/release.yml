@@ -24,7 +24,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file:  dockerfile/prod/app.Dockerfile
+          file:  dockerfile/prod/Dockerfile
           load: true
           tags: testing
 
@@ -73,7 +73,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: dockerfile/prod/app.Dockerfile
+          file: dockerfile/prod/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |

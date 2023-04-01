@@ -88,9 +88,11 @@ spec:
 {{- $workerQueues := join "," .queues -}}
 {{- $workerCmd := list
     "celery" "-A" $.Values.celery.app "worker"
-    "-Q" $workerQueues
-    "-l" $.Values.celery.log_level
+    "--queues" $workerQueues
+    "--concurrency" .concurrency
+    "--loglevel" $.Values.celery.log_level
     "--time-limit" .time_limit
+    "--max-tasks-per-child" .max_tasks
     "--pidfile="
 }}
 ---
@@ -135,8 +137,8 @@ spec:
 {{- $beatName := printf "%s-%s" "celery" "beat" -}}
 {{- $beatCmd := list
     "celery" "-A" .app "beat"
-    "-l" .log_level
-    "--schedule=/tmp/celerybeat.db"
+    "--loglevel" .log_level
+    "--schedule" "/tmp/celerybeat.db"
     "--pidfile="
 -}}
 ---
