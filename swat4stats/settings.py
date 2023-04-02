@@ -240,6 +240,10 @@ LOGGING = {
     },
     'handlers': {
         'default': default_logging_handler,
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'logging.NullHandler',
+        },
     },
     'loggers': {
         '': {

@@ -18,7 +18,6 @@ RUN apt update && \
     apt install -y --no-install-recommends \
     build-essential \
     bash \
-    curl \
   && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd builder --gid $_build_user_id &&  \
@@ -53,6 +52,6 @@ ENV GIT_RELEASE_VER $git_release_ver
 ENV GIT_RELEASE_SHA $git_release_sha
 
 WORKDIR /app/src
-USER root
+USER app
 ENV TERM xterm
 CMD ["uwsgi"]
