@@ -18,6 +18,7 @@ RUN apt update && \
     apt install -y --no-install-recommends \
     build-essential \
     bash \
+    curl \
   && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd builder --gid $_build_user_id &&  \
