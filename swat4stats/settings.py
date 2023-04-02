@@ -40,7 +40,9 @@ DEBUG = env_bool('SETTINGS_DEBUG', False)
 
 if DEBUG:
     INTERNAL_IPS = ('127.0.0.1',)
-    DEBUG_TOOLBAR_PATCH_SETTINGS = False
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda request: request.META.get('HTTP_X_DDT') == '1'
+    }
 
 SECRET_KEY = env('SETTINGS_SECRET_KEY', '-secret-')
 
