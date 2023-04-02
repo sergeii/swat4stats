@@ -1,9 +1,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "swat4stats-api.fullname" . }}
+  name: {{ include "swat4stats.fullname" . }}
   labels:
-    {{- include "swat4stats-api.labels" . | nindent 4 }}
+    {{- include "swat4stats.labels" . | nindent 4 }}
   {{- if .Values.ingress.annotations }}
   annotations:
     {{- range $key, $value := .Values.ingress.annotations }}
@@ -21,7 +21,7 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ include "swat4stats-api.fullname" $ }}
+                name: {{ include "swat4stats.fullname" $ }}
                 port:
                   {{- $backend := get $.Values .backend }}
                   {{- $backendPort := get $backend "port" }}

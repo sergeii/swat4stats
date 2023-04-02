@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "swat4stats-api.fullname" . }}
+  name: {{ include "swat4stats.fullname" . }}
   labels:
-    {{- include "swat4stats-api.labels" . | nindent 4 }}
+    {{- include "swat4stats.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -16,4 +16,4 @@ spec:
       protocol: TCP
       name: staticfiles
   selector:
-    {{- include "swat4stats-api.selectorLabels" . | nindent 4 }}
+    {{- include "swat4stats.selectorLabels" (set $ "Backend" "uwsgi") | nindent 4 }}
