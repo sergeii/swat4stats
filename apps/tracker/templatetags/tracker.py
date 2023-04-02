@@ -59,9 +59,15 @@ def _map_background_picture(mapname, *, type):
     path_fmt = 'images/maps/%s/{map_slug}.jpg' % type
     map_path = path_fmt.format(map_slug=slugify(mapname))
     # default map is intro
-    intro_path = path_fmt.format(map_slug='intro')
-    static_path = map_path if find_staticfile(map_path) else intro_path
-    return static(static_path)
+    if not find_staticfile(map_path):
+        return _intro_background_picture(type)
+    return static(map_path)
+
+
+@lru_cache
+def _intro_background_picture(type: str) -> str:
+    path = f'images/maps/{type}/intro.jpg'
+    return static(path)
 
 
 @register.simple_tag
