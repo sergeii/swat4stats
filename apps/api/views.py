@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Count, Case, When, Value, BooleanField, Prefetch
+from django.db.models import Count, Prefetch
 from django.http import Http404
 from django.utils import timezone
 from rest_framework.decorators import action
@@ -115,17 +115,29 @@ class PopularMapnamesViewSet(ListModelMixin, GenericViewSet):
     serializer_class = MapSerializer
     pagination_class = None
 
-    def get_queryset(self):
-        warehouse_map = Map.objects.get(name='-EXP- Stetchkov Warehouse')
-        queryset = (Map.objects
-                    .annotate(game_num=Count('game'),
-                              is_builtin_map=Case(When(pk__lte=warehouse_map.pk,
-                                                       then=Value(True)),
-                                                  default=Value(False),
-                                                  output_field=BooleanField()))
-                    .filter(game_num__gt=0)
-                    .order_by('-is_builtin_map', 'name'))
-        return queryset
+    max_maps = 100
+    for_period = timedelta(days=180)
+
+    def get_queryset(self) -> list[Map]:
+        warehouse_map = Map.objects.using('replica').get(name='-EXP- Stetchkov Warehouse')
+        # collect ids of top N most played maps
+        # that have been seen since the specified number of days
+        popular_maps_qs = (
+            Game.objects
+            .using('replica')
+            .filter(date_finished__gte=timezone.now() - self.for_period)
+            .order_by('map')
+            .values('map')
+            .annotate(game_cnt=Count('pk'))
+            .order_by('-game_cnt')
+        )[:self.max_maps]
+        popular_maps_ids = [row['map'] for row in popular_maps_qs]
+
+        popular_maps = Map.objects.filter(pk__in=popular_maps_ids)
+        return sorted(
+            popular_maps,
+            key=lambda m: (m.pk > warehouse_map.pk, m.name.startswith('-EXP-'), m.name),
+        )
 
 
 class PopularServersViewSet(ListModelMixin, GenericViewSet):
@@ -133,7 +145,7 @@ class PopularServersViewSet(ListModelMixin, GenericViewSet):
     pagination_class = None
 
     max_servers = 50
-    for_period = timedelta(days=365)
+    for_period = timedelta(days=180)
 
     def get_queryset(self) -> list[Server]:
         # get ids of the top N servers that have seen
@@ -158,8 +170,7 @@ class PopularServersViewSet(ListModelMixin, GenericViewSet):
         popular_servers = Server.objects.filter(pk__in=popular_servers_ids)
         return sorted(
             popular_servers,
-            key=lambda s: (popular_servers_ids[s.pk], s.hostname or '', s.pk),
-            reverse=True
+            key=lambda s: (-popular_servers_ids[s.pk], s.hostname or '', s.pk),
         )
 
 

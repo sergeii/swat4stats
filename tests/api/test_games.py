@@ -26,19 +26,22 @@ def test_get_popular_servers(db, api_client):
     GameFactory.create_batch(3, server=myt_vip)
     GameFactory(server=myt_coop, date_finished=now - timedelta(days=30))
     GameFactory(server=esa)
-    GameFactory.create_batch(4, server=esa, date_finished=now - timedelta(days=370))  # old games
-    GameFactory.create_batch(2, server=soh, date_finished=now - timedelta(days=180))
+    GameFactory.create_batch(4, server=esa, date_finished=now - timedelta(days=181))  # old games
+    GameFactory.create_batch(2, server=soh, date_finished=now - timedelta(days=179))
 
     resp = api_client.get('/api/data-popular-servers/')
     assert [(obj['id'], obj['name_clean']) for obj in resp.data] == [
         (myt_vip.pk, '-==MYT Team Svr==-'),
         (soh.pk, '|SoH|  Shadow  OF Heroes'),
-        (myt_coop.pk, '-==MYT Co-op Svr==-'),
         (esa.pk, '62.21.98.150:9485'),
+        (myt_coop.pk, '-==MYT Co-op Svr==-'),
     ]
 
 
+@pytest.mark.django_db(databases=['default', 'replica'])
 def test_get_popular_map_names(db, api_client):
+    now = timezone.now()
+
     abomb = MapFactory(name='A-Bomb Nightclub')
     brewer = MapFactory(name='Brewer County Courthouse')
     northside = MapFactory(name='Northside Vending')  # noqa
@@ -50,6 +53,7 @@ def test_get_popular_map_names(db, api_client):
     # no games
     assert resp.data == []
 
+    GameFactory.create_batch(3, map=dead_end, date_finished=now - timedelta(days=181))  # old games
     GameFactory.create_batch(3, map=new_library)
     GameFactory(map=abomb)
     GameFactory(map=warehouse)

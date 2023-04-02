@@ -7,11 +7,12 @@ image:
 uwsgi:
   port: 9090
   targetPort: 9090
-  replicas: 4
+  replicas: 12
   env:
     UWSGI_CHDIR: /app/src
-    UWSGI_ENABLE_THREADS: "true"
+    UWSGI_DISABLE_LOGGING: "true"
     UWSGI_DISABLE_WRITE_EXCEPTION: "true"
+    UWSGI_ENABLE_THREADS: "true"
     UWSGI_GID: 10001
     UWSGI_HARAKIRI: 5
     UWSGI_HARAKIRI_VERBOSE: "true"
@@ -24,7 +25,7 @@ uwsgi:
     UWSGI_RELOAD_MERCY: 10
     UWSGI_RELOAD_ON_RSS: 256
     UWSGI_STRICT: "true"
-    UWSGI_WORKERS: 4
+    UWSGI_WORKERS: 1
     UWSGI_UID: 10001
     UWSGI_VIRTUALENV: /app/.venv
     UWSGI_WORKER_RELOAD_MERCY: 10
@@ -95,6 +96,10 @@ readinessProbe:
     httpHeaders:
       - name: Host
         value: api.swat4stats.com
+  periodSeconds: 10
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
 
 livenessProbe:
   httpGet:
@@ -103,7 +108,7 @@ livenessProbe:
     httpHeaders:
       - name: Host
         value: api.swat4stats.com
-  periodSeconds: 10
+  periodSeconds: 30
   initialDelaySeconds: 10
   timeoutSeconds: 5
   failureThreshold: 6
