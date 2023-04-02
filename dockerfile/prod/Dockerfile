@@ -53,6 +53,6 @@ ENV GIT_RELEASE_VER $git_release_ver
 ENV GIT_RELEASE_SHA $git_release_sha
 
 WORKDIR /app/src
-USER app
+USER root
 ENV TERM xterm
 CMD ["uwsgi"]
