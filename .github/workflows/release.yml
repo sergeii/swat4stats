@@ -20,16 +20,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-#      - name: Build a test image
-#        uses: docker/build-push-action@v3
-#        with:
-#          context: .
-#          file:  dockerfile/prod/Dockerfile
-#          load: true
-#          tags: testing
-#
-#      - name: Test built image
-#        run: docker run testing python manage.py check
+      - name: Build a test image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file:  dockerfile/prod/Dockerfile
+          load: true
+          tags: testing
+
+      - name: Test built image
+        run: docker run testing python manage.py check
 
       - name: Bump release version and push tag
         id: version

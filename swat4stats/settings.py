@@ -185,6 +185,8 @@ TIME_FORMAT = 'H:i'
 ROOT_URLCONF = 'swat4stats.urls'
 WSGI_APPLICATION = 'swat4stats.wsgi.application'
 
+USE_X_FORWARDED_HOST = True
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
