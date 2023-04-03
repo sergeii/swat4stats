@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "swat4stats.podname" (set . "Name" "uwsgi") }}
+  name: {{ include "swat4stats-api.podname" (set . "Name" "uwsgi") }}
   labels:
-    {{- include "swat4stats.labels" . | nindent 4 }}
+    {{- include "swat4stats-api.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.uwsgi.replicas }}
   strategy:
@@ -13,18 +13,18 @@ spec:
       maxUnavailable: 25%
   selector:
     matchLabels:
-      {{- include "swat4stats.selectorLabels" (set $ "Backend" "uwsgi") | nindent 6 }}
+      {{- include "swat4stats-api.selectorLabels" (set $ "Backend" "uwsgi") | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "swat4stats.selectorLabels" (set $ "Backend" "uwsgi") | nindent 8 }}
+        {{- include "swat4stats-api.selectorLabels" (set $ "Backend" "uwsgi") | nindent 8 }}
     spec:
       {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
           {{- toYaml . | nindent 8 }}
       {{- end }}
       initContainers:
-        - name: {{ include "swat4stats.podname" (set . "Name" "copystatic") }}
+        - name: {{ include "swat4stats-api.podname" (set . "Name" "copystatic") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["cp", "-r", "/app/static/.", "/var/www/static"]
@@ -38,7 +38,7 @@ spec:
             - name: staticfiles
               mountPath: /var/www/static
       containers:
-        - name: {{ include "swat4stats.podname" (set . "Name" "sc-staticfiles") }}
+        - name: {{ include "swat4stats-api.podname" (set . "Name" "sc-staticfiles") }}
           {{- with .Values.staticfiles.image }}
           image: "{{ .repository }}:{{ .tag | default "latest" }}"
           imagePullPolicy: {{ .pullPolicy }}
@@ -53,7 +53,7 @@ spec:
             - name: config
               mountPath: /etc/nginx/nginx.conf
               subPath: staticfiles.conf
-        - name: {{ include "swat4stats.podname" (set . "Name" "uwsgi") }}
+        - name: {{ include "swat4stats-api.podname" (set . "Name" "uwsgi") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -80,7 +80,7 @@ spec:
           emptyDir: {}
         - name: config
           configMap:
-            name: {{ include "swat4stats.fullname" . }}
+            name: {{ include "swat4stats-api.fullname" . }}
 
 
 {{- range .Values.celery.workers }}
@@ -100,27 +100,27 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "swat4stats.podname" (set $ "Name" $workerName) }}
+  name: {{ include "swat4stats-api.podname" (set $ "Name" $workerName) }}
   labels:
-    {{- include "swat4stats.labels" $ | nindent 4 }}
+    {{- include "swat4stats-api.labels" $ | nindent 4 }}
 spec:
   replicas: {{ .replicas }}
   strategy:
     type: RollingUpdate
   selector:
     matchLabels:
-      {{- include "swat4stats.selectorLabels" (set $ "Backend" $workerName) | nindent 6 }}
+      {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $workerName) | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "swat4stats.selectorLabels" (set $ "Backend" $workerName) | nindent 8 }}
+        {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $workerName) | nindent 8 }}
     spec:
       {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "swat4stats.podname" (set $ "Name" $workerName) }}
+        - name: {{ include "swat4stats-api.podname" (set $ "Name" $workerName) }}
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           command:
@@ -146,27 +146,27 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "swat4stats.podname" (set $ "Name" $beatName) }}
+  name: {{ include "swat4stats-api.podname" (set $ "Name" $beatName) }}
   labels:
-    {{- include "swat4stats.labels" $ | nindent 4 }}
+    {{- include "swat4stats-api.labels" $ | nindent 4 }}
 spec:
   replicas: {{ .beat.replicas }}
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      {{- include "swat4stats.selectorLabels" (set $ "Backend" $beatName) | nindent 6 }}
+      {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $beatName) | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "swat4stats.selectorLabels" (set $ "Backend" $beatName) | nindent 8 }}
+        {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $beatName) | nindent 8 }}
     spec:
       {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
           {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "swat4stats.podname" (set $ "Name" $beatName) }}
+        - name: {{ include "swat4stats-api.podname" (set $ "Name" $beatName) }}
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           volumeMounts:

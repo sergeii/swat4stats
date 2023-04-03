@@ -40,12 +40,14 @@ celery:
       queues: [default]
       time_limit: 120
       max_tasks: 1000
-    - name: serverquery
+
+    - name: sq
       replicas: 2
       concurrency: 2
       queues: [serverquery]
       time_limit: 120
       max_tasks: 1000
+
     - name: cacheback
       concurrency: 2
       replicas: 2
@@ -56,7 +58,7 @@ celery:
     replicas: 1
 
 staticfiles:
-  port: 10081
+  port: 10080
   targetPort: 80
   image:
     repository: nginx
@@ -64,26 +66,8 @@ staticfiles:
     tag: ""
 
 service:
+  name: swat4stats-api
   type: ClusterIP
-
-ingress:
-  annotations:
-    kubernetes.io/ingress.class: nginx
-  hosts:
-    - host: api.swat4stats.com
-      paths:
-        - path: /
-          pathType: Prefix
-          backend: uwsgi
-        - path: /static
-          pathType: Prefix
-          backend: staticfiles
-        - path: /robots.txt
-          pathType: Exact
-          backend: staticfiles
-        - path: /favicon.ico
-          pathType: Exact
-          backend: staticfiles
 
 envFromSecrets: []
 ## - name: secret-name

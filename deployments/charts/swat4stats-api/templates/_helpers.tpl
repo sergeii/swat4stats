@@ -1,28 +1,28 @@
-{{- define "swat4stats.fullname" -}}
+{{- define "swat4stats-api.fullname" -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "swat4stats.podname" -}}
+{{- define "swat4stats-api.podname" -}}
 {{- printf "%s-%s" .Release.Name .Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "swat4stats.selectorLabels" -}}
+{{- define "swat4stats-api.selectorLabels" -}}
 backend: {{ .Backend }}
-{{ include "swat4stats.releaseLabels" . }}
+{{ include "swat4stats-api.releaseLabels" . }}
 {{- end }}
 
-{{- define "swat4stats.releaseLabels" -}}
-app.kubernetes.io/name: {{ include "swat4stats.fullname" . }}
+{{- define "swat4stats-api.releaseLabels" -}}
+app.kubernetes.io/name: {{ include "swat4stats-api.fullname" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{- define "swat4stats.chart" -}}
+{{- define "swat4stats-api.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "swat4stats.labels" -}}
-helm.sh/chart: {{ include "swat4stats.chart" . }}
-{{ include "swat4stats.releaseLabels" . }}
+{{- define "swat4stats-api.labels" -}}
+helm.sh/chart: {{ include "swat4stats-api.chart" . }}
+{{ include "swat4stats-api.releaseLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
