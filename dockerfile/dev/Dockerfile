@@ -26,7 +26,7 @@ RUN pip install --user --no-warn-script-location -r pip-poetry.txt
 ENV PATH /app/.venv/bin:/home/app/.local/bin:$PATH
 
 COPY --chown=app:app pyproject.toml poetry.lock /app/
-RUN poetry install --no-interaction
+RUN poetry install --no-interaction --without dev
 
 WORKDIR /app/src
 ENV TERM xterm
