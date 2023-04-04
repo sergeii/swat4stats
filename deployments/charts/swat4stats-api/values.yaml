@@ -79,7 +79,7 @@ readinessProbe:
     port: uwsgi
     httpHeaders:
       - name: Host
-        value: api.swat4stats.com
+        value: swat4stats.com
   periodSeconds: 10
   initialDelaySeconds: 10
   timeoutSeconds: 5
@@ -91,7 +91,7 @@ livenessProbe:
     port: uwsgi
     httpHeaders:
       - name: Host
-        value: api.swat4stats.com
+        value: swat4stats.com
   periodSeconds: 30
   initialDelaySeconds: 10
   timeoutSeconds: 5

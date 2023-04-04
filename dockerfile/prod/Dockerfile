@@ -4,7 +4,7 @@ ARG git_release_ver="-"
 ARG git_release_sha="-"
 
 ARG _build_user_id=10000
-ARG _app_user_id=10001
+ARG _work_user_id=10001
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -20,12 +20,11 @@ RUN apt update && \
     bash \
   && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd builder --gid $_build_user_id &&  \
-    useradd --create-home -g builder --uid $_build_user_id builder && \
-    groupadd app --gid $_app_user_id &&  \
-    useradd -g app --uid $_app_user_id --shell /bin/bash app
-
-RUN mkdir -p /app/src \
+RUN groupadd builder --gid $_build_user_id  \
+    && useradd --create-home -g builder --uid $_build_user_id builder \
+    && groupadd worker --gid $_work_user_id \
+    && useradd -g worker --uid $_work_user_id --shell /bin/bash app \
+    && mkdir -p /app/src \
     && mkdir -p /app/static \
     && chown -R builder:builder /app
 
@@ -52,6 +51,6 @@ ENV GIT_RELEASE_VER $git_release_ver
 ENV GIT_RELEASE_SHA $git_release_sha
 
 WORKDIR /app/src
-USER app
+USER worker
 ENV TERM xterm
 CMD ["uwsgi"]

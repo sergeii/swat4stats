@@ -1,6 +1,3 @@
-ARG _user_id=10001
-
-
 FROM python:3.11.2-slim
 
 ENV PIP_NO_CACHE_DIR on
@@ -17,11 +14,8 @@ RUN apt update && \
     bash \
   && rm -rf /var/lib/apt/lists/*
 
-ARG _user_id
-RUN groupadd app --gid $_user_id &&  \
-    useradd --create-home -g app --uid $_user_id app
-
-RUN mkdir -p /app/src \
+RUN useradd --create-home app \
+    && mkdir -p /app/src \
     && chown -R app:app /app
 
 USER app
@@ -34,8 +28,6 @@ ENV PATH /app/.venv/bin:/home/app/.local/bin:$PATH
 COPY --chown=app:app pyproject.toml poetry.lock /app/
 RUN poetry install --no-interaction
 
-USER app
 WORKDIR /app/src
 ENV TERM xterm
-VOLUME ["/app/src"]
 CMD ["/bin/true"]
