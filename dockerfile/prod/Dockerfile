@@ -1,10 +1,10 @@
-FROM python:3.11.2-slim
-
 ARG git_release_ver="-"
 ARG git_release_sha="-"
 
 ARG _build_user_id=10000
 ARG _work_user_id=10001
+
+FROM python:3.11.2-slim
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -20,6 +20,8 @@ RUN apt update && \
     bash \
   && rm -rf /var/lib/apt/lists/*
 
+ARG _build_user_id
+ARG _work_user_id
 RUN groupadd builder --gid $_build_user_id  \
     && useradd --create-home -g builder --uid $_build_user_id builder \
     && groupadd worker --gid $_work_user_id \
@@ -47,7 +49,9 @@ ENV SETTINGS_STATIC_ROOT /app/static
 WORKDIR /app/src
 RUN ./manage.py collectstatic --noinput
 
+ARG git_release_ver
 ENV GIT_RELEASE_VER $git_release_ver
+ARG git_release_sha
 ENV GIT_RELEASE_SHA $git_release_sha
 
 WORKDIR /app/src
