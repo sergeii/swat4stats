@@ -47,7 +47,7 @@ ARG _work_user_id
 RUN groupadd builder --gid $_build_user_id  \
     && useradd --create-home -g builder --uid $_build_user_id builder \
     && groupadd worker --gid $_work_user_id  \
-    && useradd -g worker --uid $_work_user_id --shell /bin/bash app \
+    && useradd -g worker --uid $_work_user_id --shell /bin/bash worker \
     && mkdir -p /app/src \
     && mkdir -p /app/static \
     && chown -R builder:builder /app
