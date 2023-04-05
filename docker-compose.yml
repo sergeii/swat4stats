@@ -74,7 +74,9 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=swat4stats
       - POSTGRES_DB=swat4stats
-    image: postgres:14.5-alpine
+      - LANG=en_US.UTF-8
+      - LC_ALL=en_US.UTF-8
+    image: postgres:15.2
     ports:
       - "5432:5432"
     tmpfs:
@@ -84,7 +86,7 @@ services:
       - /var/lib/postgresql/data
 
   redis:
-    image: redis:7.0.4-alpine
+    image: redis:7.0.10-alpine
     command: redis-server --save '' --databases 100 --loglevel warning
     logging:
         driver: none

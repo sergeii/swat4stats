@@ -1,6 +1,5 @@
 import re
 import datetime
-import json
 import math
 
 from django import template
@@ -26,11 +25,6 @@ def highlight(text, word):
     word = re.escape(html.escape(word))
     text = html.escape(text)
     return html.mark_safe(re.sub(r'(%s)' % word, r'<span class="highlight">\1</span>', text, flags=re.I))
-
-
-@register.filter
-def tojson(obj):
-    return json.dumps(obj)
 
 
 @register.filter
@@ -103,15 +97,6 @@ def game_url(game, view='tracker:game', **kwargs):
         })
     except BaseNodeError:
         pass
-    return reverse(view, kwargs=kwargs)
-
-
-@register.simple_tag
-def server_url(server, view='tracker:server', **kwargs):
-    kwargs.update({
-        'server_ip': server.ip,
-        'server_port': server.port,
-    })
     return reverse(view, kwargs=kwargs)
 
 

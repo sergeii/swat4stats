@@ -1,24 +1,47 @@
+import logging
 import os
 from pathlib import Path
 
-from celery.schedules import crontab
+from utils.settings import env, env_bool, env_log_level, env_list
 
-from settings.utils import env
+
+def redis_url(alias):
+    db = REDIS_DB[alias]
+    return f'redis://{REDIS_HOST}:{REDIS_PORT}/{db}',
 
 
 REDIS_HOST = env('SETTINGS_REDIS_HOST', '127.0.0.1')
 REDIS_PORT = env('SETTINGS_REDIS_PORT', 6379)
 REDIS_DB = {
     'default': 1,
-    'cacheback': 1,
-    'celery': 3,
+}
+
+
+EMAIL_BACKENDS = {
+    'console': 'django.core.mail.backends.console.EmailBackend',
+    'smtp': 'django.core.mail.backends.smtp.EmailBackend',
 }
 
 BASE_DIR = Path(os.path.normpath(os.path.join(os.path.dirname(__file__), os.pardir)))
 
-DEBUG = False
+ALLOWED_HOSTS = env_list('SETTINGS_ALLOWED_HOSTS')
 
-SECRET_KEY = '-secret-'
+DEBUG = env_bool('SETTINGS_DEBUG', False)
+
+if DEBUG:
+    INTERNAL_IPS = ('127.0.0.1',)
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda request: request.META.get('HTTP_X_DDT') == '1'
+    }
+
+SECRET_KEY = env('SETTINGS_SECRET_KEY', '-secret-')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': redis_url('default'),
+    },
+}
 
 DATABASES = {
     'default': {
@@ -34,7 +57,6 @@ DATABASES = {
 }
 
 INSTALLED_APPS = (
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -42,12 +64,12 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django.contrib.sites',
-    'django.contrib.sitemaps',
     'django_countries',
-    'cacheback',
-    'raven.contrib.django.raven_compat',
     'tracker',
 )
+
+if DEBUG:
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 
 MIDDLEWARE = (
     'utils.middleware.RealRemoteAddrMiddleware',
@@ -60,9 +82,10 @@ MIDDLEWARE = (
     'django.contrib.sites.middleware.CurrentSiteMiddleware',
 )
 
-SILENCED_SYSTEM_CHECKS = [
-    'models.E034',  # The index name 'X' cannot be longer than 30 characters.
-]
+if DEBUG:
+    MIDDLEWARE = (
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    ) + MIDDLEWARE
 
 TEMPLATES = [
     {
@@ -85,11 +108,16 @@ TEMPLATES = [
     },
 ]
 
+SILENCED_SYSTEM_CHECKS = [
+    'models.E034',  # The index name 'X' cannot be longer than 30 characters.
+]
+
+STATICFILES_STORAGE = 'utils.staticfiles.ManifestStaticFilesStorage'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
-STATICFILES_STORAGE = 'utils.staticfiles.ManifestStaticFilesStorage'
+
 STATICFILES_DIRS = (
     str(BASE_DIR / 'web' / 'raw'),
     str(BASE_DIR / 'web' / 'dist'),
@@ -97,6 +125,9 @@ STATICFILES_DIRS = (
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
+
+STATIC_ROOT = env('SETTINGS_STATIC_ROOT', BASE_DIR / 'static')
+MEDIA_ROOT = env('SETTINGS_MEDIA_ROOT', BASE_DIR / 'media')
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -109,8 +140,6 @@ TIME_FORMAT = 'H:i'
 ROOT_URLCONF = 'swat4tracker.urls'
 WSGI_APPLICATION = 'swat4tracker.wsgi.application'
 
-ALLOWED_HOSTS = []
-INTERNAL_IPS = ()
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_SECURE = True
@@ -127,17 +156,32 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-SERVER_EMAIL = 'django@swat4stats.com'
+EMAIL_BACKEND = EMAIL_BACKENDS[env('SETTINGS_EMAIL_BACKEND_ALIAS', 'console')]
+EMAIL_HOST = env('SETTINGS_EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(env('SETTINGS_EMAIL_PORT', 25))
+EMAIL_HOST_USER = env('SETTINGS_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = env('SETTINGS_EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = env_bool('SETTINGS_EMAIL_USE_TLS', False)
+
+SERVER_EMAIL = env('SETTINGS_SERVER_EMAIL', 'django@swat4stats.com')
 DEFAULT_FROM_EMAIL = 'noreply@swat4stats.com'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-if syslog_address := os.environ.get('SETTINGS_SYSLOG_ADDRESS'):
+if syslog_address := env('SETTINGS_SYSLOG_ADDRESS', None):
     syslog_host, syslog_port = syslog_address.split(':')
-    LOGGING_SYSLOG_ADDRESS = (syslog_host, int(syslog_port))
+    default_logging_handler = {
+        'level': 'DEBUG',
+        'formatter': 'syslog',
+        'class': 'logging.handlers.SysLogHandler',
+        'address': (syslog_host, int(syslog_port)),
+    }
 else:
-    LOGGING_SYSLOG_ADDRESS = ('localhost', 514)
+    default_logging_handler = {
+        'level': 'DEBUG',
+        'class': 'logging.StreamHandler',
+        'formatter': 'simple'
+    }
 
 LOGGING = {
     'version': 1,
@@ -151,108 +195,26 @@ LOGGING = {
         },
     },
     'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'syslog': {
-            'level': 'DEBUG',
-            'formatter': 'syslog',
-            'class': 'logging.handlers.SysLogHandler',
-            'address': LOGGING_SYSLOG_ADDRESS,
-        },
-        'sentry': {
-            'level': 'WARNING',
-            'class': 'raven.contrib.django.handlers.SentryHandler',
+        'default': default_logging_handler,
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'logging.NullHandler',
         },
     },
-    'loggers': {},
-}
-
-CACHEBACK_CACHE_ALIAS = 'cacheback'
-CACHEBACK_TASK_IGNORE_RESULT = True
-
-# celery
-CELERY_ENABLE_UTC = True
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_EVENT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_TASK_IGNORE_RESULT = True
-CELERY_TASK_DEFAULT_QUEUE = 'default'
-CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
-CELERY_WORKER_HIJACK_ROOT_LOGGER = False
-
-CELERY_TASK_ROUTES = {
-    'cacheback.tasks.refresh_cache': {
-        'queue': 'cacheback',
+    'loggers': {
+        '': {
+            'level': env_log_level('SETTINGS_LOG_LEVEL', 'INFO'),
+            'handlers': ['default'],
+        },
+        'django.db.backends': {
+            'level': env_log_level('SETTINGS_LOG_LEVEL', 'INFO', logging.WARNING),
+            'handlers': ['default'],
+            'propagate': False,
+        },
+        'factory': {
+            'level': env_log_level('SETTINGS_LOG_LEVEL', 'INFO', logging.ERROR),
+            'handlers': ['default'],
+            'propagate': False,
+        },
     },
 }
-CELERY_TASK_ANNOTATIONS = {
-    'cacheback.tasks.refresh_cache': {
-        'expires': 600,
-        'time_limit': 60,
-    },
-}
-CELERY_BEAT_SCHEDULE = {
-    # update the profile popular fields (name, team, etc) every hour
-    'update-popular': {
-        'task': 'tracker.tasks.update_popular',
-        'schedule': crontab(minute='10'),
-        'args': (2 * 3600,),
-    },
-    # update profile ranks every 2 hours
-    'update-ranks': {
-        'task': 'tracker.tasks.update_ranks',
-        'schedule': crontab(minute='20', hour='*/2'),
-        'args': (4 * 3600,),
-    },
-    # update positions every 6 hours
-    'update-positions': {
-        'task': 'tracker.tasks.update_positions',
-        'schedule': crontab(minute='30', hour='*/6'),
-    },
-    # update past year positions on the new year's jan 1st 6 am
-    'update-ranks-past-year': {
-        'task': 'tracker.tasks.update_positions',
-        'schedule': crontab(minute='0', hour='6', day_of_month='1', month_of_year='1'),
-        'args': (-1,),
-    },
-}
-
-RAVEN_CONFIG = {}
-
-# list pf case-insensitive regex patterns used to describe a popular name
-# in order to exclude it from a name isp profile lookup
-TRACKER_POPULAR_NAMES = (
-    r'^todosetname',
-    r'^player',
-    r'^newname',
-    r'^afk',
-    r'^giocatore',
-    r'^jogador',
-    r'^jugador',
-    r'^joueur',
-    r'^spieler',
-    r'^gracz',
-    r'^test',
-    r'^\|\|$',
-    r'^lol$',
-    r'^swat$',
-    r'^swat4$',
-    r'^suspect$',
-    r'^noob$',
-    r'^n00b$',
-    r'^vip$',
-    r'^xxx$',
-    r'^killer$',
-    r'^david$',
-    r'^pokemon$',
-    r'^rambo$',
-    r'^ghost$',
-    r'^hitman$',
-    r'^wolf$',
-    r'^sniper$',
-)

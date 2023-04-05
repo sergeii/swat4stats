@@ -1,25 +1,18 @@
-import re
 import datetime
 import logging
 
 import pytz
-from django.conf import settings
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q, When, Case, Count, Sum, Max, Func, F
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.functions import Upper
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.utils.html import mark_safe, escape
 
-import markdown
-import bleach
+from vendor.julia import shortcuts as julia_shortcuts
 
-from vendor import julia
-
-from .utils import lock, force_ipy, calc_ratio
+from .utils import force_ipy, calc_ratio
 from . import definitions, const, utils
-from .definitions import STAT
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +21,8 @@ class GameMixin:
 
     @property
     def gametype_translated(self):
-        return julia.shortcuts.map(
+        return julia_shortcuts.map(
             definitions.stream_pattern_node, 'gametype', str(self.gametype)
-        )
-
-    @property
-    def mapname_translated(self):
-        return julia.shortcuts.map(
-            definitions.stream_pattern_node, 'mapname', str(self.mapname)
         )
 
 
@@ -74,14 +61,8 @@ class Server(models.Model):
             models.Index(Func(F('ip'), function='host'), F('port'), name='tracker_server_host_ip_port'),
         ]
 
-    @property
-    def name(self):
-        if self.hostname:
-            return utils.force_clean_name(self.hostname)
-        return f'{self.ip}:{self.port}'
-
     def __str__(self):
-        return self.name
+        return f'{self.ip}:{self.port}'
 
 
 class Game(models.Model, GameMixin):
@@ -108,36 +89,11 @@ class Game(models.Model, GameMixin):
         ]
 
     @property
-    def outcome_translated(self):
-        """
-        Translate the outcome integer code to a human-readable name.
-        """
-        return julia.shortcuts.map(definitions.stream_pattern_node, 'outcome', str(self.outcome))
-
-    @property
     def date_started(self):
         """
         Calculate and return the date of the game start based on the game duration.
         """
         return self.date_finished - datetime.timedelta(seconds=self.time)
-
-    @property
-    def winner(self):
-        """
-        Return the winner team number.
-
-        0 - SWAT
-        1 - Suspects
-        2 - Tie
-        """
-        assert isinstance(self.outcome, int)
-        if self.outcome in definitions.SWAT_GAMES:
-            return 0
-        elif self.outcome in definitions.SUS_GAMES:
-            return 1
-        elif self.outcome in definitions.DRAW_GAMES:
-            return 2
-        return None
 
     @property
     def coop_game(self):
@@ -150,51 +106,11 @@ class Game(models.Model, GameMixin):
         return False
 
     @property
-    def coop_successful(self):
-        """
-        Tell whether the COOP game was successful.
-        """
-        assert isinstance(self.outcome, int)
-        if self.outcome in definitions.COMPLETED_MISSIONS:
-            return True
-        elif self.outcome in definitions.FAILED_MISSIONS:
-            return False
-        return None
-
-    @property
     def coop_score_normal(self):
         """
         Normalize the COOP (>=0, <=100) score and return the result.
         """
         return max(0, min(100, self.coop_score))
-
-    @property
-    def best_player(self):
-        """Return the player of the game."""
-        # best to be used with prefetch_related
-        players = list(self.player_set.all())
-        # separate players
-        swat = [player for player in players if player.team == definitions.TEAM_BLUE]
-        suspects = [player for player in players if player.team == definitions.TEAM_RED]
-        # use the following attrs as a fallback
-        comparable = ['score', 'kills', 'arrests', '-deaths', '-arrested']
-        sortable = players
-        # there is no best player in COOP ;-)
-        if self.gametype in definitions.MODES_COOP:
-            return None
-        if self.gametype == definitions.MODE_VIP:
-            # get the best SWAT player in the VIP escort game
-            if self.outcome in definitions.SWAT_GAMES:
-                sortable = swat
-                comparable = ['-vip_kills_invalid', 'vip_rescues', 'vip_escapes'] + comparable
-            # get the best suspects player in the VIP escort game
-            elif self.outcome in definitions.SUS_GAMES:
-                sortable = suspects
-                comparable = ['-vip_kills_invalid', 'vip_captures', 'vip_kills_valid'] + comparable
-        else:
-            pass
-        sortable = sorted(sortable, key=utils.sort_key(*comparable), reverse=True)
-        return next(iter(sortable), None)
 
     def __str__(self):
         return f'{self.date_finished} - {self.time} - {self.outcome}'
@@ -385,7 +301,7 @@ class Player(models.Model):
 
     @property
     def coop_status_translated(self):
-        return julia.shortcuts.map(
+        return julia_shortcuts.map(
             definitions.stream_pattern_node.item('players').item,
             'coop_status',
             str(self.coop_status)
@@ -427,16 +343,8 @@ class Objective(models.Model):
     status = models.SmallIntegerField(default=0)
 
     @property
-    def name_translated(self):
-        return julia.shortcuts.map(
-            definitions.stream_pattern_node.item('coop_objectives').item,
-            'name',
-            str(self.name)
-        )
-
-    @property
     def status_translated(self):
-        return julia.shortcuts.map(
+        return julia_shortcuts.map(
             definitions.stream_pattern_node.item('coop_objectives').item,
             'status',
             str(self.status)
@@ -452,14 +360,6 @@ class Procedure(models.Model):
     name = models.SmallIntegerField()
     status = models.CharField(max_length=7)  # xxx/yyy
     score = models.SmallIntegerField(default=0)
-
-    @property
-    def name_translated(self):
-        return julia.shortcuts.map(
-            definitions.stream_pattern_node.item('coop_procedures').item,
-            'name',
-            str(self.name)
-        )
 
     def __str__(self):
         return f'{self.name}, {self.score} ({self.status})'
@@ -495,16 +395,10 @@ class IP(models.Model):
     def range_from_normal(self):
         """Return the range start address in dotted form."""
         return force_ipy(self.range_from).strNormal(3)
-    range_from_normal.admin_order_field = 'range_from'
 
     def range_to_normal(self):
         """Return the range end address in dotted form."""
         return force_ipy(self.range_to).strNormal(3)
-    range_to_normal.admin_order_field = 'range_to'
-
-    def length(self, obj):
-        return obj.length
-    length.admin_order_field = 'length'
 
     def __str__(self):
         return f'{self.range_from_normal()}-{self.range_to_normal()}'
@@ -522,20 +416,6 @@ class ProfileManager(models.Manager):
 
     def get_queryset(self, *args, **kwargs):
         return super().get_queryset(*args, **kwargs).select_related('game_last')
-
-    def popular(self):
-        """
-        Return a queryset with all the (other than loadout and country) popular fields set to a value.
-        """
-        return (
-            self.get_queryset()
-            .filter(
-                name__isnull=False,
-                team__isnull=False,
-                game_first__isnull=False,
-                game_last__isnull=False
-            )
-        )
 
 
 class Profile(models.Model):
@@ -595,18 +475,6 @@ class Profile(models.Model):
         except Exception:
             return None
 
-    def fetch_popular_name(self, year=None):
-        """Return the profile's most popular name."""
-        return self.fetch_popular('alias__name', year)
-
-    def fetch_popular_country(self, year=None):
-        """Return the profile's most popular country."""
-        return self.fetch_popular('alias__isp__country', year)
-
-    def fetch_popular_team(self, year=None):
-        """Return the profile's most popular team."""
-        return self.fetch_popular('team', year)
-
     def fetch_popular_loadout(self, year=None):
         """Return the profile's most popular loadout."""
         # skip the VIP's loadout
@@ -614,17 +482,6 @@ class Profile(models.Model):
         if id:
             return Loadout.objects.get(pk=id)
         return None
-
-    def update_popular(self):
-        """
-        Fetch the recently popular loadout and update corresponding instance fields.
-        """
-        for field in ('name', 'team', 'country', 'loadout'):
-            # fetch the value
-            value = getattr(self, 'fetch_popular_%s' % field)(year=None)
-            # only update the instance field if the returned value is not empty
-            if value is not None:
-                setattr(self, field, value)
 
     def fetch_popular(self, field, year=None, cond=None):
         """
@@ -653,364 +510,6 @@ class Profile(models.Model):
             return None
         else:
             return annotated[field]
-
-    def aggregate_mode_stats(self, options, start, end):
-        categories = []
-        # common stats
-        if options & Profile.SET_STATS_COMMON:
-            categories.extend([
-                STAT.SCORE,
-                STAT.TOP_SCORE,
-                STAT.TIME,
-                STAT.GAMES,
-                STAT.WINS,
-                STAT.LOSSES,
-                STAT.DRAWS,
-                # STAT.SPM,  # calculated manually at the bottom of the method
-                # STAT.SPR,
-            ])
-        if options & Profile.SET_STATS_KILLS:
-            categories.extend([
-                STAT.KILLS,
-                STAT.TOP_KILLS,
-                STAT.TEAMKILLS,
-                STAT.ARRESTS,
-                STAT.TOP_ARRESTS,
-                STAT.DEATHS,
-                STAT.SUICIDES,
-                STAT.ARRESTED,
-                STAT.KILL_STREAK,
-                STAT.ARREST_STREAK,
-                STAT.DEATH_STREAK,
-                # ammo bases stats
-                STAT.AMMO_SHOTS,
-                STAT.AMMO_HITS,
-                STAT.AMMO_DISTANCE,
-                # STAT.AMMO_ACCURACY,  # calculated manually
-                # STAT.KDR,
-            ])
-        # BS stats
-        if options & Profile.SET_STATS_BS:
-            categories.extend([
-                STAT.BS_SCORE,
-                STAT.BS_TIME,
-            ])
-        # VIP Escort stats
-        if options & Profile.SET_STATS_VIP:
-            categories.extend([
-                STAT.VIP_SCORE,
-                STAT.VIP_TIME,
-                STAT.VIP_ESCAPES,
-                STAT.VIP_CAPTURES,
-                STAT.VIP_RESCUES,
-                STAT.VIP_KILLS_VALID,
-                STAT.VIP_KILLS_INVALID,
-            ])
-        # Rapid Deployment stats
-        if options & Profile.SET_STATS_RD:
-            categories.extend([
-                STAT.RD_SCORE,
-                STAT.RD_TIME,
-                STAT.RD_BOMBS_DEFUSED,
-            ])
-        # Smash and Grab stats
-        if options & Profile.SET_STATS_SG:
-            categories.extend([
-                STAT.SG_SCORE,
-                STAT.SG_TIME,
-                STAT.SG_ESCAPES,
-                STAT.SG_KILLS,
-            ])
-        # COOP stats
-        if options & Profile.SET_STATS_COOP:
-            categories.extend([
-                STAT.COOP_SCORE,
-                STAT.COOP_TIME,
-                STAT.COOP_GAMES,
-                STAT.COOP_WINS,
-                STAT.COOP_LOSSES,
-                STAT.COOP_TEAMKILLS,
-                STAT.COOP_DEATHS,
-                STAT.COOP_HOSTAGE_ARRESTS,
-                STAT.COOP_HOSTAGE_HITS,
-                STAT.COOP_HOSTAGE_INCAPS,
-                STAT.COOP_HOSTAGE_KILLS,
-                STAT.COOP_ENEMY_ARRESTS,
-                STAT.COOP_ENEMY_INCAPS,
-                STAT.COOP_ENEMY_KILLS,
-                STAT.COOP_ENEMY_INCAPS_INVALID,
-                STAT.COOP_ENEMY_KILLS_INVALID,
-                STAT.COOP_TOC_REPORTS,
-            ])
-        aggregated = self.aggregate_player_stats(categories, start, end)
-        # Calculate SPM and SPR manually
-        if options & Profile.SET_STATS_COMMON:
-            # score per minute
-            aggregated[STAT.SPM] = calc_ratio(
-                aggregated[STAT.SCORE], aggregated[STAT.TIME], min_divisor=Profile.MIN_TIME
-            ) * 60
-            # score per round
-            aggregated[STAT.SPR] = calc_ratio(
-                aggregated[STAT.SCORE], aggregated[STAT.GAMES], min_divisor=Profile.MIN_GAMES
-            )
-        if options & Profile.SET_STATS_KILLS:
-            # calculate kills/deaths manually
-            aggregated[STAT.KDR] = calc_ratio(
-                aggregated[STAT.KILLS], aggregated[STAT.DEATHS], min_divident=self.MIN_KILLS
-            )
-            # calculate accuracy
-            aggregated[STAT.AMMO_ACCURACY] = calc_ratio(
-                aggregated[STAT.AMMO_HITS], aggregated[STAT.AMMO_SHOTS], min_divisor=self.MIN_AMMO
-            )
-        return aggregated
-
-    def aggregate_player_stats(self, stats, start, end):
-        aggregates = {
-            'game': {
-                STAT.SCORE: models.Sum('score'),
-                STAT.TOP_SCORE: models.Max('score'),
-                # non-COOP time
-                STAT.TIME: (
-                    Sum(
-                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='time'))
-                    )
-                ),
-                # non-coop games
-                STAT.GAMES: (
-                    Count(
-                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='game')),
-                        distinct=True
-                    )
-                ),
-                # non-coop wins
-                STAT.WINS: (
-                    Count(
-                        Case(
-                            When(
-                                Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SWAT_GAMES) |
-                                Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SUS_GAMES),
-                                then='game'
-                            ),
-                        ),
-                        distinct=True
-                    )
-                ),
-                # non-coop losses
-                STAT.LOSSES: (
-                    Count(
-                        Case(
-                            When(
-                                Q(team=definitions.TEAM_BLUE, game__outcome__in=definitions.SUS_GAMES) |
-                                Q(team=definitions.TEAM_RED, game__outcome__in=definitions.SWAT_GAMES),
-                                then='game'
-                            ),
-                        ),
-                        distinct=True
-                    )
-                ),
-                # non-coop draws
-                STAT.DRAWS: (
-                    Count(
-                        Case(
-                            When(
-                                Q(game__outcome__in=definitions.DRAW_GAMES,
-                                  game__gametype__in=definitions.MODES_VERSUS),
-                                then='game'
-                            ),
-                        ),
-                        distinct=True
-                    )
-                ),
-                STAT.KILLS: models.Sum('kills'),
-                STAT.TOP_KILLS: models.Max('kills'),
-                # non-coop teamkills
-                STAT.TEAMKILLS: (
-                    Sum(
-                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='teamkills'))
-                    )
-                ),
-                STAT.ARRESTS: models.Sum('arrests'),
-                STAT.TOP_ARRESTS: models.Max('arrests'),
-                STAT.ARRESTED: models.Sum('arrested'),
-                # non-coop deaths
-                STAT.DEATHS: (
-                    Sum(
-                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='deaths'))
-                    )
-                ),
-                # non-coop suicides
-                STAT.SUICIDES: (
-                    Sum(
-                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='suicides'))
-                    )
-                ),
-                STAT.KILL_STREAK: models.Max('kill_streak'),
-                STAT.ARREST_STREAK: models.Max('arrest_streak'),
-                STAT.DEATH_STREAK: (
-                    Max(
-                        Case(When(game__gametype__in=definitions.MODES_VERSUS, then='death_streak'))
-                    )
-                ),
-                # Barricaded Suspects stats
-                STAT.BS_SCORE: (
-                    Sum(
-                        Case(When(game__gametype=definitions.MODE_BS, then='score'))
-                    )
-                ),
-                STAT.BS_TIME: (
-                    Sum(
-                        Case(When(game__gametype=definitions.MODE_BS, then='time'))
-                    )
-                ),
-                # VIP Escort stats
-                # Score earned in VIP Escort
-                STAT.VIP_SCORE: (
-                    Sum(
-                        Case(When(game__gametype=definitions.MODE_VIP, then='score'))
-                    )
-                ),
-                # Time played in VIP Escort
-                STAT.VIP_TIME: (
-                    Sum(
-                        Case(When(game__gametype=definitions.MODE_VIP, then='time'))
-                    )
-                ),
-                STAT.VIP_ESCAPES: Sum('vip_escapes'),
-                STAT.VIP_CAPTURES: Sum('vip_captures'),
-                STAT.VIP_RESCUES: Sum('vip_rescues'),
-                STAT.VIP_KILLS_VALID: Sum('vip_kills_valid'),
-                STAT.VIP_KILLS_INVALID: Sum('vip_kills_invalid'),
-                STAT.VIP_TIMES: (
-                    Count(
-                        Case(When(vip=True, then='pk')), distinct=True
-                    )
-                ),
-                # Rapid Deployment stats
-                STAT.RD_SCORE: (
-                    Sum(
-                        Case(When(game__gametype=definitions.MODE_RD, then='score'))
-                    )
-                ),
-                STAT.RD_TIME: (
-                    Sum(
-                        Case(When(game__gametype=definitions.MODE_RD, then='time'))
-                    )
-                ),
-                STAT.RD_BOMBS_DEFUSED: models.Sum('rd_bombs_defused'),
-                # Smash and Grab stats
-                STAT.SG_SCORE: (
-                    Sum(
-                        Case(When(game__gametype=definitions.MODE_SG, then='score'))
-                    )
-                ),
-                STAT.SG_TIME: (
-                    Sum(
-                        Case(When(game__gametype=definitions.MODE_SG, then='time'))
-                    )
-                ),
-                STAT.SG_ESCAPES: models.Sum('sg_escapes'),
-                STAT.SG_KILLS: models.Sum('sg_kills'),
-                # COOP stats
-                STAT.COOP_SCORE: (
-                    Sum(
-                        Case(When(game__gametype__in=definitions.MODES_COOP, then='game__coop_score'))
-                    )
-                ),
-                STAT.COOP_TIME: (
-                    Sum(
-                        Case(When(game__gametype__in=definitions.MODES_COOP, then='time'))
-                    )
-                ),
-                STAT.COOP_GAMES: (
-                    Count(
-                        Case(When(game__gametype__in=definitions.MODES_COOP, then='game')),
-                        distinct=True
-                    )
-                ),
-                STAT.COOP_WINS: (
-                    Count(
-                        Case(When(game__outcome__in=definitions.COMPLETED_MISSIONS, then='game')),
-                        distinct=True
-                    )
-                ),
-                STAT.COOP_LOSSES: (
-                    Count(
-                        Case(When(game__outcome__in=definitions.FAILED_MISSIONS, then='game')),
-                        distinct=True
-                    )
-                ),
-                STAT.COOP_TEAMKILLS: (
-                    Sum(
-                        Case(When(game__gametype__in=definitions.MODES_COOP, then='teamkills'))
-                    )
-                ),
-                STAT.COOP_DEATHS: (
-                    Sum(
-                        Case(When(game__gametype__in=definitions.MODES_COOP, then='deaths'))
-                    )
-                ),
-                STAT.COOP_HOSTAGE_ARRESTS: Sum('coop_hostage_arrests'),
-                STAT.COOP_HOSTAGE_HITS: Sum('coop_hostage_hits'),
-                STAT.COOP_HOSTAGE_INCAPS: Sum('coop_hostage_incaps'),
-                STAT.COOP_HOSTAGE_KILLS: Sum('coop_hostage_kills'),
-                STAT.COOP_ENEMY_ARRESTS: Sum('coop_enemy_arrests'),
-                STAT.COOP_ENEMY_INCAPS: Sum('coop_enemy_incaps'),
-                STAT.COOP_ENEMY_KILLS: Sum('coop_enemy_kills'),
-                STAT.COOP_ENEMY_INCAPS_INVALID: Sum('coop_enemy_incaps_invalid'),
-                STAT.COOP_ENEMY_KILLS_INVALID: Sum('coop_enemy_kills_invalid'),
-                STAT.COOP_TOC_REPORTS: Sum('coop_toc_reports'),
-            },
-            'weapon': {
-                # ammo based stats
-                STAT.AMMO_SHOTS: (
-                    Sum(
-                        Case(
-                            When(
-                                Q(weapon__name__in=definitions.WEAPONS_FIRED,
-                                  game__gametype__in=definitions.MODES_VERSUS),
-                                then='weapon__shots'
-                            )
-                        )
-                    )
-                ),
-                STAT.AMMO_HITS: (
-                    Sum(
-                        Case(
-                            When(
-                                Q(weapon__name__in=definitions.WEAPONS_FIRED,
-                                  game__gametype__in=definitions.MODES_VERSUS),
-                                then='weapon__hits'
-                            )
-                        )
-                    )
-                ),
-                STAT.AMMO_DISTANCE: (
-                    Max(
-                        Case(
-                            When(
-                                Q(weapon__name__in=definitions.WEAPONS_FIRED,
-                                  game__gametype__in=definitions.MODES_VERSUS),
-                                then='weapon__distance'
-                            )
-                        )
-                    )
-                ),
-            },
-        }
-        aggregated = {}
-        # remove uninteresting aggregates
-        for group in list(aggregates.keys()):
-            items = aggregates[group]
-            for stat in items.copy():
-                if stat not in stats:
-                    del aggregates[group][stat]
-        for items in aggregates.values():
-            aggregated.update(self.aggregate(items, start, end))
-        # convert null values to zeroes
-        return {
-            key: value if value else 0
-            for key, value in aggregated.items()
-        }
 
     def aggregate_weapon_stats(self, start, end, filters=None):
         """
@@ -1117,100 +616,11 @@ class Profile(models.Model):
         min_date = timezone.now()-datetime.timedelta(seconds=Profile.TIME_POPULAR)
         return self.qualified(min_date, timezone.now())
 
-    @classmethod
-    def is_name_popular(cls, name):
-        """
-        Tell whether a given name should be considered popular:
-
-            1.  Check length of the name.
-                If it's shorter than the predefined value, return True.
-            2.  In case the name passes the length validiation,
-                attempt to check it against the patterns defined in the const module.
-                If the name matches against one of the patterns, return True.
-                Return False otherwise.
-        Args:
-            name - subject string
-        """
-        if len(name) < cls.MIN_NAME_LENGTH:
-            return True
-        for pattern in settings.TRACKER_POPULAR_NAMES:
-            if re.search(pattern, name, re.I):
-                return True
-        return False
-
 
 class RankManager(models.Manager):
 
     def get_queryset(self):
         return super().get_queryset().select_related('profile')
-
-    def numbered(self):
-        """
-        Return a queryset with an extra field describing positions of the selected rows
-        in a unique set of category id of ranking period and sorted in ascending order
-        by the number of points earned in the specified period.
-        """
-        return (
-            self.get_queryset()
-            .extra(
-                select={
-                    'row_number': ('ROW_NUMBER() OVER(PARTITION BY %s, %s ORDER BY %s DESC, %s ASC)'
-                                   % ('category', 'year', 'points', 'id'))
-                },
-            )
-            .order_by('row_number')
-        )
-
-    def store(self, category, year, profile, points):
-        self.store_many({category: points}, year, profile)
-
-    def store_many(self, items, year, profile):
-        # set a list of deleteable categories
-        deletable = []
-        # assemble a list of categores in question
-        categories = list(items.keys())
-
-        with transaction.atomic():
-            entries = (
-                self.get_queryset()
-                .select_for_update()
-                .filter(profile=profile, year=year, category__in=categories)
-            )
-            for entry in entries:
-                # zero or negative points - the entry should be deleted
-                if items[entry.category] <= 0:
-                    deletable.append(entry.pk)
-                # points changed - the item should be updated
-                elif items[entry.category] != entry.points:
-                    entry.points = items[entry.category]
-                    entry.save()
-
-                items.pop(entry.category)
-
-            # delete the entries marked for removing
-            self.filter(pk__in=deletable).delete()
-
-            creatable = []
-            for category, points in items.items():
-                if points > 0:
-                    creatable.append(self.model(profile=profile, year=year, category=category, points=points))
-            # bulk insert the categories that are not present in db
-            if creatable:
-                self.bulk_create(creatable)
-
-    def rank(self, year):
-        sql = f"""
-        UPDATE {self.model._meta.db_table} AS t1 SET position = t2.row_number
-        FROM
-        (
-            SELECT ROW_NUMBER() OVER(PARTITION BY category, year ORDER BY points DESC, id ASC), id
-            FROM {self.model._meta.db_table}
-        ) AS t2
-        WHERE t1.id=t2.id AND t1.year = %(year)s
-        """
-        with transaction.atomic():
-            with lock('EXCLUSIVE', self.model) as cursor:
-                cursor.execute(sql, {'year': year})
 
 
 class Rank(models.Model):
@@ -1234,16 +644,6 @@ class Rank(models.Model):
         return f'{self.year}:{self.category} #{self.position} {self.profile} ({self.points})'
 
     @classmethod
-    def get_period_for_now(cls):
-        """
-        Return a 2-tuple of start and end dates for the current year.
-
-        Example:
-            (2014-1-1 0:0:0+00, 2014-12-31 23:59:59+00)
-        """
-        return cls.get_period_for_year(int(timezone.now().strftime('%Y')))
-
-    @classmethod
     def get_period_for_year(cls, year):
         """
         Return a 2-tuple containing start and end dates
@@ -1256,33 +656,6 @@ class Rank(models.Model):
             datetime.datetime(year, 1, 1, tzinfo=pytz.UTC),
             datetime.datetime(year, 12, 31, 23, 59, 59, tzinfo=pytz.UTC)
         )
-
-    @classmethod
-    def get_period_for_date(cls, date):
-        """
-        Return a 2-tuple containing start and end dates for given date.
-
-        Args:
-            date - datetime object
-        """
-        return cls.get_period_for_year(date.year)
-
-
-class PublishedArticleManager(models.Manager):
-
-    def get_queryset(self, *args, **kwargs):
-        """
-        Return a queryset that would fetch articles with
-        the `date_published` column greater or equal to the current time.
-        """
-        return (
-            super().get_queryset(*args, **kwargs)
-            .filter(is_published=True, date_published__lte=timezone.now())
-        )
-
-    def latest(self, limit):
-        """Display the latest `limit` published articles."""
-        return self.get_queryset().order_by('-date_published')[:limit]
 
 
 class Article(models.Model):
@@ -1306,68 +679,5 @@ class Article(models.Model):
         default=RENDERER_MARKDOWN
     )
 
-    objects = models.Manager()
-    published = PublishedArticleManager()
-
-    # bleach
-    ALLOWED_TAGS = [
-        'a', 'abbr', 'acronym',
-        'b', 'blockquote', 'code', 'em', 'i',
-        'li', 'ol', 'strong', 'ul',
-        'img', 'iframe',
-        'p', 'div',
-        'br', 'hr', 'pre',
-    ]
-
-    ALLOWED_ATTRIBUTES = {
-        'a': ['href', 'title'],
-        'abbr': ['title'],
-        'acronym': ['title'],
-        'img': ['src', 'title'],
-        'iframe': ['src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen'],
-    }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        cls = type(self)
-        # cache renderers
-        if not hasattr(cls, 'renderers'):
-            cls.renderers = {
-                getattr(cls, attr): getattr(cls, 'render_{}'.format(attr.split('_', 1)[-1].lower()))
-                for attr in dir(cls) if attr.startswith('RENDERER_')
-            }
-
     def __str__(self):
         return self.title
-
-    @property
-    def rendered(self):
-        """
-        Render article text according to the specified renderer.
-
-        :return: Rendered article text
-        """
-        try:
-            renderer = self.renderers[self.renderer]
-        except KeyError:
-            logger.error('No article renderer %s', self.renderer)
-            renderer = self.renderers[self._meta.get_field('renderer').default]
-
-        return renderer(self.text)
-
-    @classmethod
-    def render_plaintext(cls, value):
-        return value
-
-    @classmethod
-    def render_html(cls, value):
-        value = bleach.clean(
-            value,
-            tags=cls.ALLOWED_TAGS,
-            attributes=cls.ALLOWED_ATTRIBUTES,
-        )
-        return mark_safe(value)
-
-    @classmethod
-    def render_markdown(cls, value):
-        return cls.render_html(markdown.markdown(escape(value)))
