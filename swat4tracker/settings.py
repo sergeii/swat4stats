@@ -123,7 +123,7 @@ STATICFILES_DIRS = (
     str(BASE_DIR / 'web' / 'dist'),
 )
 
-STATIC_URL = '/static/'
+STATIC_URL = '/public/'
 MEDIA_URL = '/media/'
 
 STATIC_ROOT = env('SETTINGS_STATIC_ROOT', BASE_DIR / 'static')
@@ -139,7 +139,6 @@ TIME_FORMAT = 'H:i'
 
 ROOT_URLCONF = 'swat4tracker.urls'
 WSGI_APPLICATION = 'swat4tracker.wsgi.application'
-
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_SECURE = True
