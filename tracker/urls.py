@@ -19,14 +19,14 @@ profile_urls = [
 ]
 
 api_urls = [
-    path('motd/summary/', views.APIMotdSummaryView.as_view()),
-    re_path(r'^motd/leaderboard/(?:(?P<board_name>\w+)/)?$', views.APIMotdLeaderboardView.as_view()),
+    path('motd/summary/', noop),
+    re_path(r'^motd/leaderboard/(?:(?P<board_name>\w+)/)?$', noop),
     path('whois/', noop),
 ]
 
 urlpatterns = [
     # main page
-    path('', views.MainView.as_view(), name='main'),
+    path('', noop, name='main'),
     # stream page
     path('stream/', noop, name='stream'),
     # stream page
@@ -51,11 +51,7 @@ urlpatterns = [
         name='leaderboard'
     ),
 
-    path(
-        'games/',
-        views.GameListView.as_view(),
-        name='game_list'
-    ),
+    path('games/', noop, name='game_list'),
     path('games/history/',
          generic.RedirectView.as_view(pattern_name='tracker:game_list', permanent=True),
          name='game_list_history'),
@@ -64,7 +60,7 @@ urlpatterns = [
          name='game_list_online'),
     re_path(
         r'^games/(?:(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<slug>[^/]+)/)?(?P<game_id>\d+)/$',
-        views.GameDetailView.as_view(),
+        noop,
         name='game'
     ),
     path('servers/', noop, name='server_list'),

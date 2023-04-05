@@ -10,24 +10,14 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
 
-  - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v2.1.1
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
     hooks:
-      - id: conventional-pre-commit
-        stages: [commit-msg]
+      - id: flake8
+        exclude: /migrations/
 
-  - repo: local
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.3.1
     hooks:
       - id: pyupgrade
-        name: pyupgrade
-        entry: pyupgrade
-        args: ['--py3-plus', '--py310-plus', '--keep-percent-format']
-        language: python
-        types: [python]
-
-      - id: flake8
-        name: flake8
-        entry: flake8
-        language: python
-        exclude: /migrations/
-        types: [python]
+        args: [ '--py3-plus', '--py310-plus', '--keep-percent-format' ]

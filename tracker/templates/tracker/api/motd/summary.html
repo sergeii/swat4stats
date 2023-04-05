@@ -1,8 +1,0 @@
-{% load i18n %}{% if summary.object_list %}{{ time_initial }}	{{ time_repeat }}
-[c=FFFF00]{{ request.site.name }} [b]-[\b] {{ summary.title }}
-{% for object in summary.object_list %}
-{% if nodelay %}{{ time_initial }}{% else %}{{ time_initial|add:forloop.counter }}{% endif %}	{{ time_repeat }}
-[c=FFFFFF]{{ object.title }} [c=555555]- [c=FFFF00][b]{{ object.profile.name|truncatechars:30 }}[\b]
-{% endfor %}
-{% with count=summary.object_list|length %}{% if nodelay %}{{ time_initial }}{% else %}{{ time_initial|add:count|add:1 }}{% endif %}	{{ time_repeat }}{% endwith %}
-[c=FFFF00]{% blocktrans with domain=request.site.domain %}Feel free to visit {{ domain }} to see more{% endblocktrans %}{% endif %}

@@ -16,4 +16,4 @@ spec:
       protocol: TCP
       name: staticfiles
   selector:
-    {{- include "swat4tracker.selectorLabels" . | nindent 4 }}
+    {{- include "swat4tracker.selectorLabels" (set $ "Backend" "uwsgi") | nindent 4 }}

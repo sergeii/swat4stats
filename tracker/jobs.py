@@ -1,18 +1,17 @@
-import random
+from functools import lru_cache
 
-from cacheback.decorators import cacheback
-from django.db.models import Min, Max, Case, When
+from django.db.models import Max, Case, When
 
 from tracker.definitions import STAT
-from tracker.models import Rank, Profile
+from tracker.models import Rank
 
 
-@cacheback(lifetime=24 * 3600, fetch_on_miss=True)
+@lru_cache(maxsize=16)
 def get_min_year():
-    return Rank.objects.aggregate(year=Min('year'))['year']
+    return 2007
 
 
-@cacheback(lifetime=24 * 3600, fetch_on_miss=True)
+@lru_cache(maxsize=16)
 def get_best_kdr(year):
     return (
         Rank.objects
@@ -22,13 +21,3 @@ def get_best_kdr(year):
             kdr=Max(Case(When(category=STAT.KDR, then='points')))
         )
     )
-
-
-@cacheback(lifetime=24 * 3600, fetch_on_miss=True)
-def get_random_name():
-    queryset = Profile.objects.filter(name__isnull=False)
-    try:
-        profile = queryset[random.randrange(1, queryset.count())]
-    except (IndexError, ValueError):
-        return None
-    return profile.name
