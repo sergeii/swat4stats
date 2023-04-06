@@ -1,13 +1,14 @@
+from typing import Type
+
 from django.db import migrations
-from django.db.models import F, Q
+from django.db.models import Model
+
+from apps.tracker.management.commands.fill_status_port import fill_status_port
 
 
-def fill_status_port(apps, schema_editor):
-    Server = apps.get_model('tracker', 'Server')
-
-    (Server.objects
-     .filter(Q(status_port__isnull=True) | Q(status_port=0))
-     .update(status_port=F('port') + 1))
+def run_fill_status_port(apps, schema_editor):
+    server_model: type[Model] = apps.get_model('tracker', 'Server')
+    fill_status_port(server_model)
 
 
 class Migration(migrations.Migration):
@@ -18,5 +19,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(fill_status_port)
+        migrations.RunPython(run_fill_status_port)
     ]

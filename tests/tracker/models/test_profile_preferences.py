@@ -103,5 +103,6 @@ def test_update_preferences(db):
     assert profile.name == 'Serge'
     assert profile.country == 'un'
     assert profile.team == 'suspects'
+    assert profile.team_legacy == 1
     assert profile.loadout == another_loadout
     assert profile.preferences_updated_at == now + timedelta(hours=1)

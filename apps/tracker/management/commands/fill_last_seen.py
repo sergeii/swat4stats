@@ -1,16 +1,14 @@
 import logging
 
 from django.core.management.base import BaseCommand
-from django.db.models import Q
-
-from apps.tracker.models import Profile
+from django.db.models import Q, Model
 
 
 logger = logging.getLogger(__name__)
 
 
-def fill_profile_last_seen(profile_queryset):
-    queryset = (profile_queryset
+def fill_profile_last_seen(profile_model: type[Model]):
+    queryset = (profile_model.objects
                 .only('game_first__date_finished', 'game_last__date_finished')
                 .select_related('game_first', 'game_last')
                 .filter(Q(first_seen_at__isnull=True) | Q(last_seen_at__isnull=True)))
@@ -26,12 +24,14 @@ def fill_profile_last_seen(profile_queryset):
         profile.first_seen_at = game_first_date
         profile.last_seen_at = game_last_date
 
-    Profile.objects.bulk_update(queryset, fields=['first_seen_at', 'last_seen_at'], batch_size=100)
+    profile_model.objects.bulk_update(queryset, fields=['first_seen_at', 'last_seen_at'], batch_size=100)
 
 
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
+        from apps.tracker.models import Profile
+
         console = logging.StreamHandler()
         logger.addHandler(console)
-        fill_profile_last_seen(Profile.objects.all())
+        fill_profile_last_seen(Profile)

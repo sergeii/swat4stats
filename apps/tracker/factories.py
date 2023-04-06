@@ -208,6 +208,7 @@ class GameFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Game
 
+    mapname = 1
     gametype = 'VIP Escort'
     outcome = 'swat_vip_escape'
     map = factory.SubFactory(MapFactory)

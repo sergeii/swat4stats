@@ -14,8 +14,8 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK on
 ENV LANG en_US.UTF-8
 ENV POETRY_VIRTUALENVS_IN_PROJECT true
 
-RUN apt update && \
-    apt install -y --no-install-recommends \
+RUN apt update \
+  && apt install -y --no-install-recommends \
     build-essential \
     bash \
   && rm -rf /var/lib/apt/lists/*

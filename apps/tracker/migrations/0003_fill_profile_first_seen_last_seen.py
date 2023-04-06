@@ -5,8 +5,8 @@ from apps.tracker.management.commands.fill_last_seen import fill_profile_last_se
 
 
 def fill_last_seen(apps, schema_editor):
-    Profile = apps.get_model('tracker', 'Profile')
-    fill_profile_last_seen(Profile.objects.all())
+    profile_model = apps.get_model('tracker', 'Profile')
+    fill_profile_last_seen(profile_model)
 
 
 class Migration(migrations.Migration):

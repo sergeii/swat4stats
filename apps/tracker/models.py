@@ -20,6 +20,7 @@ from apps.tracker.managers import (ServerQuerySet, ServerManager, MapManager,
                                    GameManager, LoadoutManager, AliasManager,
                                    PlayerManager, PlayerQuerySet, ProfileManager,
                                    ProfileQuerySet, StatsManager)
+from apps.tracker.schema import teams_reversed
 from apps.tracker.templatetags import map_background_picture
 from apps.tracker.utils import (force_clean_name, ratio)
 from apps.utils.db.fields import EnumField
@@ -123,19 +124,19 @@ class Game(models.Model):
     outcome_legacy = models.SmallIntegerField(db_column='outcome', default=0)
     gametype = EnumField(db_column='gametype_enum', enum_type='gametype_enum', null=True)
     gametype_legacy = models.SmallIntegerField(db_column='gametype', null=True)
-    map = models.ForeignKey('Map', null=True, on_delete=models.PROTECT)  # TODO: remove null
+    map = models.ForeignKey('Map', on_delete=models.PROTECT)
     player_num = models.SmallIntegerField(default=0)
-    score_swat = models.SmallIntegerField(default=0)  # index score_swat + score_sus
+    score_swat = models.SmallIntegerField(default=0)
     score_sus = models.SmallIntegerField(default=0)
     vict_swat = models.SmallIntegerField(default=0)
     vict_sus = models.SmallIntegerField(default=0)
     rd_bombs_defused = models.SmallIntegerField(default=0)
     rd_bombs_total = models.SmallIntegerField(default=0)
     coop_score = models.SmallIntegerField(default=0)
-    date_finished = models.DateTimeField(default=timezone.now)  # manual index
+    date_finished = models.DateTimeField(default=timezone.now)
 
     # pending removal
-    mapname = models.SmallIntegerField(null=True)
+    mapname = models.SmallIntegerField()
 
     objects = GameManager()
 
@@ -312,7 +313,8 @@ class Player(models.Model):
     game = models.ForeignKey('Game', on_delete=models.PROTECT)
     alias = models.ForeignKey('Alias', on_delete=models.PROTECT)
     # TODO null to None's
-    loadout = models.ForeignKey('Loadout', on_delete=models.PROTECT)
+    # TODO: SET NOT NULL
+    loadout = models.ForeignKey('Loadout', null=True, on_delete=models.PROTECT)
     ip = models.GenericIPAddressField(protocol='IPv4')
 
     team = EnumField(db_column='team_enum', enum_type='team_enum', null=True)
@@ -434,15 +436,6 @@ class Player(models.Model):
                 shots += weapon.shots
         return int(ratio(hits, shots, min_divisor=min_shots) * 100)
 
-    # def _get_favorite_weapon(self) -> Weapon | None:
-    #     """Return the most used player weapon"""
-    #     used_weapons = [
-    #         (weapon, weapon.time) for weapon in self.weapons.all()
-    #         if weapon.name in self.ammo_weapons and weapon.time > 0
-    #     ]
-    #     top_weapon, _ = max(used_weapons, key=lambda item: item[1], default=(None, 0))
-    #     return top_weapon
-
     def __str__(self):
         return f'{self.name}, {self.ip}'
 
@@ -508,13 +501,13 @@ class Profile(models.Model):
         game_offset = settings.TRACKER_PREFERRED_GAMES
         # attempt to aggregate popular items over the last few games
         try:
-            least_recent_game = (queryset.all()
+            least_recent_game = (queryset
                                  .order_by('-pk')[game_offset-1:game_offset]
                                  .get().game)
         except ObjectDoesNotExist:
             logger.info('least recent game is not available for %s', self)
         else:
-            queryset = queryset.all().filter(game__gte=least_recent_game)
+            queryset = queryset.filter(game__gte=least_recent_game)
 
         try:
             aggregated = (
@@ -558,13 +551,14 @@ class Profile(models.Model):
         self.name = self.fetch_preferred_name() or self.name
         self.country = self.fetch_preferred_country() or self.country
         self.team = self.fetch_preferred_team() or self.team
+        self.team_legacy = teams_reversed.get(self.team)
         self.loadout = self.fetch_preferred_loadout() or self.loadout
         self.preferences_updated_at = timezone.now()
 
         logger.info('finished updating popular for %s, name=%s team=%s country=%s loadout=%s',
                     self, self.name, self.team, self.country, self.loadout_id)
 
-        self.save(update_fields=['name', 'country', 'team', 'loadout', 'preferences_updated_at'])
+        self.save(update_fields=['name', 'country', 'team', 'team_legacy', 'loadout', 'preferences_updated_at'])
 
     def update_stats(self) -> None:
         if self.last_seen_at:
@@ -576,7 +570,11 @@ class Profile(models.Model):
         period_from, period_till = Stats.get_period_for_year(year)
 
         if self.first_seen_at and period_till < self.first_seen_at:
-            logger.info('profile %s was first seen %s < %s', self.first_seen_at, period_till)
+            logger.info('profile %s was first seen %s < %s', self.pk, self.first_seen_at, period_till)
+            return
+
+        if self.last_seen_at and period_from > self.last_seen_at:
+            logger.info('profile %s was last seen %s > %s', self.pk, self.last_seen_at, period_from)
             return
 
         logger.info('updating %s stats for profile %s', year, self.pk)
