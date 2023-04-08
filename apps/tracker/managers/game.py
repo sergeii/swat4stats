@@ -38,7 +38,7 @@ class GameManager(models.Manager):
                     gametype=data['gametype'],
                     gametype_legacy=gametypes_reversed[data['gametype']],
                     map=Map.objects.obtain_for(data['mapname']),
-                    mapname=mapnames_reversed.get(data['mapname']),
+                    mapname=mapnames_reversed.get(data['mapname'], -1),
                     outcome=data['outcome'],
                     outcome_legacy=outcome_reversed[data['outcome']],
                     time=data['time'],
@@ -51,8 +51,8 @@ class GameManager(models.Manager):
                     rd_bombs_total=data['bombs_total'],
                     coop_score=min(100, (calc_coop_score(data.get('coop_procedures')))),
                 )
-        except IntegrityError:
-            logger.info('game with tag %s is already saved', data['tag'])
+        except IntegrityError as exc:
+            logger.info('game with tag %s is already saved (%s)', data['tag'], exc)
             raise Game.DataAlreadySaved
 
         # now save rest of the data

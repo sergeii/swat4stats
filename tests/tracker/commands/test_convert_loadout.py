@@ -53,16 +53,14 @@ def test_convert_loadout(db):
 
     call_command('convert_loadout')
 
-    player1.refresh_from_db()
-    player2.refresh_from_db()
-    player3.refresh_from_db()
-    player4.refresh_from_db()
-    player5.refresh_from_db()
-    player6.refresh_from_db()
+    for p in [player1, player2, player3, player4, player5, player6]:
+        p.refresh_from_db()
 
-    profile1.refresh_from_db()
-    profile2.refresh_from_db()
-    profile3.refresh_from_db()
+    for p in [profile1, profile2, profile3]:
+        p.refresh_from_db()
+
+    for lo in [loadout1, loadout4, loadout5]:
+        lo.refresh_from_db()
 
     assert player1.loadout_id == loadout1.pk
     assert player2.loadout_id == loadout1.pk
@@ -76,3 +74,42 @@ def test_convert_loadout(db):
     assert profile3.loadout_id == loadout5.pk
 
     assert Loadout.objects.filter(pk__in=[loadout2.pk, loadout3.pk]).count() == 0
+
+    assert loadout1.primary == '9mm SMG'
+    assert loadout1.primary_ammo == 'MP5SMG_FMJ'
+    assert loadout1.secondary == 'Taser Stun Gun'
+    assert loadout1.secondary_ammo == 'TaserAmmo'
+    assert loadout1.equip_one == 'Stinger'
+    assert loadout1.equip_two == 'Stinger'
+    assert loadout1.equip_three == 'Stinger'
+    assert loadout1.equip_four == 'Stinger'
+    assert loadout1.equip_five == 'Stinger'
+    assert loadout1.breacher == 'Shotgun'
+    assert loadout1.head == 'Helmet'
+    assert loadout1.body == 'Light Armor'
+
+    assert loadout4.primary == '9mm SMG'
+    assert loadout4.primary_ammo == 'MP5SMG_FMJ'
+    assert loadout4.secondary == 'Taser Stun Gun'
+    assert loadout4.secondary_ammo == 'TaserAmmo'
+    assert loadout4.equip_one == 'Stinger'
+    assert loadout4.equip_two == 'Stinger'
+    assert loadout4.equip_three == 'Stinger'
+    assert loadout4.equip_four == 'Stinger'
+    assert loadout4.equip_five == 'Stinger'
+    assert loadout4.breacher == 'None'
+    assert loadout4.head == 'Helmet'
+    assert loadout4.body == 'Light Armor'
+
+    assert loadout5.primary == '9mm SMG'
+    assert loadout5.primary_ammo == 'None'
+    assert loadout5.secondary == 'Taser Stun Gun'
+    assert loadout5.secondary_ammo == 'None'
+    assert loadout5.equip_one == 'Stinger'
+    assert loadout5.equip_two == 'Stinger'
+    assert loadout5.equip_three == 'Stinger'
+    assert loadout5.equip_four == 'Stinger'
+    assert loadout5.equip_five == 'Stinger'
+    assert loadout5.breacher == 'None'
+    assert loadout5.head == 'None'
+    assert loadout5.body == 'None'

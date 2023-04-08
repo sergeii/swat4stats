@@ -469,16 +469,76 @@ def test_posting_duplicate_game_is_accepted(db, post_game_data):
     assert game.player_set.count() == 3
 
 
+@pytest.mark.parametrize('mapname, legacy_name, expected_name', [
+    (1, 1, 'Brewer County Courthouse'),
+    ('-1', -1, 'Unknown Map'),
+    ('Unknown Map v2', -1, 'Unknown Map v2'),
+    (1000, -1, '1000'),
+])
+def test_schema_supports_map_numbers_and_names(db, post_game_data, mapname, legacy_name, expected_name):
+    game_data = ServerGameDataFactory(mapname=mapname)
+    response = post_game_data(game_data)
+    assert_success_code(response)
+
+    game = Game.objects.get(tag=game_data['tag'])
+    assert game.map.name == expected_name
+    assert game.mapname == legacy_name
+
+
+@pytest.mark.parametrize('gametype, legacy_name, expected_name', [
+    (1, 1, 'VIP Escort'),
+    ('4', 4, 'Smash And Grab'),
+    ('CO-OP', 3, 'CO-OP'),
+])
+def test_schema_supports_gametype_numbers_and_names(db, post_game_data, gametype, legacy_name, expected_name):
+    game_data = ServerGameDataFactory(gametype=gametype)
+    response = post_game_data(game_data)
+    assert_success_code(response)
+
+    game = Game.objects.get(tag=game_data['tag'])
+    assert game.gametype == expected_name
+    assert game.gametype_legacy == legacy_name
+
+
+def test_schema_validates_unknown_gametype(db, post_game_data):
+    game_data = ServerGameDataFactory(gametype='Unknown Gametype')
+    response = post_game_data(game_data)
+    assert_error_code(response)
+    assert Game.objects.filter(tag=game_data['tag']).count() == 0
+
+
+@pytest.mark.parametrize('gamename, legacy_name, expected_name', [
+    (0, 0, 'SWAT 4'),
+    (1, 1, 'SWAT 4X'),
+    ('SWAT 4', 0, 'SWAT 4'),
+    ('SWAT 4X', 1, 'SWAT 4X'),
+])
+def test_schema_supports_gamename_numbers_and_names(db, post_game_data, gamename, legacy_name, expected_name):
+    game_data = ServerGameDataFactory(gamename=gamename)
+    response = post_game_data(game_data)
+    assert_success_code(response)
+    assert Game.objects.get(tag=game_data['tag'])
+
+
+@pytest.mark.parametrize('gamename', [-1, 2, 'SWAT', 'SWAT X'])
+def test_schema_validates_unknown_gamename(db, post_game_data, gamename):
+    game_data = ServerGameDataFactory(gamename=gamename)
+    response = post_game_data(game_data)
+    assert_error_code(response)
+    assert Game.objects.filter(tag=game_data['tag']).count() == 0
+
+
 def test_stream_endpoint_supports_both_encoded_and_literal_values(db, post_game_data):
-    for mapname, expected_name in [
-        (1, 'Brewer County Courthouse'),
-        ('-1', 'Unknown Map'),
-        ('Unknown Map v2', 'Unknown Map v2'),
-        (1000, '1000'),
+    for mapname, expected_id, expected_name in [
+        (1, 1, 'Brewer County Courthouse'),
+        ('-1', -1, 'Unknown Map'),
+        ('Unknown Map v2', -1, 'Unknown Map v2'),
+        (1000, -1, '1000'),
     ]:
         game_data = ServerGameDataFactory(mapname=mapname)
         post_game_data(game_data)
         assert Game.objects.get(tag=game_data['tag']).map.name == expected_name
+        assert Game.objects.get(tag=game_data['tag']).mapname == expected_id
 
     for gametype, expected_name in [
         (1, 'VIP Escort'),

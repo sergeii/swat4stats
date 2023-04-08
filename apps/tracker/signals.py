@@ -132,8 +132,8 @@ def queue_save_game_data(sender, data, server, **kwargs):
 
 
 @receiver(game_data_received)
-def log_raw_game_data(sender, raw, request, **kwargs):
-    logging.getLogger('stream').info('%s: %s', request.META['REAL_REMOTE_ADDR'], raw)
+def log_raw_game_data(sender, raw, server, **kwargs):
+    logging.getLogger('stream').info('%s: %s', server.address, raw)
 
 
 @receiver(game_data_received)
