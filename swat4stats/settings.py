@@ -463,6 +463,9 @@ TRACKER_SERVER_DISCOVERY = (
     # clan pages
     ('https://mytteam.com/',
         fr'\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b'),
+    # master server api
+    ('http://master.swat4stats.com/api/servers',
+        fr'\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b'),
 )
 TRACKER_SERVER_DISCOVERY_TIMEOUT = 10
 

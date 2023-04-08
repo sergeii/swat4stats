@@ -15,7 +15,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
-from apps.tracker.const import GRENADE_WEAPONS, PRIMARY_WEAPONS, SECONDARY_WEAPONS
+from apps.tracker.entities import GameType, Equipment
 from apps.tracker.managers import (ServerQuerySet, ServerManager, MapManager,
                                    GameManager, LoadoutManager, AliasManager,
                                    PlayerManager, PlayerQuerySet, ProfileManager,
@@ -159,9 +159,9 @@ class Game(models.Model):
         (_('Insane'), _('%(points)s enemies arrested in a row'), 'arrest_streak', 5),
         (_('Top Gun'), _('%(points)s points earned'), 'score', 30),
         (_('Fire in the hole!'), _('%(points)s%% of grenades hit their targets'), 'grenade_accuracy', 50),
-        (_('Shapshooter'), _('%(points)s%% of all shots hit targets'), 'weapon_accuracy', 25),
+        (_('Shapshooter'), _('%(points)s%% of all shots hit targets'), 'gun_weapon_accuracy', 25),
         (_('Killing Machine'), _('%(points)s enemies eliminated'), 'kills', 10),
-        (_('Resourceful'), _('%(points)s rounds of ammo fired'), 'weapon_shots', 300),
+        (_('Resourceful'), _('%(points)s rounds of ammo fired'), 'gun_weapon_shots', 300),
         # COOP
         (_('Entry team to TOC!'), _('%(points)s reports sent to TOC'), 'coop_toc_reports', 10),
         (_('Hostage Crisis'), _('%(points)s civilians rescued'), 'coop_hostage_arrests', 5),
@@ -169,12 +169,15 @@ class Game(models.Model):
         (_('No Mercy'), _('%(points)s suspects neutralized'), 'coop_enemy_incaps_and_kills', 5),
     ]
 
+    weapon_highlight_min_kills = 5
+    weapon_highlight_min_accuracy = 20
+
     def __str__(self):
         return f'{self.date_finished} - {self.time} - {self.outcome}'
 
     @cached_property
     def is_coop_game(self):
-        return self.gametype in ('CO-OP', 'CO-OP QMM')
+        return self.gametype in (GameType.co_op, GameType.co_op_qmm)
 
     def _get_player_highlights(self) -> list[PlayerHighlight]:
         """
@@ -184,32 +187,39 @@ class Game(models.Model):
         for title, description, field, min_points in self.highlights:
             top_field_player, points = self._get_player_with_max(field)
             if top_field_player and points >= min_points:
-                items.append(Game.PlayerHighlight(
-                    player=top_field_player,
-                    title=title,
-                    description=description % {'points': points},
-                ))
+                items.append(
+                    Game.PlayerHighlight(
+                        player=top_field_player,
+                        title=title,
+                        description=description % {'points': points},
+                    )
+                )
         return items + self._get_player_weapon_highlights()
 
     def _get_player_weapon_highlights(self) -> list[PlayerHighlight]:
         all_player_weapons = {}
         for player in self.player_set.all():
-            for weapon in player.weapons.all():
-                if weapon.name in Player.ammo_weapons and weapon.kills >= 5 and weapon.accuracy >= 20:
-                    all_player_weapons.setdefault(weapon.name, []).append((player, weapon))
-        items = []
+            for wpn in player.gun_weapons:
+                if wpn.kills < self.weapon_highlight_min_kills or wpn.accuracy < self.weapon_highlight_min_accuracy:
+                    continue
+                all_player_weapons.setdefault(wpn.name, []).append((player, wpn))
+
+        highlights = []
         # obtain the highest accuracy among all weapon users
         for weapon_name, weapon_users in all_player_weapons.items():
             top_user, top_user_weapon = max(weapon_users, key=lambda item: item[1].accuracy)
-            items.append(Game.PlayerHighlight(
-                player=top_user,
-                title=_('%(name)s Expert') % {'name': _(weapon_name)},
-                description=_('%(kills)s kills with average accuracy of %(accuracy)s%%' % {
-                    'kills': top_user_weapon.kills,
-                    'accuracy': top_user_weapon.accuracy,
-                }),
-            ))
-        return items
+            highlights.append(
+                Game.PlayerHighlight(
+                    player=top_user,
+                    title=_('%(name)s Expert') % {'name': _(weapon_name)},
+                    description=_('%(kills)s kills with average accuracy of %(accuracy)s%%' % {
+                        'kills': top_user_weapon.kills,
+                        'accuracy': top_user_weapon.accuracy,
+                    }),
+                )
+            )
+
+        return highlights
 
     def _get_player_with_max(self, field) -> tuple[Union['Player', None], int]:
         """
@@ -267,6 +277,14 @@ class Loadout(models.Model):
                             'equip_one', 'equip_two', 'equip_three', 'equip_four', 'equip_five',
                             'head', 'body', 'breacher'),)
 
+    def has_armor(self) -> bool:
+        return (
+            self.head
+            and self.body
+            and self.head != Equipment.none
+            and self.body != Equipment.none
+        )
+
 
 class Weapon(models.Model):
     id = models.BigAutoField('ID', primary_key=True)
@@ -282,9 +300,11 @@ class Weapon(models.Model):
     teamkills = models.SmallIntegerField(default=0)
     distance = models.FloatField(_('Distance, meters'), default=0)
 
+    _grenade_weapons = set(Equipment.grenades())
+
     @cached_property
     def is_grenade_weapon(self):
-        return self.name in GRENADE_WEAPONS
+        return self.name in self._grenade_weapons
 
     @cached_property
     def accuracy(self):
@@ -357,8 +377,8 @@ class Player(models.Model):
 
     objects = PlayerManager.from_queryset(PlayerQuerySet)()
 
-    ammo_weapons = PRIMARY_WEAPONS | SECONDARY_WEAPONS
-    accuracy_grenades = GRENADE_WEAPONS
+    _gun_weapon_names = set(Equipment.primary_weapons()) | set(Equipment.secondary_weapons())
+    _grenade_weapon_names = set(Equipment.grenades())
 
     class Meta:
         indexes = [
@@ -402,28 +422,36 @@ class Player(models.Model):
         return self.coop_enemy_incaps + self.coop_enemy_kills
 
     @cached_property
-    def weapon_shots(self):
+    def gun_weapons(self) -> list[Weapon]:
+        return [
+            weapon for weapon in self.weapons.all()
+            if weapon.name in self._gun_weapon_names
+        ]
+
+    @cached_property
+    def gun_weapon_shots(self):
         """
         Calculate the number of rounds fired for both primary and secondary weapons.
         """
         shots = 0
         for weapon in self.weapons.all():
-            if weapon.name in self.ammo_weapons:
-                shots += weapon.shots
+            if weapon.name not in self._gun_weapon_names:
+                continue
+            shots += weapon.shots
         return shots
 
     @cached_property
-    def weapon_accuracy(self) -> int:
+    def gun_weapon_accuracy(self) -> int:
         """
         Calculate the average accuracy for all fired weapons,
         excluding some nonlegit weapons such as taser.
         """
-        return self._calculate_accuracy(weapon_names=self.accuracy_grenades,
+        return self._calculate_accuracy(weapon_names=self._grenade_weapon_names,  # FIXME
                                         min_shots=settings.TRACKER_MIN_GAME_AMMO)
 
     @cached_property
     def grenade_accuracy(self) -> int:
-        ratio = self._calculate_accuracy(weapon_names=self.accuracy_grenades,
+        ratio = self._calculate_accuracy(weapon_names=self._grenade_weapon_names,
                                          min_shots=settings.TRACKER_MIN_GAME_GRENADES)
         return min(ratio, 100)
 
@@ -431,9 +459,10 @@ class Player(models.Model):
         hits = 0
         shots = 0
         for weapon in self.weapons.all():
-            if weapon.name in weapon_names:
-                hits += weapon.hits
-                shots += weapon.shots
+            if weapon.name not in weapon_names:
+                continue
+            hits += weapon.hits
+            shots += weapon.shots
         return int(ratio(hits, shots, min_divisor=min_shots) * 100)
 
     def __str__(self):

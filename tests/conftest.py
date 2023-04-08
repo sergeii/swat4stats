@@ -1,5 +1,4 @@
 import contextlib
-import logging
 import socketserver
 import threading
 import asyncio
@@ -29,11 +28,6 @@ def _configure_default_storage(settings):
 @pytest.fixture(autouse=True)
 def _disable_debug(settings):
     settings.DEBUG = False
-
-
-@pytest.fixture(scope='session', autouse=True)
-def _disable_logging():
-    logging.disable()
 
 
 @pytest.fixture(scope='session', autouse=True)

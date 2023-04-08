@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('geoip', '0002_ip_tracker_ip_length_idx'),
+        ('geoip', '0001_initial'),
     ]
 
     operations = [

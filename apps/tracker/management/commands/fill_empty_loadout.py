@@ -2,6 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
+from apps.tracker.entities import Equipment
 from apps.tracker.models import Loadout, Player
 from apps.utils.misc import iterate_queryset
 
@@ -17,18 +18,18 @@ class Command(BaseCommand):
         empty_loadout, _ = (
             Loadout.objects
             .get_or_create(
-                primary='None',
-                primary_ammo='None',
-                secondary='None',
-                secondary_ammo='None',
-                equip_one='None',
-                equip_two='None',
-                equip_three='None',
-                equip_four='None',
-                equip_five='None',
-                breacher='None',
-                head='None',
-                body='None',
+                primary=Equipment.none,
+                primary_ammo=Equipment.none,
+                secondary=Equipment.none,
+                secondary_ammo=Equipment.none,
+                equip_one=Equipment.none,
+                equip_two=Equipment.none,
+                equip_three=Equipment.none,
+                equip_four=Equipment.none,
+                equip_five=Equipment.none,
+                breacher=Equipment.none,
+                head=Equipment.none,
+                body=Equipment.none,
                 defaults={
                     'primary_legacy': 0,
                     'primary_ammo_legacy': 0,

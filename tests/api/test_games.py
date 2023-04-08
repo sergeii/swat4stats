@@ -5,7 +5,12 @@ from django.utils import timezone
 from pytz import UTC
 
 from apps.tracker.factories import (MapFactory, GameFactory,
-                                    ServerFactory, PlayerFactory, WeaponFactory)
+                                    ServerFactory, PlayerFactory, WeaponFactory, RandomLoadoutFactory)
+
+
+@pytest.fixture
+def server(db):
+    return ServerFactory()
 
 
 @pytest.mark.django_db(databases=['default', 'replica'])
@@ -143,47 +148,107 @@ def test_get_games_list(db, api_client):
     assert [obj['id'] for obj in resp.data['results']] == [game4.pk]
 
 
-def test_get_game_detail(db, api_client):
+def test_game_unknown_game_400(db, api_client):
     resp = api_client.get('/api/games/100500/')
     assert resp.status_code == 404
 
-    server = ServerFactory()
+
+def test_get_game_detail_versus(db, django_assert_num_queries, api_client, server):
     map = MapFactory(name='A-Bomb Nightclub')
 
     game = GameFactory(gametype='VIP Escort', map=map, server=server,
                        date_finished=datetime(2017, 1, 1, tzinfo=UTC))
     PlayerFactory.create_batch(11, dropped=False, game=game)
 
-    resp = api_client.get(f'/api/games/{game.pk}/')
+    with django_assert_num_queries(6):
+        resp = api_client.get(f'/api/games/{game.pk}/')
+
     assert resp.status_code == 200
-    assert resp.data['map']
-    assert resp.data['server']
+    assert resp.data['map']['name'] == 'A-Bomb Nightclub'
+    assert resp.data['server']['hostname'] == server.hostname
     assert len(resp.data['players']) == 11
     assert resp.data['coop_rank'] is None
+    assert resp.data['rules'].startswith('One player on the SWAT team is randomly chosen to be the VIP.')
+    assert resp.data['briefing'] is None
 
+
+def test_get_game_detail_coop(db, django_assert_num_queries, api_client, server):
+    map = MapFactory(name='A-Bomb Nightclub')
     coop_game = GameFactory(gametype='CO-OP', map=map, server=server,
                             date_finished=datetime(2017, 1, 1, tzinfo=UTC),
                             coop_score=77)
-    PlayerFactory.create_batch(5, dropped=False, game=coop_game)
-    resp = api_client.get(f'/api/games/{coop_game.pk}/')
+    PlayerFactory.create_batch(7, dropped=False, game=coop_game)
+
+    with django_assert_num_queries(6):
+        resp = api_client.get(f'/api/games/{coop_game.pk}/')
+
     assert resp.status_code == 200
-    assert resp.data['map']
-    assert resp.data['server']
-    assert len(resp.data['players']) == 5
+    assert resp.data['map']['name'] == 'A-Bomb Nightclub'
+    assert resp.data['server']['hostname'] == server.hostname
+    assert len(resp.data['players']) == 7
     assert resp.data['coop_rank'] == 'Patrol Officer'
+    assert resp.data['rules'].startswith('Play single player missions with a group of up to five officers.')
+    assert resp.data['briefing'].startswith('We\'re being called up for a rapid deployment at an ongoing shots')
 
 
-def test_get_game_highlights(db, api_client):
+@pytest.mark.parametrize('team', ['swat', 'suspects'])
+@pytest.mark.parametrize('loadout_factory, image', [
+    (lambda: None, '{team}.jpg'),
+    (lambda: RandomLoadoutFactory(head='Helmet', body='Light Armor'), '{team}-light-armor-helmet.jpg'),
+    (lambda: RandomLoadoutFactory(head='Gas Mask', body='Heavy Armor'), '{team}-heavy-armor-gas-mask.jpg'),
+    (lambda: RandomLoadoutFactory(head='None', body='Light Armor'), '{team}.jpg'),
+    (lambda: RandomLoadoutFactory(head='Helmet', body='None'), '{team}.jpg'),
+    (lambda: RandomLoadoutFactory(head='None', body='None'), '{team}.jpg'),
+    (lambda: RandomLoadoutFactory(head='None', body=None), '{team}.jpg'),
+    (lambda: RandomLoadoutFactory(head=None, body=None), '{team}.jpg'),
+])
+def test_get_game_detail_player_portrait(db, api_client, settings, team, loadout_factory, image):
+    game = GameFactory()
+    PlayerFactory(dropped=False, team=team, game=game, loadout=loadout_factory())
+
+    resp = api_client.get(f'/api/games/{game.pk}/')
+    assert resp.status_code == 200
+    player = resp.data['players'][0]
+
+    filename = image.format(team=team)
+    assert player['portrait_picture'] == f'{settings.STATIC_URL}images/portraits/{filename}'
+
+
+@pytest.mark.parametrize('team', ['swat', 'suspects'])
+@pytest.mark.parametrize('loadout_factory', [
+    lambda: None,
+    lambda: RandomLoadoutFactory(head='Helmet', body='Light Armor'),
+    lambda: RandomLoadoutFactory(head='Gas Mask', body='Heavy Armor'),
+    lambda: RandomLoadoutFactory(head='None', body='Light Armor'),
+    lambda: RandomLoadoutFactory(head='Helmet', body='None'),
+    lambda: RandomLoadoutFactory(head='None', body='None'),
+    lambda: RandomLoadoutFactory(head='None', body=None),
+    lambda: RandomLoadoutFactory(head=None, body=None),
+])
+def test_get_game_detail_player_vip_portrait(db, api_client, settings, team, loadout_factory):
+    game = GameFactory()
+    PlayerFactory(dropped=False, vip=True, team=team, game=game, loadout=loadout_factory())
+
+    resp = api_client.get(f'/api/games/{game.pk}/')
+    assert resp.status_code == 200
+    player = resp.data['players'][0]
+
+    assert player['portrait_picture'] == f'{settings.STATIC_URL}images/portraits/vip.jpg'
+
+
+def test_get_game_highlights_unknown_404(db, api_client):
     resp = api_client.get('/api/games/100500/highlights/')
     assert resp.status_code == 404
 
-    # no players game
+
+def test_get_game_highlights_no_players(db, api_client):
     game = GameFactory()
     resp = api_client.get(f'/api/games/{game.pk}/highlights/')
     assert resp.status_code == 200
     assert resp.data == []
 
-    # vip game
+
+def test_get_game_highlights_versus_game(db, api_client, django_assert_num_queries):
     game = GameFactory(gametype='VIP Escort')
     dropped = PlayerFactory(game=game, dropped=True,
                             alias__name='Grasz',
@@ -219,7 +284,9 @@ def test_get_game_highlights(db, api_client):
     WeaponFactory(player=player4, name='Colt M4A1 Carbine', kills=10, hits=20, shots=200)
     WeaponFactory(player=player4, name='9mm SMG', kills=1, hits=65, shots=65)
 
-    resp = api_client.get(f'/api/games/{game.pk}/highlights/')
+    with django_assert_num_queries(6):
+        resp = api_client.get(f'/api/games/{game.pk}/highlights/')
+
     assert resp.status_code == 200
     hl1, hl2, hl3, hl4, hl5, hl6, hl7 = resp.data
 

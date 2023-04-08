@@ -11,6 +11,7 @@ from django.utils.encoding import force_bytes
 from django.utils import timezone
 from django_redis import get_redis_connection
 
+from apps.tracker.entities import Team
 from apps.tracker.models import (Server, Loadout, Game, Player, Alias,
                                  Profile, PlayerStats, Map, GametypeStats, Weapon,
                                  ServerStats, MapStats)
@@ -92,7 +93,7 @@ class PlayerStatusFactory(factory.DictFactory):
     name = factory.Faker('first_name')
     ping = factory.fuzzy.FuzzyInteger(25, 9999)
     score = factory.fuzzy.FuzzyInteger(5, 50)
-    team = factory.fuzzy.FuzzyChoice(['swat', 'suspects'])
+    team = factory.fuzzy.FuzzyChoice([Team.swat, Team.suspects])
     vip = False
     kills = factory.fuzzy.FuzzyInteger(1, 10)
 

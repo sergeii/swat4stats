@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
-
+import django.db.models.expressions
 
 class Migration(migrations.Migration):
 
@@ -43,6 +40,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='ip',
-            unique_together=set([('range_from', 'range_to')]),
+            unique_together={('range_from', 'range_to')},
+        ),
+        migrations.AddIndex(
+            model_name='ip',
+            index=models.Index(
+                django.db.models.expressions.CombinedExpression(models.F('range_to'), '-', models.F('range_from')),
+                name='tracker_ip_length'),
         ),
     ]

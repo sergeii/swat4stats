@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import voluptuous
 from django.db import transaction
@@ -11,6 +12,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.news.models import Article
+from apps.tracker.entities import GameType
 from apps.tracker.models import Server, Map, Game, Player, Objective, Procedure, Weapon, PlayerStats, Profile, Loadout
 from apps.tracker.schema import coop_status_encoded, serverquery_schema
 from apps.tracker.utils import force_clean_name, format_name, html
@@ -165,12 +167,13 @@ class StatusFullSerializer(StatusBaseSerializer):
     rules = serializers.SerializerMethodField()
     briefing = serializers.SerializerMethodField()
 
-    def get_rules(self, obj):
+    def get_rules(self, obj: [str, Any]) -> str | None:
         return gametype_rules_text(obj['gametype'])
 
-    def get_briefing(self, obj):
-        if obj['gametype'] in ('CO-OP', 'CO-OP QMM'):
+    def get_briefing(self, obj: [str, Any]) -> str | None:
+        if obj['gametype'] in (GameType.co_op, GameType.co_op_qmm):
             return map_briefing_text(obj['mapname'])
+        return None
 
 
 class ServerBaseSerializer(serializers.ModelSerializer):
@@ -235,11 +238,6 @@ class ServerBaseSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        """
-        Attempt to fetch status for the newly created server.
-
-        If it fails, raise an exception to rollback the savepoint.
-        """
         status = validated_data.pop('status')
         instance = super().create(validated_data)
         instance.update_with_status(status)
@@ -284,7 +282,7 @@ class PlayerSerializer(serializers.ModelSerializer):
         path_format = 'images/portraits/{name}.jpg'
         if obj.vip:
             static_path = path_format.format(name='vip')
-        elif obj.loadout and obj.loadout.head and obj.loadout.body:
+        elif obj.loadout and obj.loadout.has_armor():
             head_slug = slugify(obj.loadout.head.lower())
             body_slug = slugify(obj.loadout.body.lower())
             static_path = path_format.format(name=f'{obj.team}-{body_slug}-{head_slug}')
@@ -371,13 +369,13 @@ class GameBaseSerializer(serializers.ModelSerializer):
     map = MapSerializer()
     server = ServerBaseSerializer()
 
-    gametype_to_short_mapping = {
-        'Barricaded Suspects': _('BS'),
-        'VIP Escort': _('VIP'),
-        'Rapid Deployment': _('RD'),
-        'CO-OP': _('COOP'),
-        'Smash And Grab': _('SG'),
-        'CO-OP QMM': _('COOP'),
+    gametype_to_short_mapping: dict[GameType, str] = {
+        GameType.barricaded_suspects.value: _('BS'),
+        GameType.vip_escort.value: _('VIP'),
+        GameType.rapid_deployment.value: _('RD'),
+        GameType.co_op.value: _('COOP'),
+        GameType.smash_and_grab.value: _('SG'),
+        GameType.co_op_qmm.value: _('COOP'),
     }
     gametype_short_default = 'UNK'
 
@@ -388,16 +386,16 @@ class GameBaseSerializer(serializers.ModelSerializer):
                   'date_finished')
         read_only_fields = fields
 
-    def get_gametype(self, obj):
+    def get_gametype(self, obj: Game) -> str:
         return _(obj.gametype)
 
-    def get_gametype_short(self, obj):
+    def get_gametype_short(self, obj: Game) -> str:
         """
         Map full gametype name to its short version (e.g. VIP Escort -> VIP)
         """
         return self.gametype_to_short_mapping.get(obj.gametype) or self.gametype_short_default
 
-    def get_gametype_slug(self, obj):
+    def get_gametype_slug(self, obj: Game) -> str:
         return slugify(obj.gametype)
 
 
@@ -431,15 +429,16 @@ class GameSerializer(GameBaseSerializer):
     }
     coop_rank_default = _('Menace')
 
-    def get_rules(self, obj):
+    def get_rules(self, obj: Game) -> str:
         return gametype_rules_text(obj.gametype)
 
-    def get_briefing(self, obj):
-        if obj.gametype in ('CO-OP', 'CO-OP QMM'):
+    def get_briefing(self, obj: Game) -> str | None:
+        if obj.gametype in (GameType.co_op, GameType.co_op_qmm):
             return map_briefing_text(obj.map.name)
+        return None
 
-    def get_coop_rank(self, obj):
-        if obj.gametype not in ('CO-OP', 'CO-OP QMM'):
+    def get_coop_rank(self, obj: Game) -> str | None:
+        if obj.gametype not in (GameType.co_op, GameType.co_op_qmm):
             return None
 
         for min_score, title in self.coop_ranks.items():

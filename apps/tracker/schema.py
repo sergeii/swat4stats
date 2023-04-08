@@ -1,52 +1,63 @@
 from voluptuous import Schema, Optional, All, In, Coerce, Range, Boolean, REMOVE_EXTRA, Maybe
 
+from apps.tracker.entities import (
+    Team,
+    GameType,
+    GameName,
+    GameOutcome,
+    CoopStatus,
+    CoopProcedure,
+    CoopObjectiveStatus,
+    Equipment,
+    Ammo,
+)
 from apps.utils.schema import Mapping, FallbackMapping, OptionalMapping, DefaultMapping
 
 
-teams_encoded = {
-    0: 'swat',
-    1: 'suspects',
-    2: 'swat',  # CO-OP Team Red
+teams_encoded: dict[int, str] = {
+    0: Team.swat.value,
+    1: Team.suspects.value,
+    2: Team.swat.value,  # CO-OP Team Red
 }
 
-teams_reversed = {
-    'swat': 0,
-    'suspects': 1,
+teams_reversed: dict[str, int] = {
+    Team.swat.value: 0,
+    Team.suspects.value: 1,
 }
 
-coop_status_encoded = {
+coop_status_encoded: dict[int, str | None] = {
     0: None,
-    1: 'Ready',
-    2: 'Healthy',
-    3: 'Injured',
-    4: 'Incapacitated',
+    1: CoopStatus.ready.value,
+    2: CoopStatus.healthy.value,
+    3: CoopStatus.injured.value,
+    4: CoopStatus.incapacitated.value,
 }
 
-coop_status_reversed = {
+coop_status_reversed: dict[str, int] = {
     coop_status_code: coop_status_int
     for coop_status_int, coop_status_code in coop_status_encoded.items()
 }
 
-gametypes_encoded = {
-    '0': 'Barricaded Suspects',
-    '1': 'VIP Escort',
-    '2': 'Rapid Deployment',
-    '3': 'CO-OP',
-    '4': 'Smash And Grab',
-    '5': 'CO-OP QMM',
+gametypes_encoded: dict[str, str] = {
+    '0': GameType.barricaded_suspects.value,
+    '1': GameType.vip_escort.value,
+    '2': GameType.rapid_deployment.value,
+    '3': GameType.co_op.value,
+    '4': GameType.smash_and_grab.value,
+    '5': GameType.co_op_qmm.value,
 }
 
-gametypes_reversed = {
+gametypes_reversed: dict[str, int] = {
     gametype_code: int(gametype_int)
     for gametype_int, gametype_code in gametypes_encoded.items()
 }
 
-gamenames_encoded = {
-    '0': 'SWAT 4',
-    '1': 'SWAT 4X',
+gamenames_encoded: dict[str, str] = {
+    '0': GameName.swat4.value,
+    '1': GameName.swat4x.value,
 }
 
-mapnames_encoded = {
+mapnames_encoded: dict[str, str] = {
     '-1': 'Unknown Map',
     '0': 'A-Bomb Nightclub',
     '1': 'Brewer County Courthouse',
@@ -249,34 +260,34 @@ mapnames_encoded = {
     '196': '(SEALMAP)Central_Base',  # MP-Central_Base.s4m, SP-Central_Base.s4m
 }
 
-mapnames_reversed = {
+mapnames_reversed: dict[str, str] = {
     map_name: map_legacy_id
     for map_legacy_id, map_name in mapnames_encoded.items()
 }
 
-outcome_encoded = {
+outcome_encoded: dict[int, str] = {
     0: None,
-    1: 'swat_bs',             # SWAT victory in Barricaded Suspects
-    2: 'sus_bs',              # Suspects victory in Barricaded Suspects
-    3: 'swat_rd',             # SWAT victory in Rapid Deployment (all bombs have been exploded)
-    4: 'sus_rd',              # Suspects victory in Rapid Deployment (all bombs have been deactivated)
-    5: 'tie',                 # A tie
-    6: 'swat_vip_escape',     # SWAT victory in VIP Escort - The VIP has escaped
-    7: 'sus_vip_good_kill',   # Suspects victory in VIP Escort - Suspects have executed the VIP
-    8: 'swat_vip_bad_kill',   # SWAT victory in VIP Escort - Suspects have killed the VIP
-    9: 'sus_vip_bad_kill',    # Suspects victory in VIP Escort - SWAT have killed the VIP
-    10: 'coop_completed',     # COOP objectives have been completed
-    11: 'coop_failed',        # COOP objectives have been failed
-    12: 'swat_sg',            # SWAT victory in Smash and Grab
-    13: 'sus_sg',             # Suspects victory in Smash and Grab
+    1: GameOutcome.swat_bs,
+    2: GameOutcome.sus_bs,
+    3: GameOutcome.swat_rd,
+    4: GameOutcome.sus_rd,
+    5: GameOutcome.tie,
+    6: GameOutcome.swat_vip_escape,
+    7: GameOutcome.sus_vip_good_kill,
+    8: GameOutcome.swat_vip_bad_kill,
+    9: GameOutcome.sus_vip_bad_kill,
+    10: GameOutcome.coop_completed,
+    11: GameOutcome.coop_failed,
+    12: GameOutcome.swat_sg,
+    13: GameOutcome.sus_sg,
 }
 
-outcome_reversed = {
+outcome_reversed: dict[str, int] = {
     outcome_code: outcome_int
     for outcome_int, outcome_code in outcome_encoded.items()
 }
 
-objectives_encoded = {
+objectives_encoded: dict[int, str] = {
     0: 'Rendezvous with Jennings',
     1: 'Avoid civilian injuries',
     2: 'Avoid officer injuries',
@@ -323,12 +334,12 @@ objectives_encoded = {
     43: 'Secure the MAC-10',
 }
 
-objectives_reversed = {
+objectives_reversed: dict[str, int] = {
     objective_code: objective_int
     for objective_int, objective_code in objectives_encoded.items()
 }
 
-objective_mapping = {
+objective_mapping: dict[str, str] = {
     'Arrest_Jennings': 'Rendezvous with Jennings',
     'Custom_NoCiviliansInjured': 'Avoid civilian injuries',
     'Neutralize_Alice': 'Neutralize Alice Jenkins',
@@ -398,154 +409,154 @@ objective_mapping = {
     'YellCompliance': 'Get Officer Hanson to comply'
 }
 
-objective_status_encoded = {
-    0: 'In Progress',
-    1: 'Completed',
-    2: 'Failed',
+objective_status_encoded: dict[int, str] = {
+    0: CoopObjectiveStatus.in_progress.value,
+    1: CoopObjectiveStatus.completed.value,
+    2: CoopObjectiveStatus.failed.value,
 }
 
-objective_status_reversed = {
+objective_status_reversed: dict[str, int] = {
     objective_status_code: objective_status_int
     for objective_status_int, objective_status_code in objective_status_encoded.items()
 }
 
-procedures_encoded = {
-    0: 'Suspects incapacitated',
-    1: 'Suspects arrested',
-    2: 'Mission completed',
-    3: 'Failed to report a downed officer',
-    4: 'Suspects neutralized',
-    5: 'No civilians injured',
-    6: 'Incapacitated a hostage',
-    7: 'Killed a hostage',
-    8: 'Incapacitated a fellow officer',
-    9: 'Injured a fellow officer',
-    10: 'No officers down',
-    11: 'No suspects neutralized',
-    12: 'Unauthorized use of deadly force',
-    13: 'Unauthorized use of force',
-    14: 'Player uninjured',
-    15: 'Failed to prevent destruction of evidence.',
-    16: 'Failed to apprehend fleeing suspect.',
-    17: 'Report status to TOC',
-    18: 'All evidence secured',
+procedures_encoded: dict[int, str] = {
+    0: CoopProcedure.suspects_incapacitated.value,
+    1: CoopProcedure.suspects_arrested.value,
+    2: CoopProcedure.mission_completed.value,
+    3: CoopProcedure.failed_to_report_downed_officer.value,
+    4: CoopProcedure.suspects_neutralized.value,
+    5: CoopProcedure.no_civilians_injured.value,
+    6: CoopProcedure.incapacitated_hostage.value,
+    7: CoopProcedure.killed_hostage.value,
+    8: CoopProcedure.incapacitated_fellow_officer.value,
+    9: CoopProcedure.injured_fellow_officer.value,
+    10: CoopProcedure.no_officers_down.value,
+    11: CoopProcedure.no_suspects_neutralized.value,
+    12: CoopProcedure.unauthorized_use_of_deadly_force.value,
+    13: CoopProcedure.unauthorized_use_of_force.value,
+    14: CoopProcedure.player_uninjured.value,
+    15: CoopProcedure.failed_to_prevent_destruction_of_evidence.value,
+    16: CoopProcedure.failed_to_apprehend_fleeing_suspect.value,
+    17: CoopProcedure.report_status_to_toc.value,
+    18: CoopProcedure.all_evidence_secured.value,
 }
 
-procedures_reversed = {
+procedures_reversed: dict[str, int] = {
     procedure_code: procedure_int
     for procedure_int, procedure_code in procedures_encoded.items()
 }
 
-equipment_encoded = {
-    0: 'None',
-    1: 'M4 Super90',
-    2: 'Nova Pump',
-    3: 'Shotgun',
-    4: 'Less Lethal Shotgun',
-    5: 'Pepper-ball',
-    6: 'Colt M4A1 Carbine',
-    7: 'AK-47 Machinegun',
-    8: 'GB36s Assault Rifle',
-    9: 'Gal Sub-machinegun',
-    10: '9mm SMG',
-    11: 'Suppressed 9mm SMG',
-    12: '.45 SMG',
-    13: 'M1911 Handgun',
-    14: '9mm Handgun',
-    15: 'Colt Python',
-    16: 'Taser Stun Gun',
-    17: 'VIP Colt M1911 Handgun',
-    18: 'CS Gas VIP',
-    19: 'Light Armor',
-    20: 'Heavy Armor',
-    21: 'Gas Mask',
-    22: 'Helmet',
-    23: 'Flashbang',
-    24: 'CS Gas',
-    25: 'Stinger',
-    26: 'Pepper Spray',
-    27: 'Optiwand',
-    28: 'Toolkit',
-    29: 'Door Wedge',
-    30: 'C2 (x3)',
-    31: 'The Detonator',
-    32: 'Zip-cuffs',
-    33: 'IAmCuffed',
-    34: 'Colt Accurized Rifle',
-    35: '40mm Grenade Launcher',
-    36: '5.56mm Light Machine Gun',
-    37: '5.7x28mm Submachine Gun',
-    38: 'Mark 19 Semi-Automatic Pistol',
-    39: '9mm Machine Pistol',
-    40: 'Cobra Stun Gun',
-    41: 'Ammo Pouch',
-    42: 'No Armor',
-    43: 'Night Vision Goggles',
-    44: 'Stinger Grenade',
-    45: 'CS Gas Grenade',
-    46: 'Flashbang Grenade',
-    47: 'Baton Grenade',
+equipment_encoded: dict[int, str] = {
+    0: Equipment.none.value,
+    1: Equipment.m4_super90.value,
+    2: Equipment.nova_pump.value,
+    3: Equipment.shotgun.value,
+    4: Equipment.less_lethal_shotgun.value,
+    5: Equipment.pepper_ball.value,
+    6: Equipment.colt_m4a1_carbine.value,
+    7: Equipment.ak_47_machinegun.value,
+    8: Equipment.gb36s_assault_rifle.value,
+    9: Equipment.gal_sub_machinegun.value,
+    10: Equipment._9mm_smg.value,
+    11: Equipment.suppressed_9mm_smg.value,
+    12: Equipment._45_smg.value,
+    13: Equipment.m1911_handgun.value,
+    14: Equipment._9mm_handgun.value,
+    15: Equipment.colt_python.value,
+    16: Equipment.taser_stun_gun.value,
+    17: Equipment.vip_colt_m1911_handgun.value,
+    18: Equipment.cs_gas_vip.value,
+    19: Equipment.light_armor.value,
+    20: Equipment.heavy_armor.value,
+    21: Equipment.gas_mask.value,
+    22: Equipment.helmet.value,
+    23: Equipment.flashbang.value,
+    24: Equipment.cs_gas.value,
+    25: Equipment.stinger.value,
+    26: Equipment.pepper_spray.value,
+    27: Equipment.optiwand.value,
+    28: Equipment.toolkit.value,
+    29: Equipment.door_wedge.value,
+    30: Equipment.c2_x3.value,
+    31: Equipment.the_detonator.value,
+    32: Equipment.zip_cuffs.value,
+    33: Equipment.iamcuffed.value,
+    34: Equipment.colt_accurized_rifle.value,
+    35: Equipment._40mm_grenade_launcher.value,
+    36: Equipment._5_56mm_light_machine_gun.value,
+    37: Equipment._5_7x28mm_submachine_gun.value,
+    38: Equipment.mark_19_semi_automatic_pistol.value,
+    39: Equipment._9mm_machine_pistol.value,
+    40: Equipment.cobra_stun_gun.value,
+    41: Equipment.ammo_pouch.value,
+    42: Equipment.no_armor.value,
+    43: Equipment.night_vision_goggles.value,
+    44: Equipment.stinger_grenade.value,
+    45: Equipment.cs_gas_grenade.value,
+    46: Equipment.flashbang_grenade.value,
+    47: Equipment.baton_grenade.value,
 }
 
-equipment_reversed = {
+equipment_reversed: dict[str, int] = {
     equipment_code: equipment_int
     for equipment_int, equipment_code in equipment_encoded.items()
 }
 
 ammo_encoded = {
-    0: 'None',
-    1: 'M4Super90SGAmmo',
-    2: 'M4Super90SGSabotAmmo',
-    3: 'NovaPumpSGAmmo',
-    4: 'NovaPumpSGSabotAmmo',
-    5: 'LessLethalAmmo',
-    6: 'CSBallLauncherAmmo',
-    7: 'M4A1MG_JHP',
-    8: 'M4A1MG_FMJ',
-    9: 'AK47MG_FMJ',
-    10: 'AK47MG_JHP',
-    11: 'G36kMG_FMJ',
-    12: 'G36kMG_JHP',
-    13: 'UZISMG_FMJ',
-    14: 'UZISMG_JHP',
-    15: 'MP5SMG_JHP',
-    16: 'MP5SMG_FMJ',
-    17: 'UMP45SMG_FMJ',
-    18: 'UMP45SMG_JHP',
-    19: 'ColtM1911HG_JHP',
-    20: 'ColtM1911HG_FMJ',
-    21: 'Glock9mmHG_JHP',
-    22: 'Glock9mmHG_FMJ',
-    23: 'PythonRevolverHG_FMJ',
-    24: 'PythonRevolverHG_JHP',
-    25: 'TaserAmmo',
-    26: 'VIPPistolAmmo_FMJ',
-    27: 'ColtAR_FMJ',
-    28: 'HK69GL_StingerGrenadeAmmo',
-    29: 'HK69GL_FlashbangGrenadeAmmo',
-    30: 'HK69GL_CSGasGrenadeAmmo',
-    31: 'HK69GL_TripleBatonAmmo',
-    32: 'SAWMG_JHP',
-    33: 'SAWMG_FMJ',
-    34: 'FNP90SMG_FMJ',
-    35: 'FNP90SMG_JHP',
-    36: 'DEHG_FMJ',
-    37: 'DEHG_JHP',
-    38: 'TEC9SMG_FMJ',
+    0: Ammo.none,
+    1: Ammo.m4_super90_sg_ammo,
+    2: Ammo.m4_super90_sg_sabot_ammo,
+    3: Ammo.nova_pump_sg_ammo,
+    4: Ammo.nova_pump_sg_sabot_ammo,
+    5: Ammo.less_lethal_ammo,
+    6: Ammo.cs_ball_launcher_ammo,
+    7: Ammo.m4a1mg_jhp,
+    8: Ammo.m4a1mg_fmj,
+    9: Ammo.ak47mg_fmj,
+    10: Ammo.ak47mg_jhp,
+    11: Ammo.g36kmg_fmj,
+    12: Ammo.g36kmg_jhp,
+    13: Ammo.uzismg_fmj,
+    14: Ammo.uzismg_jhp,
+    15: Ammo.mp5smg_jhp,
+    16: Ammo.mp5smg_fmj,
+    17: Ammo.ump45_smg_fmj,
+    18: Ammo.ump45_smg_jhp,
+    19: Ammo.colt_m1911_hg_jhp,
+    20: Ammo.colt_m1911_hg_fmj,
+    21: Ammo.glock_9mm_hg_jhp,
+    22: Ammo.glock_9mm_hg_fmj,
+    23: Ammo.python_revolver_hg_fmj,
+    24: Ammo.python_revolver_hg_jhp,
+    25: Ammo.taser_ammo,
+    26: Ammo.vip_pistol_ammo_fmj,
+    27: Ammo.colt_ar_fmj,
+    28: Ammo.hk69gl_stinger_grenade_ammo,
+    29: Ammo.hk69gl_flashbang_grenade_ammo,
+    30: Ammo.hk69gl_csgas_grenade_ammo,
+    31: Ammo.hk69gl_triple_baton_ammo,
+    32: Ammo.sawmg_jhp,
+    33: Ammo.sawmg_fmj,
+    34: Ammo.fnp90_smg_fmj,
+    35: Ammo.fnp90_smg_jhp,
+    36: Ammo.dehg_fmj,
+    37: Ammo.dehg_jhp,
+    38: Ammo.tec9_smg_fmj,
 }
 
-ammo_reversed = {
+ammo_reversed: dict[str, int] = {
     ammo_code: ammo_int
     for ammo_int, ammo_code in ammo_encoded.items()
 }
 
-weapon_encoded = {
+weapon_encoded: dict[int, str] = {
     key: name for (key, name)
     in equipment_encoded.items()
-    if key > 0
+    if key > 0  # exclude None
 }
 
-weapon_reversed = {
+weapon_reversed: dict[str, int] = {
     weapon_code: weapon_int
     for weapon_int, weapon_code in weapon_encoded.items()
 }

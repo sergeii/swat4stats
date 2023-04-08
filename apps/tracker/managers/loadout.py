@@ -1,5 +1,6 @@
 from django.db import models
 
+from apps.tracker.entities import Equipment
 from apps.tracker.schema import ammo_reversed, equipment_reversed
 
 
@@ -13,7 +14,7 @@ class LoadoutManager(models.Manager):
     def obtain(self, **loadout):
         # substitute missing loadout keys with None's
         loadout = {
-            field: loadout.get(field) or 'None'
+            field: loadout.get(field) or Equipment.none.value
             for field in LoadoutManager.loadout_fields
         }
 

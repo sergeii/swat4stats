@@ -1,4 +1,7 @@
+import pytest
+
 from apps.geoip.factories import ISPFactory
+from apps.tracker.entities import GameType
 from apps.tracker.factories import (ServerFactory, ServerStatusFactory,
                                     ServerQueryFactory, PlayerQueryFactory)
 from apps.tracker.models import Server
@@ -84,35 +87,45 @@ def test_get_server_list(db, api_client):
         assert [obj['id'] for obj in response.data] == expected_data, filters
 
 
-def test_get_server_detail(db, api_client):
-    disabled_server = ServerFactory(enabled=False, listed=True, status=ServerStatusFactory())
-    unlisted_server = ServerFactory(enabled=True, listed=False, status=ServerStatusFactory())
-    no_status_server = ServerFactory(enabled=True, listed=True, status=None)
-    ok_server = ServerFactory(enabled=True,
-                              listed=True,
-                              country='UK',
-                              hostname='Old Server Name',
-                              status=ServerStatusFactory(hostname=r'[c=FF00FF][b][u]Swat4[\u][C=0000FF]Server[\c]'))
+@pytest.mark.parametrize('server_factory', [
+    # disabled server
+    lambda: ServerFactory(enabled=False, listed=True, status=ServerStatusFactory()),
+    # unlisted_server
+    lambda: ServerFactory(enabled=True, listed=False, status=ServerStatusFactory()),
+    # server with no status
+    lambda: ServerFactory(enabled=True, listed=True, status=None),
+])
+def test_get_server_detail_invalid_status_404(db, api_client, server_factory):
+    server = server_factory()
+    response = api_client.get(f'/api/servers/{server.pk}/')
+    assert response.status_code == 404
+    assert response.data == {'detail': 'Not found.'}
 
+
+def test_get_server_detail_not_found_404(db, api_client):
     response = api_client.get('/api/servers/999999999/')
     assert response.status_code == 404
     assert response.data == {'detail': 'Not found.'}
 
-    response = api_client.get(f'/api/servers/{disabled_server.pk}/')
-    assert response.status_code == 404
 
-    response = api_client.get(f'/api/servers/{unlisted_server.pk}/')
-    assert response.status_code == 404
+def test_get_server_detail_versus(db, api_client):
+    server = ServerFactory(
+        enabled=True,
+        listed=True,
+        country='UK',
+        hostname='Swat4 Server',
+        status=ServerStatusFactory(
+            hostname=r'[c=FF00FF][b][u]Swat4[\u][C=0000FF]Server[\c]',
+            gametype=GameType.vip_escort.value,
+        ),
+    )
 
-    response = api_client.get(f'/api/servers/{no_status_server.pk}/')
-    assert response.status_code == 404
-
-    response = api_client.get(f'/api/servers/{ok_server.pk}/')
+    response = api_client.get(f'/api/servers/{server.pk}/')
     status = response.data['status']
     assert response.status_code == 200
-    assert response.data['id'] == ok_server.pk
+    assert response.data['id'] == server.pk
     assert response.data['country'] == 'UK'
-    assert response.data['hostname'] == 'Old Server Name'
+    assert response.data['hostname'] == 'Swat4 Server'
     assert status['hostname'] == r'[c=FF00FF][b][u]Swat4[\u][C=0000FF]Server[\c]'
     assert status['hostname_clean'] == 'Swat4Server'
     assert status['hostname_html'] == ('<span style="color:#FF00FF;">Swat4</span>'
@@ -120,10 +133,42 @@ def test_get_server_detail(db, api_client):
     assert status['gametype'] == 'VIP Escort'
     assert status['gamename'] == 'SWAT 4'
     assert status['time_round'] == 100
+    assert status['rules'].startswith('One player on the SWAT team is randomly chosen to be the VIP.')
+    assert status['briefing'] is None
     assert 'players' in status
 
 
-def test_add_new_server_workflow(db, api_client, udp_server):
+def test_get_server_detail_coop(db, api_client):
+    server = ServerFactory(
+        enabled=True,
+        listed=True,
+        country='UK',
+        hostname='Swat4 Server',
+        status=ServerStatusFactory(
+            hostname=r'[c=FF00FF][b][u]Swat4[\u][C=0000FF]Server[\c]',
+            gametype=GameType.co_op.value,
+        ),
+    )
+
+    response = api_client.get(f'/api/servers/{server.pk}/')
+    status = response.data['status']
+    assert response.status_code == 200
+    assert response.data['id'] == server.pk
+    assert response.data['country'] == 'UK'
+    assert response.data['hostname'] == 'Swat4 Server'
+    assert status['hostname'] == r'[c=FF00FF][b][u]Swat4[\u][C=0000FF]Server[\c]'
+    assert status['hostname_clean'] == 'Swat4Server'
+    assert status['hostname_html'] == ('<span style="color:#FF00FF;">Swat4</span>'
+                                       '<span style="color:#0000FF;">Server</span>')
+    assert status['gametype'] == 'CO-OP'
+    assert status['gamename'] == 'SWAT 4'
+    assert status['time_round'] == 100
+    assert status['rules'].startswith('Play single player missions with a group of up to five officers.')
+    assert status['briefing'].startswith('We\'re being called up for a rapid deployment')
+    assert 'players' in status
+
+
+def test_add_new_server_flow(db, api_client, udp_server):
     server_ip, server_port = udp_server.server_address
     ISPFactory(country='uk', ip=server_ip)
     udp_server.responses.append(ServerQueryFactory(hostname='Swat4 Server',

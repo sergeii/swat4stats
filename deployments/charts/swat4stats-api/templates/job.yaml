@@ -19,7 +19,7 @@ spec:
       - name: {{ include "swat4stats-api.podname" (set . "Name" "migrate") }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command: ["python", "manage.py", "migrate", "--noinput", "--fake"]
+        command: ["python", "manage.py", "migrate", "--noinput"]
         envFrom:
         {{- range .Values.envFromSecrets }}
           - secretRef:

@@ -7,60 +7,84 @@ from django.db import models
 from django.db.models import Sum, Max, Count, Case, When, Q, Min, Value
 from django.db.models.functions import NullIf, Cast, Round
 
-from apps.tracker.const import (SWAT_GAMES, SUS_GAMES, DRAW_GAMES,
-                                COOP_MODES, COMPLETED_MISSIONS, FAILED_MISSIONS,
-                                PLAYER_MODES, FIRED_WEAPONS, GRENADE_WEAPONS)
+from apps.tracker.entities import Team, GameType, GameOutcome, Equipment
 
 logger = logging.getLogger(__name__)
 
-qualified_weapons = Q(weapon__name__in=FIRED_WEAPONS)
-qualified_grenades = Q(weapon__name__in=GRENADE_WEAPONS)
+q_qualified_weapons = Q(weapon__name__in=[
+    Equipment.m4_super90,
+    Equipment.nova_pump,
+    Equipment.shotgun,
+    Equipment.colt_m4a1_carbine,
+    Equipment.ak_47_machinegun,
+    Equipment.gb36s_assault_rifle,
+    Equipment.gal_sub_machinegun,
+    Equipment._9mm_smg,
+    Equipment.suppressed_9mm_smg,
+    Equipment._45_smg,
+    Equipment.m1911_handgun,
+    Equipment._9mm_handgun,
+    Equipment.colt_python,
+    Equipment.vip_colt_m1911_handgun,
+    Equipment.colt_accurized_rifle,
+    Equipment._5_56mm_light_machine_gun,
+    Equipment._5_7x28mm_submachine_gun,
+    Equipment.mark_19_semi_automatic_pistol,
+    Equipment._9mm_machine_pistol,
+])
+q_qualified_grenades = Q(weapon__name__in=Equipment.grenades())
+
+q_versus_modes = Q(game__gametype__in=GameType.versus_modes())
+q_coop_modes = Q(game__gametype=GameType.co_op)
+
+q_vip_victories = Q(vip=True, game__outcome__in=GameOutcome.swat_victories())
+q_draw_games = Q(game__outcome=GameOutcome.tie)
+q_swat_victories = Q(team=Team.swat, game__outcome__in=GameOutcome.swat_victories())
+q_swat_losses = Q(team=Team.swat, game__outcome__in=GameOutcome.sus_victories())
+q_sus_victories = Q(team=Team.suspects, game__outcome__in=GameOutcome.sus_victories())
+q_sus_losses = Q(team=Team.suspects, game__outcome__in=GameOutcome.swat_victories())
+q_coop_victories = Q(game__outcome=GameOutcome.coop_completed)
+q_coop_losses = Q(game__outcome=GameOutcome.coop_failed)
 
 
 class PlayerQuerySet(models.QuerySet):
     as_float = partial(Cast, output_field=models.FloatField())
 
-    _agg_player_score = Sum(Case(When(game__gametype__in=PLAYER_MODES, then='score')))
-    _agg_player_time = Sum(Case(When(game__gametype__in=PLAYER_MODES, then='time')))
-    _agg_player_games = Count(Case(When(game__gametype__in=PLAYER_MODES, then='game')), distinct=True)
-    _agg_player_kills = Sum(Case(When(game__gametype__in=PLAYER_MODES, then='kills')))
-    _agg_player_deaths = Sum(Case(When(game__gametype__in=PLAYER_MODES, then='deaths')))
-    _agg_player_weapon_shots = Sum(Case(When(qualified_weapons, then='weapon__shots')))
-    _agg_player_weapon_hits = Sum(Case(When(qualified_weapons, then='weapon__hits')))
-    _agg_player_weapon_kills = Sum(Case(When(qualified_weapons, then='weapon__kills')))
-    _agg_player_weapon_teamhits = Sum(Case(When(qualified_weapons, then='weapon__teamhits')))
-    _agg_player_grenade_shots = Sum(Case(When(qualified_grenades, then='weapon__shots')))
-    _agg_player_grenade_hits = Sum(Case(When(qualified_grenades, then='weapon__hits')))
-    _agg_player_grenade_kills = Sum(Case(When(qualified_grenades, then='weapon__kills')))
-    _agg_player_grenade_teamhits = Sum(Case(When(qualified_grenades, then='weapon__teamhits')))
+    _agg_player_score = Sum(Case(When(q_versus_modes, then='score')))
+    _agg_player_time = Sum(Case(When(q_versus_modes, then='time')))
+    _agg_player_games = Count(Case(When(q_versus_modes, then='game')), distinct=True)
+    _agg_player_kills = Sum(Case(When(q_versus_modes, then='kills')))
+    _agg_player_deaths = Sum(Case(When(q_versus_modes, then='deaths')))
+    _agg_player_weapon_shots = Sum(Case(When(q_qualified_weapons, then='weapon__shots')))
+    _agg_player_weapon_hits = Sum(Case(When(q_qualified_weapons, then='weapon__hits')))
+    _agg_player_weapon_kills = Sum(Case(When(q_qualified_weapons, then='weapon__kills')))
+    _agg_player_weapon_teamhits = Sum(Case(When(q_qualified_weapons, then='weapon__teamhits')))
+    _agg_player_grenade_shots = Sum(Case(When(q_qualified_grenades, then='weapon__shots')))
+    _agg_player_grenade_hits = Sum(Case(When(q_qualified_grenades, then='weapon__hits')))
+    _agg_player_grenade_kills = Sum(Case(When(q_qualified_grenades, then='weapon__kills')))
+    _agg_player_grenade_teamhits = Sum(Case(When(q_qualified_grenades, then='weapon__teamhits')))
 
     # main player stats - no grouping
     player_aggregates = [{
         'score': _agg_player_score,
-        'top_score': Max(Case(When(game__gametype__in=PLAYER_MODES, then='score'))),
+        'top_score': Max(Case(When(q_versus_modes, then='score'))),
         'time': _agg_player_time,
         'games': _agg_player_games,
-        'wins': Count(Case(When(Q(team='swat', game__outcome__in=SWAT_GAMES) |
-                                Q(team='suspects', game__outcome__in=SUS_GAMES),
-                                then='game')),
-                      distinct=True),
-        'losses': Count(Case(When(Q(team='swat', game__outcome__in=SUS_GAMES) |
-                                  Q(team='suspects', game__outcome__in=SWAT_GAMES),
-                                  then='game')),
-                        distinct=True),
-        'draws': Count(Case(When(Q(game__outcome__in=DRAW_GAMES), then='game')), distinct=True),
+        'wins': Count(Case(When(q_swat_victories | q_sus_victories, then='game')), distinct=True),
+        'losses': Count(Case(When(q_swat_losses | q_sus_losses, then='game')), distinct=True),
+        'draws': Count(Case(When(q_draw_games, then='game')), distinct=True),
         'spm_ratio': Round(as_float(_agg_player_score) / NullIf(_agg_player_time, Value(0)) * Value(60), 4),
         'spr_ratio': Round(as_float(_agg_player_score) / NullIf(_agg_player_games, Value(0)), 4),
         'kills': _agg_player_kills,
-        'teamkills': Sum(Case(When(game__gametype__in=PLAYER_MODES, then='teamkills'))),
-        'top_kills': Max(Case(When(game__gametype__in=PLAYER_MODES, then='kills'))),
-        'arrests': Sum(Case(When(game__gametype__in=PLAYER_MODES, then='arrests'))),
-        'top_arrests': Max(Case(When(game__gametype__in=PLAYER_MODES, then='arrests'))),
-        'arrested': Sum(Case(When(game__gametype__in=PLAYER_MODES, then='arrested'))),
+        'teamkills': Sum(Case(When(q_versus_modes, then='teamkills'))),
+        'top_kills': Max(Case(When(q_versus_modes, then='kills'))),
+        'arrests': Sum(Case(When(q_versus_modes, then='arrests'))),
+        'top_arrests': Max(Case(When(q_versus_modes, then='arrests'))),
+        'arrested': Sum(Case(When(q_versus_modes, then='arrested'))),
         'deaths': _agg_player_deaths,
-        'top_kill_streak': Max(Case(When(game__gametype__in=PLAYER_MODES, then='kill_streak'))),
-        'top_arrest_streak': Max(Case(When(game__gametype__in=PLAYER_MODES, then='arrest_streak'))),
-        'top_death_streak': Max(Case(When(game__gametype__in=PLAYER_MODES, then='death_streak'))),
+        'top_kill_streak': Max(Case(When(q_versus_modes, then='kill_streak'))),
+        'top_arrest_streak': Max(Case(When(q_versus_modes, then='arrest_streak'))),
+        'top_death_streak': Max(Case(When(q_versus_modes, then='death_streak'))),
         'kd_ratio': Round(as_float(_agg_player_kills) / NullIf(_agg_player_deaths, Value(0)), 4),
     }, {
         'weapon_shots': _agg_player_weapon_shots,
@@ -86,22 +110,16 @@ class PlayerQuerySet(models.QuerySet):
     # player stats per gametype
     gametype_aggregates = [{
         'score': _agg_player_score,
-        'top_score': Max(Case(When(game__gametype__in=PLAYER_MODES, then='score'))),
+        'top_score': Max(Case(When(q_versus_modes, then='score'))),
         'time': _agg_player_time,
         'games': _agg_player_games,
-        'wins': Count(Case(When(Q(team='swat', game__outcome__in=SWAT_GAMES) |
-                                Q(team='suspects', game__outcome__in=SUS_GAMES),
-                                then='game')),
-                      distinct=True),
-        'losses': Count(Case(When(Q(team='swat', game__outcome__in=SUS_GAMES) |
-                                  Q(team='suspects', game__outcome__in=SWAT_GAMES),
-                                  then='game')),
-                        distinct=True),
-        'draws': Count(Case(When(Q(game__outcome__in=DRAW_GAMES), then='game')), distinct=True),
+        'wins': Count(Case(When(q_swat_victories | q_sus_victories, then='game')), distinct=True),
+        'losses': Count(Case(When(q_swat_losses | q_sus_losses, then='game')), distinct=True),
+        'draws': Count(Case(When(q_draw_games, then='game')), distinct=True),
         'kills': _agg_player_kills,
-        'arrests': Sum(Case(When(game__gametype__in=PLAYER_MODES, then='arrests'))),
-        'top_kill_streak': Max(Case(When(game__gametype__in=PLAYER_MODES, then='kill_streak'))),
-        'top_arrest_streak': Max(Case(When(game__gametype__in=PLAYER_MODES, then='arrest_streak'))),
+        'arrests': Sum(Case(When(q_versus_modes, then='arrests'))),
+        'top_kill_streak': Max(Case(When(q_versus_modes, then='kill_streak'))),
+        'top_arrest_streak': Max(Case(When(q_versus_modes, then='arrest_streak'))),
         'spm_ratio': Round(as_float(_agg_player_score) / NullIf(_agg_player_time, Value(0)) * Value(60), 4),
         'spr_ratio': Round(as_float(_agg_player_score) / NullIf(_agg_player_games, Value(0)), 4),
         # vip related stats
@@ -111,7 +129,7 @@ class PlayerQuerySet(models.QuerySet):
         'vip_kills_valid': Sum('vip_kills_valid'),
         'vip_kills_invalid': Sum('vip_kills_invalid'),
         'vip_times': Count(Case(When(vip=True, then='pk')), distinct=True),
-        'vip_wins': Count(Case(When(Q(vip=True, game__outcome__in=SWAT_GAMES), then='pk')), distinct=True),
+        'vip_wins': Count(Case(When(q_vip_victories, then='pk')), distinct=True),
         # rd stats
         'rd_bombs_defused': Sum('rd_bombs_defused'),
         # sg stats
@@ -120,10 +138,10 @@ class PlayerQuerySet(models.QuerySet):
         # COOP stats
         'coop_score': Sum('game__coop_score'),
         'coop_top_score': Max('game__coop_score'),
-        'coop_time': Sum(Case(When(game__gametype__in=COOP_MODES, then='game__time'))),
-        'coop_games': Count(Case(When(game__gametype__in=COOP_MODES, then='game')), distinct=True),
-        'coop_wins': Count(Case(When(game__outcome__in=COMPLETED_MISSIONS, then='game')), distinct=True),
-        'coop_losses': Count(Case(When(game__outcome__in=FAILED_MISSIONS, then='game')), distinct=True),
+        'coop_time': Sum(Case(When(q_coop_modes, then='game__time'))),
+        'coop_games': Count(Case(When(q_coop_modes, then='game')), distinct=True),
+        'coop_wins': Count(Case(When(q_coop_victories, then='game')), distinct=True),
+        'coop_losses': Count(Case(When(q_coop_losses, then='game')), distinct=True),
         'coop_hostage_arrests': Sum('coop_hostage_arrests'),
         'coop_hostage_hits': Sum('coop_hostage_hits'),
         'coop_hostage_incaps': Sum('coop_hostage_incaps'),
@@ -159,33 +177,27 @@ class PlayerQuerySet(models.QuerySet):
         'games': _agg_player_games,
         'kills': _agg_player_kills,
         'deaths': _agg_player_deaths,
-        'arrests': Sum(Case(When(game__gametype__in=PLAYER_MODES, then='arrests'))),
+        'arrests': Sum(Case(When(q_versus_modes, then='arrests'))),
         'spm_ratio': Round(as_float(_agg_player_score) / NullIf(_agg_player_time, Value(0)) * Value(60), 4),
         'spr_ratio': Round(as_float(_agg_player_score) / NullIf(_agg_player_games, Value(0)), 4),
-        'top_kill_streak': Max(Case(When(game__gametype__in=PLAYER_MODES, then='kill_streak'))),
-        'top_arrest_streak': Max(Case(When(game__gametype__in=PLAYER_MODES, then='arrest_streak'))),
+        'top_kill_streak': Max(Case(When(q_versus_modes, then='kill_streak'))),
+        'top_arrest_streak': Max(Case(When(q_versus_modes, then='arrest_streak'))),
         'kd_ratio': Round(as_float(_agg_player_kills) / NullIf(_agg_player_deaths, Value(0)), 4),
-        'coop_score': Sum(Case(When(game__gametype__in=COOP_MODES, then='game__coop_score'))),
-        'coop_games': Count(Case(When(game__gametype__in=COOP_MODES, then='game')), distinct=True),
-        'coop_time': Sum(Case(When(game__gametype__in=COOP_MODES, then='game__time'))),
+        'coop_score': Sum(Case(When(q_coop_modes, then='game__coop_score'))),
+        'coop_games': Count(Case(When(q_coop_modes, then='game')), distinct=True),
+        'coop_time': Sum(Case(When(q_coop_modes, then='game__time'))),
     }]
 
     map_aggregates = server_aggregates + [{
-        'top_score': Max(Case(When(game__gametype__in=PLAYER_MODES, then='score'))),
-        'wins': Count(Case(When(Q(team='swat', game__outcome__in=SWAT_GAMES) |
-                                Q(team='suspects', game__outcome__in=SUS_GAMES),
-                                then='game')),
-                      distinct=True),
-        'losses': Count(Case(When(Q(team='swat', game__outcome__in=SUS_GAMES) |
-                                  Q(team='suspects', game__outcome__in=SWAT_GAMES),
-                                  then='game')),
-                        distinct=True),
-        'draws': Count(Case(When(Q(game__outcome__in=DRAW_GAMES), then='game')), distinct=True),
-        'coop_top_score': Max(Case(When(game__gametype__in=COOP_MODES, then='game__coop_score'))),
-        'coop_wins': Count(Case(When(game__outcome__in=COMPLETED_MISSIONS, then='game')), distinct=True),
-        'coop_losses': Count(Case(When(game__outcome__in=FAILED_MISSIONS, then='game')), distinct=True),
-        'coop_best_time': Min(Case(When(Q(game__outcome__in=COMPLETED_MISSIONS), then='game__time'))),
-        'coop_worst_time': Max(Case(When(Q(game__outcome__in=COMPLETED_MISSIONS), then='game__time'))),
+        'top_score': Max(Case(When(q_versus_modes, then='score'))),
+        'wins': Count(Case(When(q_swat_victories | q_sus_victories, then='game')), distinct=True),
+        'losses': Count(Case(When(q_swat_losses | q_sus_losses, then='game')), distinct=True),
+        'draws': Count(Case(When(q_draw_games, then='game')), distinct=True),
+        'coop_top_score': Max(Case(When(q_coop_modes, then='game__coop_score'))),
+        'coop_wins': Count(Case(When(q_coop_victories, then='game')), distinct=True),
+        'coop_losses': Count(Case(When(q_coop_losses, then='game')), distinct=True),
+        'coop_best_time': Min(Case(When(q_coop_victories, then='game__time'))),
+        'coop_worst_time': Max(Case(When(q_coop_victories, then='game__time'))),
         'vip_escape_time': Min(Case(When(Q(vip=True, vip_escapes=1, game__player_num__gte=14), then='time'))),
     }]
 
@@ -194,7 +206,7 @@ class PlayerQuerySet(models.QuerySet):
         Include game rounds that have enough players to be qualified (except for CO-OP games)
         """
         return self.filter(Q(game__player_num__gte=settings.TRACKER_MIN_PLAYERS) |
-                           Q(game__gametype__in=COOP_MODES))
+                           Q(q_coop_modes))
 
     def for_period(self, start_date, end_date):
         """
@@ -207,11 +219,11 @@ class PlayerQuerySet(models.QuerySet):
         return self.filter(alias__profile=profile)
 
     def aggregate_player_stats(self) -> dict[str, int | float]:
-        return (self.filter(game__gametype__in=PLAYER_MODES)
+        return (self.filter(q_versus_modes)
                     .aggregate_stats_groups(self.player_aggregates))
 
     def aggregate_stats_by_weapon(self) -> dict[str, dict[str, int | float]]:
-        return (self.filter(game__gametype__in=PLAYER_MODES)
+        return (self.filter(q_versus_modes)
                     .aggregate_stats_groups_by(self.weapon_aggregates, group_by='weapon__name'))
 
     def aggregate_stats_by_map(self) -> dict[str, dict[str, int | float]]:
