@@ -1,12 +1,10 @@
-from unittest import TestCase
-
 import pytest
 from voluptuous import Schema, Invalid, Optional
 
 from apps.utils.schema import Mapping, FallbackMapping, OptionalMapping
 
 
-class MappingTestCase(TestCase):
+class TestMapping:
 
     def test_key_mapping(self):
         schema = Schema({
@@ -88,7 +86,7 @@ class MappingTestCase(TestCase):
             schema({'item': 'unknown'})
 
 
-class OptionalMappingTestCase(TestCase):
+class TestOptionalMapping:
 
     def test_optional_key_mapping_defaults_to_value(self):
         schema = Schema({
@@ -99,7 +97,7 @@ class OptionalMappingTestCase(TestCase):
         assert schema({'foo': 123}) == {'bar': 123, 'eggs': 42}
 
 
-class FallbackMappingTestCase(TestCase):
+class TestFallbackMapping:
 
     def test_value_stays_same_if_not_mapped(self):
         schema = Schema({

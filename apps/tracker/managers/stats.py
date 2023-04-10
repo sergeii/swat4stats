@@ -6,6 +6,7 @@ from django.db import models, transaction
 from django.db.models import Q, Exists, OuterRef
 from django.db.models.functions import window
 
+from apps.tracker.entities import LegacyStatCategory
 from apps.utils.misc import iterate_list
 
 if TYPE_CHECKING:
@@ -33,19 +34,22 @@ class StatsManager(models.Manager):
         batch = []
 
         for category, points in items.items():
-            # skip negative points
-            if points and points > 0:
-                if issubclass(self.model, PlayerStats):
-                    save_kwargs['category_legacy'] = getattr(PlayerStats.LegacyCategory, category)
-                batch.append(
-                    self.model(
-                        profile=profile,
-                        category=category,
-                        points=points,
-                        year=year,
-                        **save_kwargs
-                    )
+            # skip zero or negative points
+            if not points or points <= 0:
+                continue
+
+            if issubclass(self.model, PlayerStats):
+                save_kwargs['category_legacy'] = getattr(LegacyStatCategory, category)
+
+            batch.append(
+                self.model(
+                    profile=profile,
+                    category=category,
+                    points=points,
+                    year=year,
+                    **save_kwargs
                 )
+            )
 
         if not batch:
             return

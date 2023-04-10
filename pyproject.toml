@@ -38,6 +38,11 @@ pytest-django = "4.5.2"
 pytest-localserver = "0.7.1"
 pytest-cov = "4.0.0"
 pytest-repeat = "0.9.1"
+mypy = "^1.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "swat4stats.settings"
@@ -51,6 +56,18 @@ filterwarnings = [
     "ignore",
 ]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+ignore_missing_imports = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = "var-annotated, has-type"
+disallow_untyped_defs = false
+check_untyped_defs = false
+disallow_untyped_decorators = false

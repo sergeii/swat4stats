@@ -6,7 +6,7 @@ from typing import Union
 
 from django.core.cache import cache
 from django.db import models, transaction
-from django.db.models import Q, F, When, Case, Count, Func
+from django.db.models import Q, F, When, Case, Count, Func, Expression, Subquery
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models.functions import Upper
 from django.utils import timezone
@@ -24,7 +24,6 @@ from apps.tracker.schema import teams_reversed
 from apps.tracker.templatetags import map_background_picture
 from apps.tracker.utils import (force_clean_name, ratio)
 from apps.utils.db.fields import EnumField
-from apps.utils.enum import Enum
 from apps.utils.misc import force_datetime, dumps
 
 logger = logging.getLogger(__name__)
@@ -159,7 +158,7 @@ class Game(models.Model):
         (_('Insane'), _('%(points)s enemies arrested in a row'), 'arrest_streak', 5),
         (_('Top Gun'), _('%(points)s points earned'), 'score', 30),
         (_('Fire in the hole!'), _('%(points)s%% of grenades hit their targets'), 'grenade_accuracy', 50),
-        (_('Shapshooter'), _('%(points)s%% of all shots hit targets'), 'gun_weapon_accuracy', 25),
+        (_('Sharpshooter'), _('%(points)s%% of all shots hit targets'), 'gun_weapon_accuracy', 25),
         (_('Killing Machine'), _('%(points)s enemies eliminated'), 'kills', 10),
         (_('Resourceful'), _('%(points)s rounds of ammo fired'), 'gun_weapon_shots', 300),
         # COOP
@@ -446,7 +445,7 @@ class Player(models.Model):
         Calculate the average accuracy for all fired weapons,
         excluding some nonlegit weapons such as taser.
         """
-        return self._calculate_accuracy(weapon_names=self._grenade_weapon_names,  # FIXME
+        return self._calculate_accuracy(weapon_names=self._gun_weapon_names,
                                         min_shots=settings.TRACKER_MIN_GAME_AMMO)
 
     @cached_property
@@ -517,77 +516,104 @@ class Profile(models.Model):
     def __str__(self):
         return f'{self.name}, {self.country}'
 
-    def fetch_preferred_field(self, field, count_field=None):
-        """
-        Calculate the most popular value for given player field.
+    def fetch_first_preferred_game_id(self) -> int | None:
+        # prepare a subquery to get the most recent game ids for the player
+        recent_game_ids = (
+            Player.objects.using('replica')
+            .select_related(None)
+            .for_profile(self)
+            .order_by('-pk')
+            .values_list('game_id', flat=True)
+        )[:settings.TRACKER_PREFERRED_GAMES]
 
-        :param field: Subject field name
-        :param count_field: Optional field to aggregate the count on
-                            Defaults to field name
-        """
-        queryset = Player.objects.for_profile(self)
+        # of the selected games, get the earliest
+        least_game_qs = (
+            Game.objects.using('replica')
+            .filter(pk__in=Subquery(recent_game_ids))
+            .only('pk')
+            .order_by('pk')
+        )[:1]
 
-        game_offset = settings.TRACKER_PREFERRED_GAMES
-        # attempt to aggregate popular items over the last few games
         try:
-            least_recent_game = (queryset
-                                 .order_by('-pk')[game_offset-1:game_offset]
-                                 .get().game)
+            least_recent_game = least_game_qs.get()
         except ObjectDoesNotExist:
-            logger.info('least recent game is not available for %s', self)
-        else:
-            queryset = queryset.filter(game__gte=least_recent_game)
+            logger.info('least recent game is not available for %s (%s)', self, self.pk)
+            return None
+
+        return least_recent_game.pk
+
+    def fetch_preferred_field(
+        self,
+        field: str,
+        count_field: str | Expression | None = None,
+        least_game_id: int | None = None,
+    ) -> str | int | None:
+        """
+        Calculate the most popular item for given player field.
+        """
+        if least_game_id is None:
+            least_game_id = self.fetch_first_preferred_game_id()
+
+        if not least_game_id:
+            return None
+
+        queryset = (
+            Player.objects.using('replica')
+            .for_profile(self)
+            .filter(game_id__gte=least_game_id)
+            .values(field)
+            .annotate(num=Count(count_field if count_field else field))
+            .order_by('-num')
+        )[:1]
 
         try:
-            aggregated = (
-                queryset
-                .all()
-                .values(field)
-                .annotate(num=Count(count_field if count_field else field))
-                .order_by('-num')[:1]
-                .get()
-            )
+            aggregated = queryset.get()
             return aggregated[field]
         except ObjectDoesNotExist:
             return None
 
-    def fetch_preferred_name(self, **kwargs):
+    def fetch_preferred_name(self, least_game_id: int | None = None) -> str | None:
         """Get the most popular name"""
-        return self.fetch_preferred_field('alias__name', **kwargs)
+        return self.fetch_preferred_field('alias__name', least_game_id=least_game_id)
 
-    def fetch_preferred_country(self, **kwargs):
+    def fetch_preferred_country(self, least_game_id: int | None = None) -> str | None:
         """Get the most recent country"""
-        return self.fetch_preferred_field('alias__isp__country', **kwargs)
+        return self.fetch_preferred_field('alias__isp__country', least_game_id=least_game_id)
 
-    def fetch_preferred_team(self, **kwargs):
+    def fetch_preferred_team(self, least_game_id: int | None = None) -> str | None:
         """Get the most preferred team"""
-        return self.fetch_preferred_field('team')
+        return self.fetch_preferred_field('team', least_game_id=least_game_id)
 
-    def fetch_preferred_loadout(self, **kwargs):
+    def fetch_preferred_loadout(self, least_game_id: int | None = None) -> int | None:
         """Fetch the most preferred non VIP loadout"""
-        # skip the VIP's loadout
-        loadout_id = self.fetch_preferred_field('loadout', count_field=Case(When(vip=False, then='loadout')), **kwargs)
-        return loadout_id and Loadout.objects.get(pk=loadout_id)
+        return self.fetch_preferred_field('loadout_id',
+                                          count_field=Case(When(vip=False, then='loadout_id')),
+                                          least_game_id=least_game_id)
 
     def update_preferences(self):
         """
         Update the player's recent preferences
         such as name, team, loadout and country.
         """
-        logger.info('updating popular for %s, name=%s team=%s country=%s loadout=%s',
-                    self, self.name, self.team, self.country, self.loadout_id)
+        if not (least_game_id := self.fetch_first_preferred_game_id()):
+            logger.info('wont update preferences for %s with name=%s team=%s country=%s loadout=%s',
+                        self, self.name, self.team, self.country, self.loadout_id)
+            return
 
-        self.name = self.fetch_preferred_name() or self.name
-        self.country = self.fetch_preferred_country() or self.country
-        self.team = self.fetch_preferred_team() or self.team
+        logger.info('updating preferences for %s since %d, name=%s team=%s country=%s loadout=%s',
+                    self, least_game_id, self.name, self.team, self.country, self.loadout_id)
+
+        self.name = self.fetch_preferred_name(least_game_id) or self.name
+        self.country = self.fetch_preferred_country(least_game_id) or self.country
+        self.team = self.fetch_preferred_team(least_game_id) or self.team
         self.team_legacy = teams_reversed.get(self.team)
-        self.loadout = self.fetch_preferred_loadout() or self.loadout
+        self.loadout_id = self.fetch_preferred_loadout(least_game_id) or self.loadout_id
         self.preferences_updated_at = timezone.now()
 
         logger.info('finished updating popular for %s, name=%s team=%s country=%s loadout=%s',
                     self, self.name, self.team, self.country, self.loadout_id)
 
-        self.save(update_fields=['name', 'country', 'team', 'team_legacy', 'loadout', 'preferences_updated_at'])
+        self.save(update_fields=['name', 'country', 'team', 'team_legacy', 'loadout_id', 'preferences_updated_at'])
 
     def update_stats(self) -> None:
         if self.last_seen_at:
@@ -683,36 +709,6 @@ class Stats(models.Model):
 class PlayerStats(Stats):
     category = EnumField(db_column='category_enum', enum_type='stats_category_enum', null=True)
     category_legacy = models.SmallIntegerField(db_column='category')
-
-    LegacyCategory = Enum(
-        'score', 'time', 'games', 'wins', 'losses',
-        'draws', 'kills', 'arrests', 'deaths', 'arrested',
-        'teamkills', 'top_score', 'top_kill_streak', 'top_arrest_streak', 'top_death_streak',
-        'vip_escapes', 'vip_captures', 'vip_rescues', 'vip_kills_valid', 'vip_kills_invalid', 'vip_times',
-        'rd_bombs_defused', 'sg_escapes', 'sg_kills',
-        'spm_ratio', 'spr_ratio', 'kd_ratio',
-        'coop_games', 'coop_time', 'coop_wins', 'coop_losses', 'coop_hostage_arrests', 'coop_hostage_hits',
-        'coop_hostage_incaps', 'coop_hostage_kills', 'coop_enemy_arrests', 'coop_enemy_hits',
-        'coop_enemy_incaps', 'coop_enemy_kills', 'coop_enemy_incaps_invalid',
-        'coop_enemy_kills_invalid', 'coop_toc_reports', 'coop_score',
-        'coop_teamkills', 'coop_deaths',
-        'suicides', 'top_kills', 'top_arrests',
-        'weapon_shots', 'weapon_hits', 'weapon_hit_ratio', 'weapon_distance',
-        'bs_score', 'bs_time', 'vip_score', 'vip_time',
-        'rd_score', 'rd_time', 'sg_score', 'sg_time',
-        # extra, not used in legacy
-        'average_arrest_streak', 'average_death_streak',
-        'average_kill_streak', 'coop_best_time',
-        'coop_top_score', 'coop_worst_time',
-        'distance',
-        'grenade_hit_ratio', 'grenade_hits', 'grenade_kills',
-        'grenade_shots', 'grenade_teamhit_ratio', 'grenade_teamhits',
-        'hit_ratio', 'hits', 'kill_ratio',
-        'shots', 'teamhit_ratio', 'teamhits',
-        'vip_escape_time', 'vip_wins',
-        'weapon_kill_ratio', 'weapon_kills',
-        'weapon_teamhit_ratio', 'weapon_teamhits',
-    )
 
     class Meta:
         db_table = 'tracker_rank'

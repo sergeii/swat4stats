@@ -11,16 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 def fill_profile_stats(queryset):
-    logger.info('updating %s profiles', queryset.count())
-
-    for profile in queryset:
-        logger.info('updating preferences for %s (%s)', profile, profile.pk)
-        profile.update_preferences()
+    logger.info('updating stats for %s profiles', queryset.count())
 
     for year_date in iterate_years(date(2007, 1, 1), timezone.now().date()):
         year = year_date.year
         for profile in queryset:
-            logger.info('updating %s stats for %s (%s)', year, profile, profile.pk)
             profile.update_annual_stats(year=year)
 
     queryset.update(stats_updated_at=timezone.now())
@@ -37,6 +32,9 @@ def calculate_positions():
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
+        console = logging.StreamHandler()
+        logger.addHandler(console)
+
         queryset = Profile.objects.all()
         fill_profile_stats(queryset)
         calculate_positions()

@@ -30,11 +30,12 @@ class ServerDiscoveryTask(aio.Task):
         }
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
             async with session.get(self.url, headers=headers) as response:
-                logger.info('received %s from %s', response.status, self.url)
+                logger.debug('connected to %s: %s', self.url, response.status)
 
                 if not 200 <= response.status <= 299:
                     raise self.DiscoveryException('invalid response status %s' % response.status)
 
                 response_body = await response.read()
-                logger.info('received %s bytes from %s', len(response_body), self.url)
-                return self.parser(response_body.decode(errors='ignore'))
+                logger.debug('received %s bytes from %s', len(response_body), self.url)
+
+                return self.parser(response_body)

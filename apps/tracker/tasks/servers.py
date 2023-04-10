@@ -25,9 +25,9 @@ def refresh_listed_servers():
     """
     chunk_size = settings.TRACKER_STATUS_CONCURRENCY
     queryset = Server.objects.listed().only('pk')
-    for chunk in iterate_queryset(queryset, chunk_size=chunk_size):
+    for chunk in iterate_queryset(queryset, fields=['pk'], chunk_size=chunk_size):
         logger.debug('queue refresh_servers_chunk for %s servers', len(chunk))
-        refresh_servers_chunk.delay(*(obj.pk for obj in chunk))
+        refresh_servers_chunk.delay(*(obj['pk'] for obj in chunk))
 
 
 @app.task(expires=5, time_limit=5, queue='serverquery')

@@ -22,7 +22,7 @@ def brewer(db):
 
 
 @pytest.mark.django_db(databases=['default', 'replica'])
-def test_update_player_stats(db, abomb, brewer):
+def test_update_player_stats(db, abomb, brewer, django_assert_num_queries):
     now = timezone.now()
     then = datetime(2022, 10, 1, 10, 17, 1, tzinfo=UTC)
 
@@ -88,7 +88,8 @@ def test_update_player_stats(db, abomb, brewer):
                   time=10,
                   score=25)
 
-    update_player_stats.delay()
+    with django_assert_num_queries(35):
+        update_player_stats.delay()
 
     profile1.refresh_from_db()
     assert profile1.stats_updated_at >= now

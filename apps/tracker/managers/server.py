@@ -1,7 +1,6 @@
 import json
 import logging
 import operator as op
-import re
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Any
 
@@ -10,6 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from voluptuous import Invalid
 
@@ -203,18 +203,26 @@ class ServerManager(models.Manager):
         Collect server addresses from various sources
         in the form of (ip_addr:join_port) tuples
         """
-        result = []
-        tasks = []
+        result: list[tuple[str, list[tuple[str, str]]]] = []
+        tasks: list[ServerDiscoveryTask] = []
 
-        for url, pattern in settings.TRACKER_SERVER_DISCOVERY:
-            re_pattern = re.compile(pattern, flags=re.M)
-            kwargs = {
-                'url': url,
-                'parser': re_pattern.findall,
-            }
+        for item in settings.TRACKER_SERVER_DISCOVERY:
+            url = item['url']
+            parser_import_path = item['parser']
+
+            try:
+                parser = import_string(parser_import_path)
+            except ImportError as exc:
+                logger.error('failed to import parser %s: %s', parser_import_path, exc, exc_info=True)
+                continue
+
             tasks.append(
-                ServerDiscoveryTask(callback=lambda u, res: result.append((u, res)),
-                                    id=url, **kwargs)
+                ServerDiscoveryTask(
+                    callback=lambda _url, res: result.append((_url, res)),
+                    id=url,
+                    url=url,
+                    parser=parser,
+                )
             )
 
         logger.debug('%s server discovery tasks in pool', len(tasks))

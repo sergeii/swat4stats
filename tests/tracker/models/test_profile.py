@@ -2,7 +2,6 @@ from datetime import timedelta
 
 import pytest
 from django.core.exceptions import ObjectDoesNotExist
-from django.test import TestCase
 from django.utils import timezone
 
 from apps.geoip.factories import ISPFactory
@@ -132,9 +131,10 @@ def test_popular_names(db):
         assert Profile.is_name_popular(name)
 
 
-class ProfileMatchTestCase(TestCase):
+class TestProfileMatch:
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def set_up(self, db):
         now = timezone.now()
 
         self.server1 = ServerFactory()

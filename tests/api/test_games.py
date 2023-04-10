@@ -288,7 +288,7 @@ def test_get_game_highlights_versus_game(db, api_client, django_assert_num_queri
         resp = api_client.get(f'/api/games/{game.pk}/highlights/')
 
     assert resp.status_code == 200
-    hl1, hl2, hl3, hl4, hl5, hl6, hl7 = resp.data
+    hl1, hl2, hl3, hl4, hl5, hl6, hl7, hl8 = resp.data
 
     assert hl1['player']['id'] == player4.pk
     assert hl1['title'] == 'No Exit'
@@ -306,20 +306,24 @@ def test_get_game_highlights_versus_game(db, api_client, django_assert_num_queri
     assert hl4['title'] == 'Fire in the hole!'
     assert hl4['description'] == '100% of grenades hit their targets'
 
-    assert hl5['player']['id'] == player1.pk
-    assert hl5['player']['name'] == '|MYT|dimonkey'
-    assert hl5['player']['country'] == 'gb'
-    assert hl5['player']['country_human'] == 'United Kingdom'
-    assert hl5['title'] == 'Killing Machine'
-    assert hl5['description'] == '21 enemies eliminated'
+    assert hl5['player']['id'] == player4.pk
+    assert hl5['title'] == 'Sharpshooter'
+    assert hl5['description'] == '32% of all shots hit targets'
 
-    assert hl6['player']['id'] == player2.pk
-    assert hl6['title'] == 'Resourceful'
-    assert hl6['description'] == '10000 rounds of ammo fired'
+    assert hl6['player']['id'] == player1.pk
+    assert hl6['player']['name'] == '|MYT|dimonkey'
+    assert hl6['player']['country'] == 'gb'
+    assert hl6['player']['country_human'] == 'United Kingdom'
+    assert hl6['title'] == 'Killing Machine'
+    assert hl6['description'] == '21 enemies eliminated'
 
-    assert hl7['player']['id'] == player1.pk
-    assert hl7['title'] == '9mm SMG Expert'
-    assert hl7['description'] == '10 kills with average accuracy of 50%'
+    assert hl7['player']['id'] == player2.pk
+    assert hl7['title'] == 'Resourceful'
+    assert hl7['description'] == '10000 rounds of ammo fired'
+
+    assert hl8['player']['id'] == player1.pk
+    assert hl8['title'] == '9mm SMG Expert'
+    assert hl8['description'] == '10 kills with average accuracy of 50%'
 
 
 def test_get_coop_game_highlights(db, api_client):

@@ -1,8 +1,9 @@
 import logging
 import asyncio
 import functools
+from abc import ABC, abstractmethod
 from typing import Any
-from collections.abc import Callable, Awaitable, Coroutine
+from collections.abc import Callable, Coroutine
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -37,13 +38,13 @@ def with_timeout(timeout, callback=None):
     return decorator
 
 
-def run_many(tasks: list[Awaitable]) -> None:
+def run_many(tasks: list['Task']) -> None:
     async def runner():
         await asyncio.gather(*tasks)
     asyncio.run(runner())
 
 
-class Task:
+class Task(ABC):
 
     def __init__(self, *,
                  callback: Callable | None = None,
@@ -68,8 +69,9 @@ class Task:
             logger.debug('completed task %s', self)
             await self.complete(result)
 
+    @abstractmethod
     async def start(self) -> None:
-        pass
+        ...
 
     async def complete(self, result: Any) -> None:
         if not self.callback:

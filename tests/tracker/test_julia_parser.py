@@ -1,39 +1,29 @@
-import unittest
+import pytest
 
 from apps.tracker.utils.parser import JuliaQueryString
 
 
-class JuliaQueryStringTestCase(unittest.TestCase):
+class TestJuliaQueryString:
 
-    known_values = (
-        ('field=foo',
-            {'field': 'foo'}
-         ),
-        ('field=foo&field=',
-            {'field': ['foo', '']}
-         ),
-        ('field=foo&field=bar',
-            {'field': ['foo', 'bar']}
-         ),
-        ('field=foo&field=bar&field=bar',
-            {'field': ['foo', 'bar', 'bar']}
-         ),
-        ('field%5B%5D=foo&field%5B%5D=bar&field%5B%5D=42',
-            {'field[]': ['foo', 'bar', '42']}
-         ),
+    @pytest.fixture
+    def parser(self) -> JuliaQueryString:
+        return JuliaQueryString()
+
+    @pytest.mark.parametrize('original, expected', [
+        ('field=foo', {'field': 'foo'}),
+        ('field=foo&field=', {'field': ['foo', '']}),
+        ('field=foo&field=bar', {'field': ['foo', 'bar']}),
+        ('field=foo&field=bar&field=bar', {'field': ['foo', 'bar', 'bar']}),
+        ('field%5B%5D=foo&field%5B%5D=bar&field%5B%5D=42', {'field[]': ['foo', 'bar', '42']}),
         ('field%5B0%5D=foo&field%5B1%5D=bar&field%5B3%5D=42',
             {'field[0]': 'foo', 'field[1]': 'bar', 'field[3]': '42'}
          ),
-        ('field[]=foo&field[]=bar&field[]=42',
-            {'field[]': ['foo', 'bar', '42']}
-         ),
+        ('field[]=foo&field[]=bar&field[]=42', {'field[]': ['foo', 'bar', '42']}),
         ('0=1&1[0][0]=foo&1[0][1]=bar&1[0][2][0]=ham&1[0][2][1]=baz',
             {'0': '1', '1[0][0]': 'foo', '1[0][1]': 'bar', '1[0][2][0]': 'ham', '1[0][2][1]': 'baz'}
          ),
         # percent encoding
-        ('name=john&password=plain%20text',
-            {'name': 'john', 'password': 'plain text'}
-         ),
+        ('name=john&password=plain%20text', {'name': 'john', 'password': 'plain text'}),
         # encoding space with a plus sign
         ('first=this+is+a+field&second=was+it+clear+%28already%29%3F',
             {'first': 'this is a field', 'second': 'was it clear (already)?'}
@@ -46,81 +36,51 @@ class JuliaQueryStringTestCase(unittest.TestCase):
             {'42[0][0]': '0', '42[0][1]': 'foo', '42[0][2]': 'bar', '40[0][5]': '42', '42[0][50][]': 'foo'}
          ),
         # improperly formed query strings get parsed, too
-        ('foo',
-            {'foo': ''}
-         ),
-        ('foo&bar',
-            {'foo': '', 'bar': ''}
-         ),
-        ('field=foo&',
-            {'field': 'foo'}
-         ),
-        ('field=foo=bar=42&',
-            {'field': 'foo=bar=42'}
-         ),
-        ('field&=foo=bar',
-            {'field': '', 'foo': 'bar'}
-         ),
-        ('foo[]',
-            {'foo[]': ''}
-         ),
-        ('foo[bar]',
-            {'foo[bar]': ''}
-         ),
-        ('',
-            {}
-         ),
-        ('[]',
-            {'[]': ''}
-         ),
-        ('&&',
-            {}
-         ),
-        ('[[][]]',
-            {'[[][]]': ''}
-         ),
-        ('foo[][]',
-            {'foo[][]': ''}
-         ),
-    )
+        ('foo', {'foo': ''}),
+        ('foo&bar', {'foo': '', 'bar': ''}),
+        ('field=foo&', {'field': 'foo'}),
+        ('field=foo=bar=42&', {'field': 'foo=bar=42'}),
+        ('field&=foo=bar', {'field': '', 'foo': 'bar'}),
+        ('foo[]', {'foo[]': ''}),
+        ('foo[bar]', {'foo[bar]': ''}),
+        ('', {}),
+        ('[]', {'[]': ''}),
+        ('&&', {}),
+        ('[[][]]', {'[[][]]': ''}),
+        ('foo[][]', {'foo[][]': ''}),
+    ])
+    def test_parse_ok(self, parser: JuliaQueryString, original: str, expected: dict):
+        parser.parse(original)
+        assert parser == expected
 
-    def test_query_string_parser_known_values(self):
-        for original, expected in self.known_values:
-            parser = JuliaQueryString()
-            parser.parse(original)
-            assert parser == expected
-
-    def test_query_string_parser_is_dict_instance(self):
-        parser = JuliaQueryString()
+    def test_parser_behaves_like_dict(self, parser: JuliaQueryString):
         assert isinstance(parser, dict)
-
-    def test_query_string_parser_behaves_like_dict(self):
-        parser = JuliaQueryString()
         parser['foo'] = 'bar'
         assert parser['foo'] == 'bar'
 
-    def test_query_string_parser_parses_raw_querystring(self):
-        parser = JuliaQueryString()
+    def test_parse_raw_querystring(self, parser: JuliaQueryString):
         parser.parse('field1=foo&field2=bar&field3=baz')
         assert parser['field1'] == 'foo'
         assert parser['field2'] == 'bar'
         assert parser['field3'] == 'baz'
 
-    def test_query_string_parser_parses_params_with_duplicate_keys(self):
-        parser = JuliaQueryString()
+    def test_parse_params_with_duplicate_keys(self, parser: JuliaQueryString):
         parser.parse('foo=bar&foo=ham&foo=baz')
         assert parser['foo'] == ['bar', 'ham', 'baz']
 
-    def test_parse_method_returns_the_parser_instance(self):
-        parser = JuliaQueryString()
+    def test_the_parser_instance_is_returned(self, parser: JuliaQueryString):
         parsed = parser.parse('foo=bar&foo=ham&foo=baz')
         assert parser is parsed
         assert parsed == {'foo': ['bar', 'ham', 'baz']}
 
 
-class QueryStringArrayExpansionTestCase(unittest.TestCase):
+class TestQueryStringArrayExpansion:
 
-    known_values = (
+    @pytest.fixture
+    def parser(self) -> JuliaQueryString:
+        return JuliaQueryString()
+
+    @pytest.mark.parametrize('original, expected', [
         # overlapped parameter keys get shadowed
         (
             {'field[foo][0]': 'bar', 'field[foo][1]': 'ham', 'field[foo][42]': 'baz', 'field[foo]': 'spam'},
@@ -221,16 +181,13 @@ class QueryStringArrayExpansionTestCase(unittest.TestCase):
             {'field': '', 'foo': 'bar'},
             {'field': '', 'foo': 'bar'}
         ),
-    )
+    ])
+    def test_array_expansion(self, original: dict, expected: dict):
+        parser = JuliaQueryString(original)
+        parser.expand_array()
+        assert parser == expected
 
-    def test_query_string_parser_array_expansion_known_values(self):
-        for parsed, expanded in self.known_values:
-            parser = JuliaQueryString(parsed)
-            parser.expand_array()
-            assert parser == expanded
-
-    def test_query_string_parser_expands_uri_array(self):
-        parser = JuliaQueryString()
+    def test_uri_array_expansion_on_demand(self, parser: JuliaQueryString):
         parser.parse('field[spam]=foo&field[eggs][42]=bar&field[ham][spam][eggs]=baz')
         assert parser == {'field[spam]': 'foo',
                           'field[eggs][42]': 'bar',
@@ -241,8 +198,7 @@ class QueryStringArrayExpansionTestCase(unittest.TestCase):
                                     'eggs': {'42': 'bar'},
                                     'ham': {'spam': {'eggs': 'baz'}}}}
 
-    def test_expand_array_returns_the_parser_instance(self):
-        parser = JuliaQueryString()
+    def test_the_parser_instance_is_returned(self, parser: JuliaQueryString):
         parser.parse('field[spam]=foo&field[eggs][42]=bar&field[ham][spam][eggs]=baz')
         parsed = parser.expand_array()
         assert parser is parsed
@@ -251,9 +207,13 @@ class QueryStringArrayExpansionTestCase(unittest.TestCase):
                                     'ham': {'spam': {'eggs': 'baz'}}}}
 
 
-class QueryStringDotExpansionTestCase(unittest.TestCase):
+class TestQueryStringDotExpansion:
 
-    known_values = (
+    @pytest.fixture
+    def parser(self) -> JuliaQueryString:
+        return JuliaQueryString()
+
+    @pytest.mark.parametrize('original, expected', [
         (
             {'foo.bar': ''},
             {'foo': {'bar': ''}}
@@ -370,16 +330,13 @@ class QueryStringDotExpansionTestCase(unittest.TestCase):
             {'field': '', 'foo': 'bar'},
             {'field': '', 'foo': 'bar'}
         ),
-    )
+    ])
+    def test_parse_ok(self, original, expected):
+        parser = JuliaQueryString(original)
+        parser.expand_dots()
+        assert parser == expected
 
-    def test_query_string_parser_dot_expansion_known_values(self):
-        for parsed, expanded in self.known_values:
-            parser = JuliaQueryString(parsed)
-            parser.expand_dots()
-            assert parser == expanded
-
-    def test_query_string_parser_expands_dots(self):
-        parser = JuliaQueryString()
+    def test_expand_dots_on_demand(self, parser: JuliaQueryString):
         parser.parse('field.spam=foo&field.eggs.42=bar&field.ham.spam.eggs=baz')
         assert parser == {'field.spam': 'foo',
                           'field.eggs.42': 'bar',
@@ -390,8 +347,7 @@ class QueryStringDotExpansionTestCase(unittest.TestCase):
                                     'eggs': {'42': 'bar'},
                                     'ham': {'spam': {'eggs': 'baz'}}}}
 
-    def test_expand_dots_returns_the_parser_instance(self):
-        parser = JuliaQueryString()
+    def test_the_parser_instance_is_returned(self, parser: JuliaQueryString):
         parser.parse('field.spam=foo&field.eggs.42=bar&field.ham.spam.eggs=baz')
         parsed = parser.expand_dots()
         assert parser is parsed

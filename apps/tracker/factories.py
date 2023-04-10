@@ -11,7 +11,7 @@ from django.utils.encoding import force_bytes
 from django.utils import timezone
 from django_redis import get_redis_connection
 
-from apps.tracker.entities import Team
+from apps.tracker.entities import Team, LegacyStatCategory
 from apps.tracker.models import (Server, Loadout, Game, Player, Alias,
                                  Profile, PlayerStats, Map, GametypeStats, Weapon,
                                  ServerStats, MapStats)
@@ -360,7 +360,7 @@ class AbstractStatsFactory(factory.django.DjangoModelFactory):
 
 
 class PlayerStatsFactory(AbstractStatsFactory):
-    category_legacy = factory.LazyAttribute(lambda o: getattr(PlayerStats.LegacyCategory, o.category))
+    category_legacy = factory.LazyAttribute(lambda o: getattr(LegacyStatCategory, o.category))
 
     class Meta:
         model = PlayerStats

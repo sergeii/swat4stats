@@ -1,4 +1,4 @@
-from enum import StrEnum, auto
+from enum import StrEnum, auto, IntEnum
 
 
 class Team(StrEnum):
@@ -211,3 +211,91 @@ class Ammo(StrEnum):
     dehg_fmj = 'DEHG_FMJ'
     dehg_jhp = 'DEHG_JHP'
     tec9_smg_fmj = 'TEC9SMG_FMJ'
+
+
+class LegacyStatCategory(IntEnum):
+    score = 0
+    time = 1
+    games = 2
+    wins = 3
+    losses = 4
+    draws = 5
+    kills = 6
+    arrests = 7
+    deaths = 8
+    arrested = 9
+    teamkills = 10
+    top_score = 11
+    top_kill_streak = 12
+    top_arrest_streak = 13
+    top_death_streak = 14
+    vip_escapes = 15
+    vip_captures = 16
+    vip_rescues = 17
+    vip_kills_valid = 18
+    vip_kills_invalid = 19
+    vip_times = 20
+    rd_bombs_defused = 21
+    sg_escapes = 22
+    sg_kills = 23
+    spm_ratio = 24
+    spr_ratio = 25
+    kd_ratio = 26
+    coop_games = 27
+    coop_time = 28
+    coop_wins = 29
+    coop_losses = 30
+    coop_hostage_arrests = 31
+    coop_hostage_hits = 32
+    coop_hostage_incaps = 33
+    coop_hostage_kills = 34
+    coop_enemy_arrests = 35
+    coop_enemy_hits = 36
+    coop_enemy_incaps = 37
+    coop_enemy_kills = 38
+    coop_enemy_incaps_invalid = 39
+    coop_enemy_kills_invalid = 40
+    coop_toc_reports = 41
+    coop_score = 42
+    coop_teamkills = 43
+    coop_deaths = 44
+    suicides = 45
+    top_kills = 46
+    top_arrests = 47
+    weapon_shots = 48
+    weapon_hits = 49
+    weapon_hit_ratio = 50
+    weapon_distance = 51
+    bs_score = 52
+    bs_time = 53
+    vip_score = 54
+    vip_time = 55
+    rd_score = 56
+    rd_time = 57
+    sg_score = 58
+    sg_time = 59
+    average_arrest_streak = 60
+    average_death_streak = 61
+    average_kill_streak = 62
+    coop_best_time = 63
+    coop_top_score = 64
+    coop_worst_time = 65
+    distance = 66
+    grenade_hit_ratio = 67
+    grenade_hits = 68
+    grenade_kills = 69
+    grenade_shots = 70
+    grenade_teamhit_ratio = 71
+    grenade_teamhits = 72
+    hit_ratio = 73
+    hits = 74
+    kill_ratio = 75
+    shots = 76
+    teamhit_ratio = 77
+    teamhits = 78
+    vip_escape_time = 79
+    vip_wins = 80
+    weapon_kill_ratio = 81
+    weapon_kills = 82
+    weapon_teamhit_ratio = 83
+    weapon_teamhits = 84

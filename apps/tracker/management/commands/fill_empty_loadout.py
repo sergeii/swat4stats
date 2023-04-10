@@ -48,7 +48,6 @@ class Command(BaseCommand):
         )
 
         qs = Player.objects.filter(loadout__isnull=True)
-        for chunk in iterate_queryset(qs, chunk_size=5000):
-            for item in chunk:
-                item.loadout_id = empty_loadout.pk
-            Player.objects.bulk_update(chunk, ['loadout_id'])
+        for chunk in iterate_queryset(qs.all(), fields=['pk'], chunk_size=1000):
+            pks = (item['pk'] for item in chunk)
+            qs.filter(pk__in=pks).update(loadout_id=empty_loadout.pk)

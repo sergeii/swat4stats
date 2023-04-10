@@ -5,10 +5,6 @@ from apps.tracker.models import Server
 from apps.tracker.tasks import discover_servers, discover_extra_query_ports
 
 
-re_ipv4 = r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
-re_port = r'\d{1,5}'
-
-
 class QueryServerAddress:
 
     def __init__(self, server):
@@ -41,8 +37,14 @@ def test_server_discovery(db, create_httpservers, create_udpservers):
 
         html_server, plain_server = http_servers
         targets = (
-            (html_server.url, fr'\b(?P<addr>{re_ipv4})[^:]*:[^\d]*(?P<port>{re_port})\b'),
-            (plain_server.url, fr'(?P<addr>{re_ipv4}):(?P<port>{re_port})'),
+            {
+                'url': html_server.url,
+                'parser': 'apps.tracker.discovery.html_ip_port',
+            },
+            {
+                'url': plain_server.url,
+                'parser': 'apps.tracker.discovery.plain_ip_port',
+            },
         )
         html_content = f"""<html>
         <ul>
@@ -93,8 +95,14 @@ def test_server_discovery(db, create_httpservers, create_udpservers):
 def test_no_servers_discovered(db, create_httpservers):
     with create_httpservers(2) as servers:
         targets = (
-            (servers[0].url, fr'\b(?P<addr>{re_ipv4})[^:]*:[^\d]*(?P<port>{re_port})\b'),
-            (servers[1].url, fr'\b(?P<addr>{re_ipv4})[^:]*:[^\d]*(?P<port>{re_port})\b'),
+            {
+                'url': servers[0].url,
+                'parser': 'apps.tracker.discovery.plain_ip_port',
+            },
+            {
+                'url': servers[1].url,
+                'parser': 'apps.tracker.discovery.html_ip_port',
+            },
         )
         with override_settings(TRACKER_SERVER_DISCOVERY=targets):
             servers[0].serve_content(b'')
@@ -111,13 +119,16 @@ def test_target_responds_with_error_code(db, create_httpservers, create_udpserve
         server_addr2 = QueryServerAddress(query_server2)
         query_server1.responses.append(ServerQueryFactory(hostport=server_addr1.port).as_gamespy())
         query_server2.responses.append(ServerQueryFactory(hostport=server_addr2.port).as_gamespy())
-        csv_content = f"""
-        {server_addr1.ip},{server_addr1.port}
-        {server_addr2.ip},{server_addr2.port}
-        """
+        csv_content = f"{server_addr1.ip},{server_addr1.port}\n{server_addr2.ip},{server_addr2.port}"
         targets = (
-            (http_servers[0].url, fr'\b(?P<addr>{re_ipv4})[^:]*:[^\d]*(?P<port>{re_port})\b'),
-            (http_servers[1].url, fr'(?P<addr>{re_ipv4}),(?P<port>{re_port})'),
+            {
+                'url': http_servers[0].url,
+                'parser': 'apps.tracker.discovery.html_ip_port',
+            },
+            {
+                'url': http_servers[1].url,
+                'parser': 'apps.tracker.discovery.csv_two_columns',
+            },
         )
         with override_settings(TRACKER_SERVER_DISCOVERY=targets):
             http_servers[0].serve_content('Server error', 500)

@@ -9,10 +9,10 @@ from apps.tracker.tasks import update_player_preferences, update_player_preferen
 from apps.utils.test import freeze_timezone_now
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=['default', 'replica'])
 @mock.patch.object(update_player_preferences_for_profile, 'apply_async',
                    wraps=update_player_preferences_for_profile.apply_async)
-def test_update_player_preferences(task_mock):
+def test_update_player_preferences(task_mock, django_assert_num_queries):
     now = timezone.now()
     old_loadout = LoadoutFactory(primary='9mm SMG', secondary='Taser Stun Gun')
     new_loadout = LoadoutFactory(primary='Suppressed 9mm SMG', secondary='9mm Handgun')
@@ -51,7 +51,7 @@ def test_update_player_preferences(task_mock):
     PlayerFactory.create_batch(3, alias__name='Konten', alias__profile=another_profile, alias__isp__country='nl',
                                loadout=LoadoutFactory(), team='suspects')
 
-    with freeze_timezone_now(now):
+    with freeze_timezone_now(now), django_assert_num_queries(19):
         update_player_preferences.delay()
 
     assert task_mock.called

@@ -15,6 +15,7 @@ def _min_preferred_games(settings):
     settings.TRACKER_PREFERRED_GAMES = 5
 
 
+@pytest.mark.django_db(databases=['default', 'replica'])
 def test_preferred_name_over_recent_games(db):
     profile = ProfileFactory()
 
@@ -30,6 +31,7 @@ def test_preferred_name_over_recent_games(db):
     assert profile.fetch_preferred_name() == 'AFK'
 
 
+@pytest.mark.django_db(databases=['default', 'replica'])
 def test_preferred_country(db):
     profile = ProfileFactory()
     isp1 = ISPFactory(country='un')
@@ -48,6 +50,7 @@ def test_preferred_country(db):
     assert profile.fetch_preferred_country() == 'uk'
 
 
+@pytest.mark.django_db(databases=['default', 'replica'])
 def test_preferred_team(db):
     profile = ProfileFactory()
 
@@ -63,6 +66,7 @@ def test_preferred_team(db):
     assert profile.fetch_preferred_team() == 'suspects'
 
 
+@pytest.mark.django_db(databases=['default', 'replica'])
 def test_preferred_loadout(db):
     profile = ProfileFactory()
     empty_loadout = LoadoutFactory()
@@ -71,12 +75,16 @@ def test_preferred_loadout(db):
     assert profile.fetch_preferred_loadout() is None
 
     PlayerFactory(alias__profile=profile, loadout=empty_loadout)
-    assert profile.fetch_preferred_loadout() == empty_loadout
+    assert profile.fetch_preferred_loadout() == empty_loadout.pk
 
-    PlayerFactory.create_batch(2, alias__profile=profile, loadout=another_loadout)
-    assert profile.fetch_preferred_loadout() == another_loadout
+    PlayerFactory.create_batch(4, alias__profile=profile, loadout=empty_loadout)
+    assert profile.fetch_preferred_loadout() == empty_loadout.pk
+
+    PlayerFactory.create_batch(3, alias__profile=profile, loadout=another_loadout)
+    assert profile.fetch_preferred_loadout() == another_loadout.pk
 
 
+@pytest.mark.django_db(databases=['default', 'replica'])
 def test_update_preferences(db):
     now = timezone.now()
     initial_loadout = RandomLoadoutFactory()
@@ -91,7 +99,7 @@ def test_update_preferences(db):
     assert profile.country == 'eu'
     assert profile.team == 'swat'
     assert profile.loadout == initial_loadout
-    assert profile.preferences_updated_at == now
+    assert profile.preferences_updated_at is None
 
     PlayerFactory.create_batch(2, alias__name='Serge',
                                alias__profile=profile, alias__isp__country='un',

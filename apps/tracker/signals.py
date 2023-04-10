@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.conf import settings
 from django_redis import get_redis_connection
 
-from apps.tracker.models import Server
+from apps.tracker.models import Server, Game
 
 logger = logging.getLogger(__name__)
 
@@ -47,51 +47,42 @@ def update_live_servers_hostnames(sender: Any, servers: dict[Server, dict], **kw
 
 
 @receiver(live_servers_detected)
-@transaction.atomic
-def relist_live_server(sender, servers, **kwargs):
+def relist_live_server(sender: Any, servers: list[Server], **kwargs: Any) -> None:
     """
     Ensure the failure count is reset once a server is back online.
     """
     queryset = (Server.objects
-                .filter(pk__in=[obj.pk for obj in servers], failures__gte=0)
-                .select_for_update())
-    queryset.relist()
-    logger.debug('relisted %s servers', len(servers))
+                .filter(pk__in=(obj.pk for obj in servers), listed=False))
+
+    if updated := queryset.relist():
+        logger.debug('relisted %d of %d live servers', updated, len(servers))
 
 
 @receiver(failed_servers_detected)
-def detect_offline_servers(sender, servers, **kwargs):
+def detect_offline_servers(sender: Any, servers: list[Server], **kwargs: Any) -> None:
     """
     Update failure count for the failed servers.
     If the failure count value exceeds the max number of failures, unlist the server.
     """
-    pks = list(map(lambda obj: obj.pk, servers))
-
-    logger.debug('%s servers failed', len(servers))
-
+    pks = [server.pk for server in servers]
     Server.objects.filter(pk__in=pks).update(failures=F('failures') + 1)
-    offline_servers = (Server.objects
-                       .filter(pk__in=pks, failures__gte=settings.TRACKER_STATUS_FAILURES))
 
-    if offline_servers:
-        logger.debug('%s servers are offline', len(offline_servers))
+    offline_servers_qs = (Server.objects
+                          .filter(pk__in=pks, failures__gte=settings.TRACKER_STATUS_FAILURES))
+    if offline_servers := offline_servers_qs:
+        logger.debug('%d of %d failed servers are offline', len(offline_servers), len(servers))
         offline_servers_detected.send(sender=None, servers=offline_servers)
 
 
 @receiver(offline_servers_detected)
-@transaction.atomic
-def unlist_offline_servers(sender, servers, **kwargs):
+def unlist_offline_servers(sender: Any, servers: list[Server], **kwargs: Any) -> None:
     """Unlist servers that have been detected as offline"""
     redis = get_redis_connection()
-    server_pks = [server.pk for server in servers]
-    queryset = (
-        Server.objects
-        .filter(pk__in=server_pks)
-        .select_for_update()
-    )
-    queryset.update(listed=False)
     redis.hdel(settings.TRACKER_SERVER_REDIS_KEY, *(server.address for server in servers))
-    logger.info('Unlisted %s servers: %s', len(servers), server_pks)
+
+    queryset = Server.objects.filter(pk__in=(obj.pk for obj in servers), listed=True)
+    if updated := queryset.update(listed=False):
+        logger.info('unlisted %d of %d offline servers', updated, len(servers))
 
 
 @receiver(game_data_saved)
@@ -115,7 +106,7 @@ def update_streaming_server(sender, data, server, game, **kwargs):
 
 
 @receiver(game_data_saved)
-def queue_update_profile_games(sender, game, **kwargs):
+def queue_update_profile_games(sender: Any, game: Game, **kwargs: Any) -> None:
     from apps.tracker.tasks import update_profile_games
     transaction.on_commit(lambda: update_profile_games.delay(game.pk))
 

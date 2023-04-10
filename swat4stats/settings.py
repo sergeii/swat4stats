@@ -451,21 +451,19 @@ TRACKER_POPULAR_NAMES = (
     r'^sniper$',
 )
 
-re_ipv4 = r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
-re_port = r'\d{1,5}'
-
-# a list of (url, regex pattern (for extracting ip and port)) tuples
-# used by the tasks.update_server_list task to keep the server list up to date
 TRACKER_SERVER_DISCOVERY = (
-    # mark server list
-    ('https://www.markmods.com/swat4serverlist/',
-        fr'\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b'),
-    # clan pages
-    ('https://mytteam.com/',
-        fr'\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b'),
-    # master server api
-    ('http://master.swat4stats.com/api/servers',
-        fr'\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b'),
+    {
+        'url': 'https://www.markmods.com/swat4serverlist/',
+        'parser': 'apps.tracker.discovery.plain_ip_port',
+    },
+    {
+        'url': 'https://mytteam.com/',
+        'parser': 'apps.tracker.discovery.plain_ip_port',
+    },
+    {
+        'url': 'https://master.swat4stats.com/api/servers',
+        'parser': 'apps.tracker.discovery.master_server_api'
+    },
 )
 TRACKER_SERVER_DISCOVERY_TIMEOUT = 10
 

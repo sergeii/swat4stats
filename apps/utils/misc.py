@@ -65,15 +65,15 @@ def force_date(maybe_date):
     return maybe_date
 
 
-def iterate_queryset(queryset, chunk_size=1000):
+def iterate_queryset(queryset, *, fields: list[str], chunk_size=1000):
     queryset = queryset.order_by('pk')
     last_pk = 0
     while True:
-        chunk = list(queryset.filter(pk__gt=last_pk)[:chunk_size])
+        chunk = list(queryset.filter(pk__gt=last_pk).values(*fields)[:chunk_size])
         yield chunk
         if len(chunk) < chunk_size:
             break
-        last_pk = chunk[-1].pk
+        last_pk = chunk[-1]['pk']
 
 
 def iterate_list(list_: list, *, size: int) -> Iterator[list]:

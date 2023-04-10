@@ -6,7 +6,7 @@ from apps.geoip.models import IP
 logger = logging.getLogger(__name__)
 
 
-@app.task
+@app.task(name='delete_expired_ips')
 def delete_expired_ips():
     """
     Remove old expired IPs, so they can be renewed with fresh data.
