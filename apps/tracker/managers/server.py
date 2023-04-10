@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from voluptuous import Invalid
@@ -156,7 +157,6 @@ class ServerManager(models.Manager):
         Already existing servers are relisted.
 
         Return queryset for created/existing servers.
-        If specified, also relist the affected servers.
         """
         server_pks = set()
 
@@ -166,9 +166,9 @@ class ServerManager(models.Manager):
             except ValidationError as exc:
                 logger.info('failed to create server %s:%s due to %s', server_ip, server_port, exc)
                 continue
-            # skip disabled servers
             if created:
                 logger.info('created server %s with %s:%s', server.pk, server_ip, server_port)
+            # skip disabled servers
             elif not server.enabled:
                 logger.info('server %s with %s:%s exists but is disabled', server.pk, server_ip, server_port)
                 continue
@@ -177,11 +177,12 @@ class ServerManager(models.Manager):
         if not server_pks:
             return self.none()
 
-        queryset = self.filter(pk__in=server_pks)
-        return queryset.all()
+        return self.filter(pk__in=server_pks)
 
-    def probe_server_addrs(self, server_addrs: set[tuple[str, int]]) -> dict[tuple[str, int],
-                                                                             ParsedResponse | Exception]:
+    def probe_server_addrs(
+        self,
+        server_addrs: set[tuple[str, int]],
+    ) -> dict[tuple[str, int], ParsedResponse | Exception]:
         result = {}
         tasks = []
 
@@ -286,28 +287,11 @@ class ServerManager(models.Manager):
     def discover_query_ports(self) -> None:
         """
         Scan extra query ports for all listed servers.
-        If an extra port yields GS1 or AMMod query result then make it the main query port.
+        If an extra port yields GS1 or AMMod response then change the server's status port to the discovered one.
         """
-        probe_results = dict()
-        tasks = []
-
-        for server in self.listed():
-            # probe the ports in the range of join port +1 - +4
-            for query_port in range(server.port + 1, server.port + 5):
-                server_tri_addr = (server.ip, server.port, query_port)
-                tasks.append(
-                    ServerStatusTask(
-                        callback=lambda addr, status: op.setitem(probe_results, addr, status),
-                        id=server_tri_addr,
-                        ip=server.ip,
-                        status_port=query_port
-                    )
-                )
-
-        aio.run_many(tasks)
-
+        probe_results = self._probe_extra_query_ports(self.listed())
         # collect server addresses that succeeded the probe
-        probed_query_ports = {}
+        probed_query_ports: dict[tuple[str, int], list[dict[str, int | bool]]] = {}
         for (server_ip, server_port, query_port), data_or_exc in probe_results.items():
             if isinstance(data_or_exc, Exception):
                 continue
@@ -335,5 +319,35 @@ class ServerManager(models.Manager):
         for (server_ip, server_port), query_ports in probed_query_ports.items():
             # we are interested in either GS1 or AdminMod's ServerQuery ports
             query_ports = sorted(query_ports, key=lambda item: (item['is_gs1'], item['is_am']), reverse=True)
-            preferred_query_port = query_ports[0]['port']
-            self.filter(ip=server_ip, port=server_port).update(status_port=preferred_query_port)
+            preferred_status_port = query_ports[0]['port']
+
+            logger.debug('discovered %d ports for %s:%s: %s',
+                         len(query_ports), server_ip, server_port,
+                         ', '.join(f'{item["port"]} [GS1={item["is_gs1"]}, AM={item["is_am"]}]'
+                                   for item in query_ports))
+
+            update_qs = self.filter(Q(ip=server_ip, port=server_port) & ~Q(status_port=preferred_status_port))
+            if update_qs.update(status_port=preferred_status_port):
+                logger.info('updated status port for server %s:%s to %s',
+                            server_ip, server_port, preferred_status_port)
+
+    def _probe_extra_query_ports(self, qs: ServerQuerySet) -> dict[tuple[str, int, int], ParsedResponse | Exception]:
+        results = {}
+        tasks: list[ServerStatusTask] = []
+
+        for server in qs:
+            # probe the ports in the range of join port +1 - +4
+            for query_port in range(server.port + 1, server.port + 5):
+                server_tri_addr = (server.ip, server.port, query_port)
+                tasks.append(
+                    ServerStatusTask(
+                        callback=lambda addr, status: op.setitem(results, addr, status),
+                        id=server_tri_addr,
+                        ip=server.ip,
+                        status_port=query_port
+                    )
+                )
+
+        aio.run_many(tasks)
+
+        return results
