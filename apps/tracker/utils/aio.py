@@ -14,6 +14,7 @@ def with_semaphore(semaphore):
         @functools.wraps(coroutine)
         async def wrapper(*args, **kwargs):
             async with semaphore:
+                logger.debug('acquired semaphore %s; args=%s; kwargs=%s', semaphore, args, kwargs)
                 return await coroutine(*args, **kwargs)
         return wrapper
     return decorator
@@ -26,6 +27,7 @@ def with_timeout(timeout, callback=None):
             try:
                 result = await asyncio.wait_for(coroutine(*args, **kwargs), timeout)
             except asyncio.TimeoutError as exc:
+                logger.debug('got timeout %s; args=%s; kwargs=%s', exc, args, kwargs)
                 if isinstance(callback, Exception):
                     raise callback from exc
                 elif callable(callback):

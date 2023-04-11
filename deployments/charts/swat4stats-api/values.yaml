@@ -41,12 +41,12 @@ celery:
       time_limit: 120
       max_tasks: 1000
 
-    - name: sq
-      replicas: 2
-      concurrency: 2
-      queues: [serverquery]
-      time_limit: 120
-      max_tasks: 1000
+#    - name: sq
+#      replicas: 2
+#      concurrency: 2
+#      queues: [serverquery]
+#      time_limit: 120
+#      max_tasks: 1000
 
     - name: cacheback
       concurrency: 2

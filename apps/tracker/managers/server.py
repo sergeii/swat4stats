@@ -294,6 +294,8 @@ class ServerManager(models.Manager):
         probed_query_ports: dict[tuple[str, int], list[dict[str, int | bool]]] = {}
         for (server_ip, server_port, query_port), data_or_exc in probe_results.items():
             if isinstance(data_or_exc, Exception):
+                logger.debug('failed to probe %s:%s (%s) due to %s(%s)',
+                             server_ip, server_port, query_port, type(data_or_exc).__name__, data_or_exc)
                 continue
             try:
                 status = serverquery_schema(data_or_exc)
