@@ -1,6 +1,7 @@
 import json
 import logging
 import operator as op
+import random
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Any
 
@@ -16,7 +17,7 @@ from voluptuous import Invalid
 
 from apps.tracker.schema import serverquery_schema
 from apps.tracker.aio_tasks.discovery import ServerDiscoveryTask
-from apps.tracker.aio_tasks.serverquery import ServerStatusTask, ParsedResponse
+from apps.tracker.aio_tasks.serverquery import ServerStatusTask, ServerInfo
 from apps.tracker.utils import aio
 from apps.utils.misc import dumps
 
@@ -42,7 +43,7 @@ class ServerQuerySet(models.QuerySet):
         result = []
 
         if redis_keys:
-            server_status = redis.hmget(settings.TRACKER_SERVER_REDIS_KEY, redis_keys)
+            server_status = redis.hmget(settings.TRACKER_STATUS_REDIS_KEY, redis_keys)
             for i, server in enumerate(servers):
                 # cache miss
                 if not server_status[i] and not with_empty:
@@ -91,7 +92,7 @@ class ServerQuerySet(models.QuerySet):
 
         logger.info('adding %s servers to redis', len(with_status))
         if with_status:
-            redis.hmset(settings.TRACKER_SERVER_REDIS_KEY,
+            redis.hmset(settings.TRACKER_STATUS_REDIS_KEY,
                         {server.address: dumps(query_data).encode()
                          for server, query_data in with_status})
 
@@ -112,26 +113,28 @@ class ServerQuerySet(models.QuerySet):
         )
 
         for server in result:
-            kwargs = {
-                'ip': server.ip,
-                'status_port': server.status_port,
-            }
             tasks.append(
                 ServerStatusTask(
                     callback=lambda server, status: op.setitem(result, server, status),
                     id=server,
-                    **kwargs
+                    ip=server.ip,
+                    status_port=server.status_port,
                 )
             )
 
+        # FIXME: remove
         logger.debug('%s serverquery tasks in pool', len(tasks))
-        aio.run_many(tasks)
+        aio.run_many(tasks, concurrency=settings.TRACKER_STATUS_QUERY_CONCURRENCY)
+        # FIXME: remove
         logger.debug('finished %s serverquery tasks', len(tasks))
 
         return result
 
     def relist(self):
-        return self.update(listed=True, failures=0)
+        return self.filter(listed=False).update(listed=True, failures=0)
+
+    def reset_failures(self):
+        return self.filter(failures__gt=0).update(failures=0)
 
     def enabled(self):
         return self.filter(enabled=True)
@@ -179,27 +182,54 @@ class ServerManager(models.Manager):
 
         return self.filter(pk__in=server_pks)
 
-    def probe_server_addrs(
-        self,
-        server_addrs: set[tuple[str, int]],
-    ) -> dict[tuple[str, int], ParsedResponse | Exception]:
-        result = {}
-        tasks = []
+    def probe_server_addr(self, server_addr: tuple[str, int]) -> ServerInfo | Exception:
+        """Probe a server address for its status"""
+        server_ip, server_port = server_addr
+        result = []
 
-        for addr in server_addrs:
-            server_ip, server_port = addr
-            tasks.append(
-                ServerStatusTask(callback=lambda addr_port, status: op.setitem(result, addr_port, status),
-                                 id=addr,
-                                 ip=server_ip,
-                                 status_port=server_port + 1)
-            )
+        task = ServerStatusTask(
+            callback=lambda _, status: result.append(status),
+            ip=server_ip,
+            status_port=server_port + 1,
+        )
+        aio.run_many([task])
 
-        aio.run_many(tasks)
+        return result[0]
 
-        return result
+    def discover_published_servers(self) -> ServerQuerySet:
+        published_addrs = self._discover_published_addrs()
+        probed_servers = self._probe_published_addrs(published_addrs)
 
-    def discover_server_addrs(self) -> set[tuple[str, int]]:
+        good_server_addrs = []
+        for (server_ip, server_port), resp_or_exc in probed_servers.items():
+            if isinstance(resp_or_exc, Exception):
+                continue
+            try:
+                status = serverquery_schema(resp_or_exc)
+            except voluptuous.Invalid as exc:
+                logger.exception('failed to validate data from %s:%s: %s due to %s',
+                                 server_ip, server_port, resp_or_exc, exc)
+                continue
+
+            if status['hostport'] != server_port:
+                logger.info('join port for server %s:%s does not match reported hostport %s',
+                            server_ip, server_port, status['hostport'])
+                continue
+
+            good_server_addrs.append((server_ip, server_port))
+
+        if not good_server_addrs:
+            logger.info('discovered no live servers')
+            return self.none()
+
+        servers = self.create_servers(good_server_addrs)
+        relisted = servers.relist()
+        logger.info('discovered %d good servers; accepted %d; relisted %d',
+                    len(good_server_addrs), len(servers), relisted)
+
+        return servers
+
+    def _discover_published_addrs(self) -> set[tuple[str, int]]:
         """
         Collect server addresses from various sources
         in the form of (ip_addr:join_port) tuples
@@ -207,9 +237,9 @@ class ServerManager(models.Manager):
         result: list[tuple[str, list[tuple[str, str]]]] = []
         tasks: list[ServerDiscoveryTask] = []
 
-        for item in settings.TRACKER_SERVER_DISCOVERY:
-            url = item['url']
-            parser_import_path = item['parser']
+        for source in settings.TRACKER_SERVER_DISCOVERY_SOURCES:
+            url = source['url']
+            parser_import_path = source['parser']
 
             try:
                 parser = import_string(parser_import_path)
@@ -226,72 +256,61 @@ class ServerManager(models.Manager):
                 )
             )
 
+        # FIXME: remove
         logger.debug('%s server discovery tasks in pool', len(tasks))
         aio.run_many(tasks)
+        # FIXME: remove
         logger.debug('finished %s server discovery tasks', len(tasks))
 
         # remove duplicate ips
-        server_addrs = set()
-        for url, discovery_result in result:
-            if isinstance(discovery_result, Exception):
+        server_addrs: set[tuple[str, str]] = set()
+        for url, maybe_parsed_addrs in result:
+            if isinstance(maybe_parsed_addrs, Exception):
                 logger.warning('got exception while scraping %s: %s(%s)',
-                               url, type(discovery_result).__name__, discovery_result)
-            elif not discovery_result:
+                               url, type(maybe_parsed_addrs).__name__, maybe_parsed_addrs)
+            elif not maybe_parsed_addrs:
                 logger.info('received no servers from %s', url)
             else:
-                logger.info('received %s servers from %s', len(discovery_result), url)
-                server_addrs |= set(discovery_result)
+                logger.info('received %s servers from %s', len(maybe_parsed_addrs), url)
+                server_addrs |= set(maybe_parsed_addrs)
 
         if not server_addrs:
             logger.warning('discovered no servers from %s sources',
-                           len(settings.TRACKER_SERVER_DISCOVERY),
-                           extra={'data': {'result': result}})
+                           len(settings.TRACKER_SERVER_DISCOVERY_SOURCES))
 
         return {
             (server_ip, int(server_port))
             for server_ip, server_port in server_addrs
         }
 
-    def discover_servers(self) -> ServerQuerySet:
-        discovered_server_addrs = self.discover_server_addrs()
-        probed_servers = self.probe_server_addrs(discovered_server_addrs)
+    def _probe_published_addrs(
+        self,
+        addrs: set[tuple[str, int]],
+    ) -> dict[tuple[str, int], ServerInfo | Exception]:
+        result = {}
+        tasks = []
 
-        checked_server_addrs = []
-        for (server_ip, server_port), resp_or_exc in probed_servers.items():
-            if isinstance(resp_or_exc, Exception):
-                continue
-            try:
-                status = serverquery_schema(resp_or_exc)
-            except voluptuous.Invalid as exc:
-                logger.exception('failed to validate data from %s:%s: %s due to %s',
-                                 server_ip, server_port, resp_or_exc, exc)
-                continue
+        for addr in addrs:
+            server_ip, server_port = addr
+            tasks.append(
+                ServerStatusTask(callback=lambda addr_port, status: op.setitem(result, addr_port, status),
+                                 id=addr,
+                                 ip=server_ip,
+                                 status_port=server_port + 1)
+            )
 
-            if status['hostport'] != server_port:
-                logger.info('join port for server %s:%s does not match reported hostport %s',
-                            server_ip, server_port, status['hostport'])
-                continue
+        aio.run_many(tasks, concurrency=settings.TRACKER_SERVER_DISCOVERY_PROBE_CONCURRENCY)
 
-            checked_server_addrs.append((server_ip, server_port))
+        return result
 
-        if not checked_server_addrs:
-            logger.info('discovered no live servers')
-            return self.none()
-
-        logger.info('discovered %s online servers', len(checked_server_addrs))
-        servers = self.create_servers(checked_server_addrs)
-        servers.relist()
-
-        return servers
-
-    def discover_query_ports(self) -> None:
+    def discover_good_query_ports(self) -> None:
         """
         Scan extra query ports for all listed servers.
         If an extra port yields GS1 or AMMod response then change the server's status port to the discovered one.
         """
-        probe_results = self._probe_extra_query_ports(self.listed())
-        # collect server addresses that succeeded the probe
+        probe_results = self._probe_good_query_ports(self.listed())
         probed_query_ports: dict[tuple[str, int], list[dict[str, int | bool]]] = {}
+        # collect server addresses that succeeded the probe
         for (server_ip, server_port, query_port), data_or_exc in probe_results.items():
             if isinstance(data_or_exc, Exception):
                 logger.debug('failed to probe %s:%s (%s) due to %s(%s)',
@@ -333,7 +352,7 @@ class ServerManager(models.Manager):
                 logger.info('updated status port for server %s:%s to %s',
                             server_ip, server_port, preferred_status_port)
 
-    def _probe_extra_query_ports(self, qs: ServerQuerySet) -> dict[tuple[str, int, int], ParsedResponse | Exception]:
+    def _probe_good_query_ports(self, qs: ServerQuerySet) -> dict[tuple[str, int, int], ServerInfo | Exception]:
         results = {}
         tasks: list[ServerStatusTask] = []
 
@@ -350,8 +369,13 @@ class ServerManager(models.Manager):
                     )
                 )
 
+        # shuffle the tasks to avoid probing multiple ports of the same server at a time
+        random.shuffle(tasks)
+
+        # FIXME: remove
         logger.debug('starting %s extra query port probes', len(tasks))
-        aio.run_many(tasks)
+        aio.run_many(tasks, concurrency=settings.TRACKER_PORT_DISCOVERY_CONCURRENCY)
+        # FIXME: remove
         logger.debug('collected %s extra query port probe results', len(results))
 
         return results

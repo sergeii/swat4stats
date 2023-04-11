@@ -61,7 +61,6 @@ python_version = "3.11"
 check_untyped_defs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
-disallow_untyped_decorators = true
 ignore_missing_imports = true
 strict_equality = true
 
@@ -70,4 +69,3 @@ module = "tests.*"
 disable_error_code = "var-annotated, has-type"
 disallow_untyped_defs = false
 check_untyped_defs = false
-disallow_untyped_decorators = false

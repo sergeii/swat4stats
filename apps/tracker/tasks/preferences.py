@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @app.task(name='update_player_preferences')
-def update_player_preferences():
+def update_player_preferences() -> None:
     """
     Update preferences such as name, country, loadout, etc
     for players recently seen playing.
@@ -31,7 +31,7 @@ def update_player_preferences():
 
 @app.task
 @transaction.atomic
-def update_player_preferences_for_profile(profile_pk):
+def update_player_preferences_for_profile(profile_pk: int) -> None:
     """Update preferences for given profile"""
     profile = Profile.objects.get(pk=profile_pk)
     logger.info('updating preferences for %s', profile)

@@ -35,22 +35,22 @@ celery:
   log_level: INFO
   workers:
     - name: default
-      replicas: 2
-      concurrency: 2
+      replicas: 4
+      concurrency: 1
       queues: [default]
       time_limit: 120
       max_tasks: 1000
 
-#    - name: sq
-#      replicas: 2
-#      concurrency: 2
-#      queues: [serverquery]
-#      time_limit: 120
-#      max_tasks: 1000
+    - name: sq
+      replicas: 2
+      concurrency: 1
+      queues: [serverquery]
+      time_limit: 120
+      max_tasks: 1000
 
     - name: cacheback
       concurrency: 2
-      replicas: 2
+      replicas: 1
       queues: [cacheback]
       time_limit: 60
       max_tasks: 10000

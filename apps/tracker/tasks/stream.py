@@ -1,5 +1,8 @@
 import logging
+from datetime import datetime
+from typing import Any
 
+import celery
 from django.db import transaction
 
 from swat4stats.celery import app
@@ -17,7 +20,12 @@ logger = logging.getLogger(__name__)
 
 @app.task(bind=True, default_retry_delay=60, max_retries=5)
 @transaction.atomic
-def process_game_data(self, server_id, data, data_received_at):
+def process_game_data(
+    self: celery.Task,
+    server_id: int,
+    data: dict[str, Any],
+    data_received_at: datetime,
+) -> None:
     """
     Attempt to save a game with given server
 
@@ -42,7 +50,7 @@ def process_game_data(self, server_id, data, data_received_at):
 
 @app.task
 @transaction.atomic
-def update_profile_games(game_id):
+def update_profile_games(game_id: int) -> None:
     game = Game.objects.get(pk=game_id)
     queryset = Profile.objects.filter(alias__player__game=game)
 

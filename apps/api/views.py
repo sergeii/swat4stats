@@ -12,11 +12,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.api.pagination import paginator_factory
 from apps.news.models import Article
 from apps.tracker.models import Server, Map, Game, Player, Objective, Procedure, ServerStats
-from apps.api.serializers import (ServerBaseSerializer, ServerFullSerializer,
-                                  NewsArticleSerializer, MapSerializer,
-                                  GameBaseSerializer, GameSerializer,
-                                  GamePlayerHighlightSerializer,
-                                  PlayerStatSerializer)
+from apps.api.serializers import (
+    ServerBaseSerializer, ServerCreateSerializer, ServerFullSerializer,
+    NewsArticleSerializer, MapSerializer,
+    GameBaseSerializer, GameSerializer,
+    GamePlayerHighlightSerializer, PlayerStatSerializer,
+)
 from apps.api.filters import ServerFilterBackend, GameFilter
 from apps.tracker.utils import get_current_stat_year
 
@@ -41,6 +42,8 @@ class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, Generi
     def get_serializer_class(self):
         if self.action in ('list',):
             return ServerBaseSerializer
+        if self.action in ('create',):
+            return ServerCreateSerializer
         return ServerFullSerializer
 
     def get_queryset(self):

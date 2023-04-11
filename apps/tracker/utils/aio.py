@@ -9,25 +9,13 @@ from uuid import uuid4
 logger = logging.getLogger(__name__)
 
 
-def with_semaphore(semaphore):
-    def decorator(coroutine):
-        @functools.wraps(coroutine)
-        async def wrapper(*args, **kwargs):
-            async with semaphore:
-                logger.debug('acquired semaphore %s; args=%s; kwargs=%s', semaphore, args, kwargs)
-                return await coroutine(*args, **kwargs)
-        return wrapper
-    return decorator
-
-
 def with_timeout(timeout, callback=None):
-    def decorator(coroutine):
-        @functools.wraps(coroutine)
+    def decorator(coro):
+        @functools.wraps(coro)
         async def wrapper(*args, **kwargs):
             try:
-                result = await asyncio.wait_for(coroutine(*args, **kwargs), timeout)
+                result = await asyncio.wait_for(coro(*args, **kwargs), timeout)
             except asyncio.TimeoutError as exc:
-                logger.debug('got timeout %s; args=%s; kwargs=%s', exc, args, kwargs)
                 if isinstance(callback, Exception):
                     raise callback from exc
                 elif callable(callback):
@@ -40,9 +28,20 @@ def with_timeout(timeout, callback=None):
     return decorator
 
 
-def run_many(tasks: list['Task']) -> None:
+async def run(coro: Coroutine, semaphore: asyncio.Semaphore | None) -> None:
+    if semaphore is None:
+        await coro
+    else:
+        async with semaphore:
+            logger.debug('acquired semaphore %s for %s', semaphore, coro)
+            await coro
+
+
+def run_many(tasks: list['Task'], concurrency: int | None = None) -> None:
     async def runner():
-        await asyncio.gather(*tasks)
+        semaphore = asyncio.Semaphore(concurrency) if concurrency else None
+        runnables = (run(task.execute(), semaphore=semaphore) for task in tasks)
+        await asyncio.gather(*runnables)
     asyncio.run(runner())
 
 
@@ -55,13 +54,10 @@ class Task(ABC):
         Register a task with callback and optional id.
         If id is not specified, assign a random id to the task.
         """
-        self.callback = callback
-        self.id = id or uuid4()
+        self._callback = callback
+        self._id = id or uuid4()
 
-    def __await__(self) -> Coroutine:
-        return self.task()
-
-    async def task(self) -> None:
+    async def execute(self) -> None:
         try:
             result = await self.start()
         except Exception as exc:
@@ -76,11 +72,11 @@ class Task(ABC):
         ...
 
     async def complete(self, result: Any) -> None:
-        if not self.callback:
+        if not self._callback:
             return
-        self.callback(self.id, result)
+        self._callback(self._id, result)
 
     async def fail(self, exc: Exception) -> None:
-        if not self.callback:
+        if not self._callback:
             return
-        self.callback(self.id, exc)
+        self._callback(self._id, exc)

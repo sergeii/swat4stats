@@ -4,14 +4,27 @@ from datetime import timedelta
 from pathlib import Path
 import warnings
 
+import sentry_sdk
 from celery.schedules import crontab
 from django.utils.deprecation import RemovedInDjango50Warning
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 from apps.utils.settings import env, env_bool, env_list, env_log_level
 
 
 warnings.simplefilter('ignore', RemovedInDjango50Warning)
 warnings.simplefilter('ignore', DeprecationWarning)
+
+
+if sentry_dsn := os.environ.get('SETTINGS_SENTRY_DSN'):
+    traces_sample_rate = os.environ.get('SETTINGS_SENTRY_SAMPLE_RATE')
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[
+            CeleryIntegration(),
+        ],
+        traces_sample_rate=float(traces_sample_rate) if traces_sample_rate else 0.0,
+    )
 
 
 def redis_url(alias):
@@ -290,8 +303,8 @@ CELERY_TASK_ANNOTATIONS = {
     },
 }
 CELERY_BEAT_SCHEDULE = {
-    'discover_servers': {
-        'task': 'discover_servers',
+    'discover_published_servers': {
+        'task': 'discover_published_servers',
         'schedule': timedelta(seconds=5 * 60),
         'options': {
             'expires': 2 * 60,
@@ -299,8 +312,8 @@ CELERY_BEAT_SCHEDULE = {
             'rate_limit': '12/h',
         },
     },
-    'discover_extra_query_ports': {
-        'task': 'discover_extra_query_ports',
+    'discover_good_query_ports': {
+        'task': 'discover_good_query_ports',
         'schedule': timedelta(seconds=10 * 60),
         'options': {
             'expires': 5 * 60,
@@ -312,8 +325,8 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'refresh_listed_servers',
         'schedule': timedelta(seconds=5),
         'options': {
-            'time_limit': 3,
-            'expires': 2,
+            'time_limit': 5,
+            'expires': 5,
         },
     },
     'update_player_preferences': {
@@ -408,12 +421,6 @@ TRACKER_MIN_GAMES = 50
 TRACKER_MIN_GAME_AMMO = 60
 TRACKER_MIN_GAME_GRENADES = 10
 
-# max number of concurrent server status requests
-TRACKER_STATUS_CONCURRENCY = 50
-# time a task should be waited for
-TRACKER_STATUS_TIMEOUT = 1
-# max number of failures a server considered offline
-TRACKER_STATUS_FAILURES = 12
 # min day to make new appear in leaderboards
 TRACKER_MIN_YEAR_DAY = 15
 
@@ -451,7 +458,7 @@ TRACKER_POPULAR_NAMES = (
     r'^sniper$',
 )
 
-TRACKER_SERVER_DISCOVERY = (
+TRACKER_SERVER_DISCOVERY_SOURCES = (
     {
         'url': 'https://www.markmods.com/swat4serverlist/',
         'parser': 'apps.tracker.discovery.plain_ip_port',
@@ -465,9 +472,19 @@ TRACKER_SERVER_DISCOVERY = (
         'parser': 'apps.tracker.discovery.master_server_api'
     },
 )
-TRACKER_SERVER_DISCOVERY_TIMEOUT = 10
+TRACKER_SERVER_DISCOVERY_HTTP_TIMEOUT = 5
+TRACKER_SERVER_DISCOVERY_PROBE_CONCURRENCY = 10
 
-TRACKER_SERVER_REDIS_KEY = 'servers'
+TRACKER_STATUS_REDIS_KEY = 'servers'
+# max number of concurrent server status requests
+TRACKER_STATUS_QUERY_CONCURRENCY = 100
+TRACKER_STATUS_QUERY_TIMEOUT = 1
+# max number of accumulated failures before a server is considered offline
+TRACKER_STATUS_TOLERATED_FAILURES = 12
+
+# because we test many ports of a single server at once,
+# limit the number of total concurrent requests
+TRACKER_PORT_DISCOVERY_CONCURRENCY = 20
 
 # keep IPs for this number of seconds
 GEOIP_IP_EXPIRY = 180*24*60*60

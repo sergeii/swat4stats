@@ -1,12 +1,10 @@
 import os
 
 from celery import Celery
-from celery.signals import setup_logging, celeryd_init
+from celery.signals import setup_logging
 from kombu.serialization import register
 
 from apps.utils import xjson
-
-from .sentry import configure_sentry
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'swat4stats.settings')
 
@@ -20,13 +18,7 @@ def configure_logging(sender=None, **kwargs):
     pass
 
 
-@celeryd_init.connect
-def init_sentry(**_kwargs):
-    configure_sentry()
-
-
 register('xjson', xjson.dumps, xjson.loads, content_type='application/x-xjson', content_encoding='utf-8')
-
 
 app = Celery('swat4stats')
 app.config_from_object('django.conf:settings', namespace='CELERY')

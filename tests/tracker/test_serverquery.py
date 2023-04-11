@@ -5,7 +5,7 @@ import pytest
 
 from apps.tracker.factories import ServerFactory, ServerQueryFactory
 from apps.tracker.utils import aio
-from apps.tracker.aio_tasks.serverquery import ServerStatusTask
+from apps.tracker.aio_tasks.serverquery import ServerStatusTask, ResponseMalformed
 
 pytestmark = pytest.mark.django_db
 
@@ -54,7 +54,7 @@ def test_serverquery_async_task_pool(create_udpservers):
         aio.run_many(tasks)
 
         assert isinstance(result[servers[0]], asyncio.TimeoutError)
-        assert isinstance(result[servers[1]], ServerStatusTask.ResponseMalformed)
+        assert isinstance(result[servers[1]], ResponseMalformed)
         assert isinstance(result[servers[2]], dict)
 
         status = result[servers[2]]
@@ -213,7 +213,7 @@ def test_response_malformed(udp_server):
     udp_server.responses.extend(payload)
     data = query_servers(udp_server.server_address).pop()
 
-    assert isinstance(data, ServerStatusTask.ResponseMalformed)
+    assert isinstance(data, ResponseMalformed)
 
 
 def test_vanilla_queryid_is_not_integer(udp_server):

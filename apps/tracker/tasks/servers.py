@@ -1,17 +1,14 @@
 import logging
-
-from django.conf import settings
+from typing import Any
 
 from swat4stats.celery import app
 from apps.tracker.models import Server
 from apps.tracker.signals import live_servers_detected, failed_servers_detected
 from apps.geoip.models import ISP
-from apps.utils.misc import iterate_queryset
 
 
 __all__ = [
     'refresh_listed_servers',
-    'refresh_servers_chunk',
     'update_server_country',
 ]
 
@@ -19,31 +16,21 @@ logger = logging.getLogger(__name__)
 
 
 @app.task(name='refresh_listed_servers', queue='serverquery')
-def refresh_listed_servers():
+def refresh_listed_servers() -> None:
     """
     Refresh listed servers (i.e. the servers that are expected to be online)
     """
-    chunk_size = settings.TRACKER_STATUS_CONCURRENCY
-    queryset = Server.objects.listed().only('pk')
-    for chunk in iterate_queryset(queryset, fields=['pk'], chunk_size=chunk_size):
-        logger.debug('queue refresh_servers_chunk for %s servers', len(chunk))
-        refresh_servers_chunk.delay(*(obj['pk'] for obj in chunk))
+    queryset = Server.objects.listed()
 
+    logger.debug('refreshing status for %s servers', queryset.count())
+    status, errors = queryset.refresh_status()
 
-@app.task(expires=5, time_limit=5, queue='serverquery')
-def refresh_servers_chunk(*pks):
-    """
-    Query status for specified servers.
-    """
-    servers_failed = {}
-    servers_live = {}
-
-    logger.debug('refreshing %s servers', len(pks))
-    status, errors = Server.objects.filter(pk__in=pks).refresh_status()
+    servers_failed: dict[Server, Exception] = {}
+    servers_live: dict[Server, dict[str, Any]] = {}
 
     for server, result in status:
         servers_live[server] = result
-        logger.debug('successfuly refreshed status for %s (%s)', server.address, server)
+        logger.debug('successfully refreshed status for %s (%s)', server.address, server)
 
     for server, exc in errors:
         servers_failed[server] = exc
@@ -60,7 +47,7 @@ def refresh_servers_chunk(*pks):
 
 
 @app.task(time_limit=10)
-def update_server_country(server_id):
+def update_server_country(server_id: int) -> None:
     """
     Detect and update the server's country.
     """

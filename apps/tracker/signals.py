@@ -47,15 +47,15 @@ def update_live_servers_hostnames(sender: Any, servers: dict[Server, dict], **kw
 
 
 @receiver(live_servers_detected)
-def relist_live_server(sender: Any, servers: list[Server], **kwargs: Any) -> None:
+def reset_server_failure_count(sender: Any, servers: list[Server], **kwargs: Any) -> None:
     """
     Ensure the failure count is reset once a server is back online.
     """
     queryset = (Server.objects
-                .filter(pk__in=(obj.pk for obj in servers), listed=False))
+                .filter(pk__in=(obj.pk for obj in servers)))
 
-    if updated := queryset.relist():
-        logger.debug('relisted %d of %d live servers', updated, len(servers))
+    if updated := queryset.reset_failures():
+        logger.debug('reset failures for %d of %d live servers', updated, len(servers))
 
 
 @receiver(failed_servers_detected)
@@ -68,7 +68,7 @@ def detect_offline_servers(sender: Any, servers: list[Server], **kwargs: Any) ->
     Server.objects.filter(pk__in=pks).update(failures=F('failures') + 1)
 
     offline_servers_qs = (Server.objects
-                          .filter(pk__in=pks, failures__gte=settings.TRACKER_STATUS_FAILURES))
+                          .filter(pk__in=pks, failures__gte=settings.TRACKER_STATUS_TOLERATED_FAILURES))
     if offline_servers := offline_servers_qs:
         logger.debug('%d of %d failed servers are offline', len(offline_servers), len(servers))
         offline_servers_detected.send(sender=None, servers=offline_servers)
@@ -78,7 +78,7 @@ def detect_offline_servers(sender: Any, servers: list[Server], **kwargs: Any) ->
 def unlist_offline_servers(sender: Any, servers: list[Server], **kwargs: Any) -> None:
     """Unlist servers that have been detected as offline"""
     redis = get_redis_connection()
-    redis.hdel(settings.TRACKER_SERVER_REDIS_KEY, *(server.address for server in servers))
+    redis.hdel(settings.TRACKER_STATUS_REDIS_KEY, *(server.address for server in servers))
 
     queryset = Server.objects.filter(pk__in=(obj.pk for obj in servers), listed=True)
     if updated := queryset.update(listed=False):

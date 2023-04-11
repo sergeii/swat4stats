@@ -1,7 +1,7 @@
 import contextlib
 import socketserver
 import threading
-import asyncio
+from functools import cached_property
 from unittest import mock
 
 from django.db import transaction
@@ -9,8 +9,6 @@ import pytest
 from pytest_localserver.http import ContentServer
 from rest_framework.test import APIClient
 from ipwhois import IPWhois
-
-from apps.tracker.utils.aio import with_timeout
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -136,12 +134,34 @@ def create_udpservers():
     return create
 
 
+class UDPServerAddress:
+
+    def __init__(self, server):
+        self.address = server.server_address
+
+    @property
+    def ip(self):
+        return self.address[0]
+
+    @property
+    def port(self):
+        return self.address[1] - 1
+
+    @property
+    def query_port(self):
+        return self.address[1]
+
+
 class UDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
 
-    def __init__(self, server_address=None, responses=None):
+    def __init__(
+        self,
+        server_address: tuple[str, int] | None = None,
+        responses: list[bytes] | None = None,
+    ) -> None:
         self.responses = responses or []
         server_address = server_address or ('127.0.0.1', 0)
-        super().__init__(server_address, None)
+        super().__init__(server_address, None, True)
 
     def finish_request(self, request, client_address):
         responses = self.responses or [b'']
@@ -153,63 +173,15 @@ class UDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
                 break
             self.socket.sendto(response, client_address)
 
-    def start(self):
+    def start(self) -> None:
         self.thread = threading.Thread(target=self.serve_forever)
         self.thread.daemon = True
         self.thread.start()
 
-    def stop(self):
+    def stop(self) -> None:
         self.shutdown()
         self.server_close()
 
-
-@pytest.fixture
-def send_udp_query(loop):
-
-    class UdpQueryProtocol:
-
-        def __init__(self, message, loop):
-            self.message = message
-            self.loop = loop
-            self.transport = None
-            self.response = None
-
-        def connection_made(self, transport):
-            self.transport = transport
-            self.transport.sendto(self.message)
-
-        def connection_lost(self, exc):
-            pass
-
-        def datagram_received(self, data, addr):
-            self.response = data
-            self.transport.close()
-
-        @with_timeout(1)
-        async def wait_data(self):
-            while True:
-                if self.response is not None:
-                    return self.response
-                await asyncio.sleep(0.1)
-
-    async def sender(addr, data):
-        connect = loop.create_datagram_endpoint(lambda: UdpQueryProtocol(data, loop), remote_addr=addr)
-        transport, protocol = await connect
-        local_addr = transport.get_extra_info('socket').getsockname()
-        return (await protocol.wait_data(), local_addr)
-
-    return sender
-
-
-@pytest.fixture
-def send_tcp_query(loop):
-
-    async def sender(addr, data):
-        ip, port = addr
-        reader, writer = await asyncio.open_connection(ip, port, loop=loop)
-        writer.write(data)
-        data = await reader.read(4096)
-        writer.close()
-        return data
-
-    return sender
+    @cached_property
+    def address(self) -> UDPServerAddress:
+        return UDPServerAddress(self)

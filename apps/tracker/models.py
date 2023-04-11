@@ -81,7 +81,7 @@ class Server(models.Model):
         redis = cache.client.get_client()
         logger.info('storing status for server %s:%s (%s)',
                     self.ip, self.port, self.pk)
-        redis.hset(settings.TRACKER_SERVER_REDIS_KEY, self.address, dumps(status).encode())
+        redis.hset(settings.TRACKER_STATUS_REDIS_KEY, self.address, dumps(status).encode())
 
     def save(self, *args, **kwargs):
         self.clean()

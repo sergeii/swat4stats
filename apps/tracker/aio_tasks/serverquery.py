@@ -2,30 +2,35 @@ import asyncio
 import socket
 import re
 import logging
-from typing import Any
+from typing import Any, TypedDict
 
 from django.conf import settings
 
 from apps.tracker.utils import aio
 
-
 logger = logging.getLogger(__name__)
 
-ParsedResponse = dict[str, str | list[dict[str, str]]]
+
+class ServerInfo(TypedDict, total=False):
+    hostname: str
+    hostport: str
+    players: list[dict[str, str]]
+    objectives: list[dict[str, str]]
+
+
+class ResponseMalformed(Exception):
+    pass
+
+
+class ResponseIncomplete(Exception):
+    pass
 
 
 class ServerStatusTask(aio.Task):
     """Async task for making GameSpy1 status requests."""
 
-    class ResponseMalformed(Exception):
-        pass
-
-    class ResponseIncomplete(Exception):
-        pass
-
     status_buf_size = 2048
     status_query = b'\\status\\'
-    semaphore = asyncio.Semaphore(settings.TRACKER_STATUS_CONCURRENCY)
 
     def __init__(self, *, ip: str, status_port: int, **kwargs: Any) -> None:
         self.ip = ip
@@ -33,9 +38,8 @@ class ServerStatusTask(aio.Task):
         self.status_addr = (self.ip, self.status_port)
         super().__init__(**kwargs)
 
-    @aio.with_semaphore(semaphore)
-    @aio.with_timeout(settings.TRACKER_STATUS_TIMEOUT)
-    async def start(self) -> ParsedResponse:
+    @aio.with_timeout(settings.TRACKER_STATUS_QUERY_TIMEOUT)
+    async def start(self) -> ServerInfo:
         loop = asyncio.get_running_loop()
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -57,7 +61,7 @@ class ServerStatusTask(aio.Task):
                 packets.append(buf)
                 try:
                     payload = self._collect_status_payload(packets)
-                except self.ResponseIncomplete:
+                except ResponseIncomplete:
                     continue
                 else:
                     return self._expand_status_payload(payload)
@@ -87,7 +91,7 @@ class ServerStatusTask(aio.Task):
                 params.append((key, value))
         return params
 
-    def _expand_status_payload(self, data: str) -> ParsedResponse:
+    def _expand_status_payload(self, data: str) -> ServerInfo:
         """
         Expand a status payload into a dictionary mapping status keys to its values.
         Player and COOP objective params are additionally expanded into lists.
@@ -165,12 +169,12 @@ class ServerStatusTask(aio.Task):
                 count = order
 
             if order is None:
-                raise self.ResponseMalformed('no order specified')
+                raise ResponseMalformed('no order specified')
 
             ordered[order] = packet
 
         if not count or count != len(ordered):
-            raise self.ResponseIncomplete(f'received {len(ordered)} of {count}')
+            raise ResponseIncomplete(f'received {len(ordered)} of {count}')
 
         # sort packets by their order
         packets = (self._normalize_status_packet(value) for _, value in sorted(ordered.items()))

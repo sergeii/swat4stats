@@ -8,7 +8,7 @@ from apps.tracker.factories import (ServerFactory, ListedServerFactory,
 from apps.tracker.models import Server
 from apps.tracker.signals import (failed_servers_detected,
                                   offline_servers_detected, live_servers_detected)
-from apps.tracker.tasks import refresh_servers_chunk
+from apps.tracker.tasks import refresh_listed_servers
 
 
 @pytest.fixture
@@ -36,13 +36,13 @@ def test_hostname_not_updated_if_not_changed(server, django_assert_num_queries):
     assert server.hostname == 'foo'
 
 
-def test_live_server_is_relisted(server, udp_server):
+def test_live_server_failure_count_is_reset(server, udp_server):
     server_ip, server_port = udp_server.server_address
-    server = ServerFactory(ip=server_ip, port=server_port-1, failures=10, listed=False)
+    server = ServerFactory(ip=server_ip, port=server_port-1, failures=10, listed=True)
     ISPFactory(country='uk', ip=server_ip)
     udp_server.responses.append(ServerQueryFactory(hostport=server_port-1).as_gamespy())
 
-    refresh_servers_chunk(server.pk)
+    refresh_listed_servers.delay()
     server.refresh_from_db()
     assert server.failures == 0
     assert server.listed
