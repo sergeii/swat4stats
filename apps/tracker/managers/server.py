@@ -348,6 +348,8 @@ class ServerManager(models.Manager):
                     )
                 )
 
+        logger.debug('starting %s extra query port probes', len(tasks))
         aio.run_many(tasks)
+        logger.debug('collected %s extra query port probe results', len(results))
 
         return results
