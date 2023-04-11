@@ -9,17 +9,6 @@ from apps.tracker.signals import live_servers_detected, offline_servers_detected
 from apps.tracker.tasks import refresh_listed_servers
 
 
-# def test_refresh_listed_servers(db):
-#     unlisted_servers = ServerFactory.create_batch(2, listed=False)  # noqa
-#     listed_servers = ServerFactory.create_batch(3, listed=True)
-#
-#     with mock.patch.object(refresh_servers_chunk, 'apply_async') as refresh_mock:
-#         refresh_listed_servers.delay()
-#         assert refresh_mock.called
-#         args, kwargs = refresh_mock.call_args[0]
-#         assert set(args) == {obj.pk for obj in listed_servers}
-
-
 def test_hostname_is_updated_for_active_servers(db, create_udpservers):
     with create_udpservers(1) as udp_servers:
         udp_server = udp_servers[0]

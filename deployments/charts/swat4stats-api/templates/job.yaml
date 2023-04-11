@@ -20,6 +20,11 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["python", "manage.py", "migrate", "--noinput"]
+        env:
+          {{- range $key, $val := .Values.sharedEnv }}
+          - name: {{ $key }}
+            value: "{{ $val }}"
+          {{- end }}
         envFrom:
         {{- range .Values.envFromSecrets }}
           - secretRef:

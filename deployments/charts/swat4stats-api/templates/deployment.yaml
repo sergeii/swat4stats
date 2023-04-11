@@ -59,6 +59,10 @@ spec:
             - name: {{ $key }}
               value: "{{ $val }}"
           {{- end }}
+          {{- range $key, $val := .Values.sharedEnv }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+          {{- end }}
           envFrom:
           {{- range .Values.envFromSecrets }}
             - secretRef:
@@ -119,6 +123,11 @@ spec:
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           command:
             {{- toYaml ($workerCmd | toStrings) | nindent 12 }}
+          env:
+            {{- range $key, $val := $.Values.sharedEnv }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+            {{- end }}
           envFrom:
           {{- range $.Values.envFromSecrets }}
             - secretRef:
@@ -168,6 +177,11 @@ spec:
               mountPath: /tmp
           command:
             {{- toYaml ($beatCmd | toStrings) | nindent 12 }}
+          env:
+            {{- range $key, $val := $.Values.sharedEnv }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+            {{- end }}
           envFrom:
           {{- range $.Values.envFromSecrets }}
             - secretRef:

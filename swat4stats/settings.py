@@ -4,27 +4,14 @@ from datetime import timedelta
 from pathlib import Path
 import warnings
 
-import sentry_sdk
 from celery.schedules import crontab
 from django.utils.deprecation import RemovedInDjango50Warning
-from sentry_sdk.integrations.celery import CeleryIntegration
 
 from apps.utils.settings import env, env_bool, env_list, env_log_level
 
 
 warnings.simplefilter('ignore', RemovedInDjango50Warning)
 warnings.simplefilter('ignore', DeprecationWarning)
-
-
-if sentry_dsn := os.environ.get('SETTINGS_SENTRY_DSN'):
-    traces_sample_rate = os.environ.get('SETTINGS_SENTRY_SAMPLE_RATE')
-    sentry_sdk.init(
-        dsn=sentry_dsn,
-        integrations=[
-            CeleryIntegration(),
-        ],
-        traces_sample_rate=float(traces_sample_rate) if traces_sample_rate else 0.0,
-    )
 
 
 def redis_url(alias):

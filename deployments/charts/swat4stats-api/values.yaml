@@ -96,3 +96,12 @@ livenessProbe:
   initialDelaySeconds: 10
   timeoutSeconds: 5
   failureThreshold: 6
+
+sharedEnv:
+  SETTINGS_ALLOWED_HOSTS: ".swat4stats.com"
+  SETTINGS_LOG_LEVEL: DEBUG
+  SETTINGS_EMAIL_BACKEND_ALIAS: smtp
+  SETTINGS_SERVER_EMAIL: django@swat4stats.com
+  SETTINGS_DEFAULT_FROM_EMAIL: noreply@swat4stats.com
+  SETTINGS_SENTRY_API_SAMPLE_RATE: "1.0"
+  SETTINGS_SENTRY_CELERY_SAMPLE_RATE: "1.0"

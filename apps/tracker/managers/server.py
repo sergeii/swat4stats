@@ -122,11 +122,7 @@ class ServerQuerySet(models.QuerySet):
                 )
             )
 
-        # FIXME: remove
-        logger.debug('%s serverquery tasks in pool', len(tasks))
         aio.run_many(tasks, concurrency=settings.TRACKER_STATUS_QUERY_CONCURRENCY)
-        # FIXME: remove
-        logger.debug('finished %s serverquery tasks', len(tasks))
 
         return result
 
@@ -256,11 +252,7 @@ class ServerManager(models.Manager):
                 )
             )
 
-        # FIXME: remove
-        logger.debug('%s server discovery tasks in pool', len(tasks))
         aio.run_many(tasks)
-        # FIXME: remove
-        logger.debug('finished %s server discovery tasks', len(tasks))
 
         # remove duplicate ips
         server_addrs: set[tuple[str, str]] = set()
@@ -372,10 +364,6 @@ class ServerManager(models.Manager):
         # shuffle the tasks to avoid probing multiple ports of the same server at a time
         random.shuffle(tasks)
 
-        # FIXME: remove
-        logger.debug('starting %s extra query port probes', len(tasks))
         aio.run_many(tasks, concurrency=settings.TRACKER_PORT_DISCOVERY_CONCURRENCY)
-        # FIXME: remove
-        logger.debug('collected %s extra query port probe results', len(results))
 
         return results
