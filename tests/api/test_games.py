@@ -236,6 +236,42 @@ def test_get_game_detail_player_vip_portrait(db, api_client, settings, team, loa
     assert player['portrait_picture'] == f'{settings.STATIC_URL}images/portraits/vip.jpg'
 
 
+@pytest.mark.parametrize('map_name, map_image_name', [
+    ('A-Bomb Nightclub', 'a-bomb-nightclub.jpg'),
+    ('Brewer County Courthouse', 'brewer-county-courthouse.jpg'),
+    ('St. Michael\'s Medical Center', 'st-michaels-medical-center.jpg'),
+    ('-EXP- Department of Agriculture', 'exp-department-of-agriculture.jpg'),
+    ('-EXP- Fresnal St. Station', 'exp-fresnal-st-station.jpg'),
+    ('Some Unknown Map', 'intro.jpg'),
+])
+def test_get_game_map_picture(db, api_client, settings, map_name, map_image_name):
+    game = GameFactory(map__name=map_name)
+
+    resp = api_client.get(f'/api/games/{game.pk}/')
+    assert resp.status_code == 200
+    assert resp.data['map']['preview_picture'] == f'{settings.STATIC_URL}images/maps/preview/{map_image_name}'
+    assert resp.data['map']['background_picture'] == f'{settings.STATIC_URL}images/maps/background/{map_image_name}'
+
+
+@pytest.mark.parametrize('map_name, briefing_snippet', [
+    ('A-Bomb Nightclub', 'We\'re being called up for a rapid deployment'),
+    ('St. Michael\'s Medical Center', 'Alright, men, we have an international incident'),
+    ('-EXP- Department of Agriculture', 'Okay, quiet down and listen.'),
+    ('-EXP- Fresnal St. Station', 'The shit has really hit the fan.'),
+    ('Some Unknown Map', None),
+])
+def test_get_coop_game_map_briefing(db, api_client, settings, map_name, briefing_snippet):
+    map = MapFactory(name=map_name)
+    coop_game = GameFactory(gametype='CO-OP', map=map)
+
+    resp = api_client.get(f'/api/games/{coop_game.pk}/')
+
+    if briefing_snippet is None:
+        assert resp.data['briefing'] is None
+    else:
+        assert resp.data['briefing'].startswith(briefing_snippet)
+
+
 def test_get_game_highlights_unknown_404(db, api_client):
     resp = api_client.get('/api/games/100500/highlights/')
     assert resp.status_code == 404

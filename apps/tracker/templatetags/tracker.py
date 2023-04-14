@@ -58,6 +58,7 @@ def map_background_picture(mapname, type='background'):
 def _map_background_picture(mapname, *, type):
     path_fmt = 'images/maps/%s/{map_slug}.jpg' % type
     map_path = path_fmt.format(map_slug=slugify(mapname))
+    print(map_path)
     # default map is intro
     if not find_staticfile(map_path):
         return _intro_background_picture(type)
