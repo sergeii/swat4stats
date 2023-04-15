@@ -61,6 +61,10 @@ spec:
             - name: {{ $key }}
               value: "{{ $val }}"
           {{- end }}
+          {{- range $key, $val := .Values.sharedEnv }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+          {{- end }}
           envFrom:
           {{- range .Values.envFromSecrets }}
             - secretRef:

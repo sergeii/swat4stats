@@ -76,6 +76,8 @@ ENV GIT_RELEASE_VER $git_release_ver
 ARG git_release_sha
 ENV GIT_RELEASE_SHA $git_release_sha
 
+ENV SENTRY_RELEASE $git_release_ver
+
 WORKDIR /app/src
 USER worker
 ENV TERM xterm
