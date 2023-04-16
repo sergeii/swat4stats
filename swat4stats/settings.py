@@ -397,12 +397,12 @@ TRACKER_MIN_WEAPON_SHOTS = 1000
 # same for grenades
 TRACKER_MIN_GRENADE_SHOTS = 100
 # min kills for kill based ratio
-TRACKER_MIN_KILLS = 100
+TRACKER_MIN_KILLS = 500
 
 # min time for score per minute and other time based ratio
-TRACKER_MIN_TIME = 6 * 60*60
+TRACKER_MIN_TIME = 10 * 60*60
 # min time for round based stats
-TRACKER_MIN_GAMES = 50
+TRACKER_MIN_GAMES = 100
 
 # min ammo required for accuracy calculation in a single game round
 TRACKER_MIN_GAME_AMMO = 60
