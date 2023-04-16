@@ -32,6 +32,8 @@ def assert_error_code(response):
 
 @pytest.mark.parametrize('request_qs, ok', [
     ('0=foo&1=whois&2=ham&3=Serge%09127.0.0.1', True),
+    ('0=foo&1=whois&2=ham&3=Serge%09127.0.0.1&4=admin&5=1.1.1.1', True),
+    ('0=foo&1=whois&2=%21&3=Serge%09127.0.0.1&4=&5=', True),
     ('0=spam&1=whois&2=ham&3=Serge2%091.1.10.20', True),
     ('', False),  # empty qs
     ('0=foo', False),  # only hash is present

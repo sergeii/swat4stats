@@ -724,8 +724,9 @@ whois_schema = Schema({
     Mapping({'1': 'command'}): str,
     Mapping({'2': 'command_id'}): str,
     Optional(Mapping({'3': 'args'})): str,
+    Optional(Mapping({'4': 'admin_name'})): str,
+    Optional(Mapping({'5': 'admin_ip'})): str,
 }, required=True)
-
 
 serverquery_schema = Schema({
     'hostname': str,
