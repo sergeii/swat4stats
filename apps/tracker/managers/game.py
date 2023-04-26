@@ -1,14 +1,22 @@
 import logging
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 from django.db import models, transaction, IntegrityError
+from django.utils.translation import gettext_lazy as _
 
+from apps.tracker.entities import GamePlayerHighlight, GameTopFieldPlayer, GameNeighbors
+from apps.tracker.exceptions import GameDataAlreadySaved
 from apps.tracker.schema import (
     gametypes_reversed,
     mapnames_reversed, outcome_reversed,
     procedures_reversed, objectives_reversed, objective_status_reversed,
     teams_reversed, coop_status_reversed, weapon_reversed
 )
-from apps.tracker.utils import calc_coop_score, force_name
+from apps.tracker.utils import force_name
+
+if TYPE_CHECKING:
+    from apps.tracker.models import Server, Player, Game  # noqa
 
 
 logger = logging.getLogger(__name__)
@@ -16,8 +24,28 @@ logger = logging.getLogger(__name__)
 
 class GameManager(models.Manager):
 
+    highlights = [
+        (_('Hostage Crisis'), _('%(points)s VIP rescues'), 'vip_rescues', 2),
+        (_('No Exit'), _('%(points)s VIP captures'), 'vip_captures', 2),
+        (_('Quick Cut'), _('%(points)s bombs defused'), 'rd_bombs_defused', 2),
+        (_('Undying'), _('%(points)s enemies killed in a row'), 'kill_streak', 5),
+        (_('Insane'), _('%(points)s enemies arrested in a row'), 'arrest_streak', 5),
+        (_('Top Gun'), _('%(points)s points earned'), 'score', 30),
+        (_('Fire in the hole!'), _('%(points)s%% of grenades hit their targets'), 'grenade_accuracy', 50),
+        (_('Sharpshooter'), _('%(points)s%% of all shots hit targets'), 'gun_weapon_accuracy', 25),
+        (_('Killing Machine'), _('%(points)s enemies eliminated'), 'kills', 10),
+        (_('Resourceful'), _('%(points)s rounds of ammo fired'), 'gun_weapon_shots', 300),
+        # COOP
+        (_('Entry team to TOC!'), _('%(points)s reports sent to TOC'), 'coop_toc_reports', 10),
+        (_('Hostage Crisis'), _('%(points)s civilians rescued'), 'coop_hostage_arrests', 5),
+        (_('The pacifist'), _('%(points)s suspects secured'), 'coop_enemy_arrests', 5),
+        (_('No Mercy'), _('%(points)s suspects neutralized'), 'coop_enemy_incaps_and_kills', 5),
+    ]
+    highlights_weapon_min_kills = 5
+    highlights_weapon_min_accuracy = 20
+
     @transaction.atomic
-    def create_game(self, server, data, date_finished):
+    def create_game(self, server: 'Server', data: dict[str, Any], date_finished: datetime) -> 'Game':
         """
         Attempt to create using data that was received from a game server.
 
@@ -26,7 +54,13 @@ class GameManager(models.Manager):
         :param date_finished: Date the data was received
         :return: Created game instance
         """
-        from apps.tracker.models import Game, Map
+        from apps.tracker.models import Map
+
+        # manually calculate the coop score based on procedures' scores
+        if coop_procedures := data.get('coop_procedures'):
+            coop_score = min(100, sum(proc['score'] for proc in coop_procedures))
+        else:
+            coop_score = 0
 
         logger.info('creating game with id %s from server %s', data['tag'], server)
         try:
@@ -49,23 +83,23 @@ class GameManager(models.Manager):
                     vict_sus=data['vict_sus'],
                     rd_bombs_defused=data['bombs_defused'],
                     rd_bombs_total=data['bombs_total'],
-                    coop_score=min(100, (calc_coop_score(data.get('coop_procedures')))),
+                    coop_score=coop_score,
                 )
         except IntegrityError as exc:
             logger.info('game with tag %s is already saved (%s)', data['tag'], exc)
-            raise Game.DataAlreadySaved
+            raise GameDataAlreadySaved
 
         # now save rest of the data
-        if data.get('coop_procedures'):
-            self._create_game_procedures(game, data['coop_procedures'])
-        if data.get('coop_objectives'):
-            self._create_game_objectives(game, data['coop_objectives'])
-        if data.get('players'):
-            self._create_game_players(game, data['players'])
+        if coop_procedures:
+            self._create_game_procedures(game, coop_procedures)
+        if coop_objectives := data.get('coop_objectives'):
+            self._create_game_objectives(game, coop_objectives)
+        if players := data.get('players'):
+            self._create_game_players(game, players)
 
         return game
 
-    def _create_game_procedures(self, game, procedures):
+    def _create_game_procedures(self, game: 'Game', procedures: list[dict[str, str]]) -> None:
         """Process COOP mission procedures"""
         from apps.tracker.models import Procedure
         Procedure.objects.bulk_create([
@@ -79,7 +113,7 @@ class GameManager(models.Manager):
             for procedure in procedures
         ])
 
-    def _create_game_objectives(self, game, objectives):
+    def _create_game_objectives(self, game: 'Game', objectives: list[dict[str, str]]) -> None:
         """Process COOP mission objectives"""
         from apps.tracker.models import Objective
         Objective.objects.bulk_create([
@@ -93,9 +127,9 @@ class GameManager(models.Manager):
             for objective in objectives
         ])
 
-    def _create_game_players(self, game, players):
+    def _create_game_players(self, game: 'Game', players: list[dict[str, Any]]) -> None:
         """Process round players"""
-        from apps.tracker.models import Alias, Player, Loadout, Weapon
+        from apps.tracker.models import Alias, Player, Loadout, Weapon  # noqa: F811
 
         fields = [
             'team', 'coop_status', 'vip', 'admin', 'dropped',
@@ -148,3 +182,75 @@ class GameManager(models.Manager):
                     for weapon in player_item['weapons']
                     if weapon['name'] not in (-1,)
                 ])
+
+    @classmethod
+    def get_player_with_max_points(cls, game: 'Game', field: str) -> GameTopFieldPlayer | None:
+        """
+        Return the player with the highest value of given field
+        """
+        players_with_field = [
+            (player, getattr(player, field) or 0) for player in game.player_set.all()
+        ]
+
+        if not players_with_field:
+            return None
+
+        top_player, top_points = max(players_with_field, key=lambda item: item[1])
+        return GameTopFieldPlayer(player=top_player, field=field, points=top_points)
+
+    @classmethod
+    def get_highlights_for_game(cls, game: 'Game') -> list[GamePlayerHighlight]:
+        """
+        Return a list of notable game achievements credited to specific players.
+        """
+        items = []
+
+        for title, description, field, min_points in cls.highlights:
+            if not (player_with_max_points := cls.get_player_with_max_points(game, field)):
+                continue
+
+            if player_with_max_points.points < min_points:
+                continue
+
+            items.append(
+                GamePlayerHighlight(
+                    player=player_with_max_points.player,
+                    title=title,
+                    description=description % {'points': player_with_max_points.points},
+                )
+            )
+
+        return items + cls._get_player_weapon_highlights(game)
+
+    @classmethod
+    def _get_player_weapon_highlights(cls, game: 'Game') -> list[GamePlayerHighlight]:
+        all_player_weapons = {}
+        for player in game.player_set.all():
+            for wpn in player.gun_weapons:
+                if wpn.kills < cls.highlights_weapon_min_kills or wpn.accuracy < cls.highlights_weapon_min_accuracy:
+                    continue
+                all_player_weapons.setdefault(wpn.name, []).append((player, wpn))
+
+        highlights = []
+        # obtain the highest accuracy among all weapon users
+        for weapon_name, weapon_users in all_player_weapons.items():
+            top_user, top_user_weapon = max(weapon_users, key=lambda item: item[1].accuracy)
+            highlights.append(
+                GamePlayerHighlight(
+                    player=top_user,
+                    title=_('%(name)s Expert') % {'name': _(weapon_name)},
+                    description=_('%(kills)s kills with average accuracy of %(accuracy)s%%' % {
+                        'kills': top_user_weapon.kills,
+                        'accuracy': top_user_weapon.accuracy,
+                    }),
+                )
+            )
+
+        return highlights
+
+    def get_neighbors_for_game(self, game: 'Game') -> GameNeighbors:
+        qs = self.get_queryset().select_related('map', 'server').filter(server=game.server)
+        return GameNeighbors(
+            prev=qs.filter(pk__lt=game.pk).order_by('-pk').first(),
+            next=qs.filter(pk__gt=game.pk).order_by('pk').first(),
+        )

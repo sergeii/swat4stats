@@ -1,4 +1,9 @@
+from typing import TYPE_CHECKING, Optional
+from dataclasses import dataclass
 from enum import StrEnum, auto, IntEnum
+
+if TYPE_CHECKING:
+    from apps.tracker.models import Player, Game
 
 
 class Team(StrEnum):
@@ -299,3 +304,23 @@ class LegacyStatCategory(IntEnum):
     weapon_kills = 82
     weapon_teamhit_ratio = 83
     weapon_teamhits = 84
+
+
+@dataclass
+class GameTopFieldPlayer:
+    player: 'Player'
+    field: str
+    points: int
+
+
+@dataclass
+class GamePlayerHighlight:
+    player: 'Player'
+    title: str
+    description: str
+
+
+@dataclass
+class GameNeighbors:
+    prev: Optional['Game'] = None
+    next: Optional['Game'] = None

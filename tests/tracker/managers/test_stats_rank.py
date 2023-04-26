@@ -1,10 +1,7 @@
-from datetime import datetime
-
 import pytest
 from django.utils import timezone
-from pytz import UTC
 
-from apps.tracker.models import PlayerStats, Stats, GametypeStats
+from apps.tracker.models import PlayerStats, GametypeStats
 from apps.tracker.factories import PlayerStatsFactory, ProfileFactory, GametypeStatsFactory
 
 
@@ -222,13 +219,3 @@ def test_rank_map_stats_qualify():
     assert spmvipnow_1.position is None
     assert spmvipnow_2.position == 1
     assert spmvipnow_3.position is None
-
-
-def test_period_dates():
-    annual_2015 = (datetime(2015, 1, 1, tzinfo=UTC),
-                   datetime(2015, 12, 31, 23, 59, 59, 999999, tzinfo=UTC))
-    annual_2022 = (datetime(2022, 1, 1, tzinfo=UTC),
-                   datetime(2022, 12, 31, 23, 59, 59, 999999, tzinfo=UTC))
-
-    assert Stats.get_period_for_year(2015) == annual_2015
-    assert Stats.get_period_for_year(2022) == annual_2022

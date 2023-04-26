@@ -14,15 +14,6 @@ from apps.utils.misc import force_date
 logger = logging.getLogger(__name__)
 
 
-def calc_coop_score(procedures):
-    """
-    Calculate overall COOP prcedure score.
-    """
-    if procedures:
-        return sum(pro['score'] if isinstance(pro, dict) else pro.score for pro in procedures)
-    return 0
-
-
 def ratio(dividend: int | float,
           divisor: int | float,
           min_dividend: int | float | None = None,
@@ -40,17 +31,16 @@ def ratio(dividend: int | float,
         return 0.0
 
 
-def force_clean_name(name):
+def force_clean_name(name: str) -> str:
     """Return a name free of SWAT text tags and leading/trailing whitespace."""
     while True:
-        match = re.search(r'(\[[\\/]?[cub]\]|\[c[^\w][^\[\]]*?\])', name, flags=re.I)
-        if not match:
+        if not (match := re.search(r'(\[[\\/]?[cub]\]|\[c[^\w][^\[\]]*?\])', name, flags=re.I)):
             break
         name = name.replace(match.group(1), '')
     return name.strip()
 
 
-def force_valid_name(name, ip_address):
+def force_valid_name(name: str, ip_address: str) -> str:
     """
     Enforce name for given name, ip address pair.
 
@@ -65,12 +55,12 @@ def force_valid_name(name, ip_address):
     return name
 
 
-def force_name(name, ip_address):
+def force_name(name: str, ip_address: str) -> str:
     """Return a non-empty tagless name."""
     return force_valid_name(force_clean_name(name), ip_address)
 
 
-def format_name(name):
+def format_name(name: str) -> str:
     name = html.escape(name)
     # replace [c=xxxxxx] tags with html span tags
     name = re.sub(

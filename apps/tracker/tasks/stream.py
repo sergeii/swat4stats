@@ -5,6 +5,7 @@ from typing import Any
 import celery
 from django.db import transaction
 
+from apps.tracker.exceptions import GameDataAlreadySaved
 from swat4stats.celery import app
 from apps.tracker.models import Server, Game, Profile
 from apps.tracker.signals import game_data_saved
@@ -19,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 @app.task(bind=True, default_retry_delay=60, max_retries=5)
-@transaction.atomic
 def process_game_data(
     self: celery.Task,
     server_id: int,
@@ -37,7 +37,7 @@ def process_game_data(
 
     try:
         game = Game.objects.create_game(server=server, data=data, date_finished=data_received_at)
-    except Game.DataAlreadySaved:
+    except GameDataAlreadySaved:
         pass
     except Exception as exc:
         logger.error('failed to create game due to %s', exc,

@@ -104,8 +104,8 @@ def test_whois_match_profile(client, whois_mock, name, ip, alias, server):
     response = client.get(f'/api/whois/?0=foo&1=whois&2=ham&3={name}%09{ip}', HTTP_X_REAL_IP='127.11.12.44')
     assert_success_code(response)
 
-    messages = [force_clean_name(line) for line in response.content.decode().splitlines()[2:]]
-    assert messages[0].startswith(f'{ip} belongs to Cyprus (Epic)')
+    messages = [line for line in response.content.decode().split('\n')[2:]]
+    assert messages[0].startswith(f'[c=00FF00][b]{ip}[\\b][\\c] belongs to [c=00FF00]Cyprus[\\c] (Epic)')
 
     has_server = server is not None
     has_alias = alias != name
@@ -114,7 +114,7 @@ def test_whois_match_profile(client, whois_mock, name, ip, alias, server):
         assert len(messages) == 1 + has_server
     else:
         assert len(messages) == 2 + has_server
-        assert messages[1] == f'{name} is better known as {alias}'
+        assert messages[1] == f'[c=00FF00][b]{name}[\\b][\\c] is better known as [c=00FF00][b]{alias}[\\b][\\c]'
 
     if has_server:
-        assert messages[-1] == f'{alias} was last seen on {server} now'
+        assert messages[-1] == f'[c=00FF00][b]{alias}[\\b][\\c] was last seen on [c=00FF00]{server}[\\c] now'

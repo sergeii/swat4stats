@@ -1,0 +1,6 @@
+class GameDataAlreadySaved(Exception):
+    ...
+
+
+class MergeServersError(Exception):
+    ...

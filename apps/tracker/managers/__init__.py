@@ -6,4 +6,4 @@ from .map import MapManager
 from .player import PlayerQuerySet, PlayerManager
 from .profile import ProfileQuerySet, ProfileManager
 from .server import ServerQuerySet, ServerManager
-from .stats import StatsManager
+from .stats import StatsManager, ServerStatsManager

@@ -51,7 +51,7 @@ def test_update_player_preferences(task_mock, django_assert_num_queries):
     PlayerFactory.create_batch(3, alias__name='Konten', alias__profile=another_profile, alias__isp__country='nl',
                                loadout=LoadoutFactory(), team='suspects')
 
-    with freeze_timezone_now(now), django_assert_num_queries(19):
+    with freeze_timezone_now(now), django_assert_num_queries(15):
         update_player_preferences.delay()
 
     assert task_mock.called

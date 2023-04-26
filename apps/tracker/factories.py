@@ -211,6 +211,7 @@ class GameFactory(factory.django.DjangoModelFactory):
 
     mapname = 1
     gametype = 'VIP Escort'
+    gametype_legacy = 1
     outcome = 'swat_vip_escape'
     map = factory.SubFactory(MapFactory)
     server = factory.SubFactory(ServerFactory)

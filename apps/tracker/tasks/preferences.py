@@ -1,8 +1,6 @@
 import random
 import logging
 
-from django.db import transaction
-
 from swat4stats.celery import app
 from apps.tracker.models import Profile
 
@@ -30,7 +28,6 @@ def update_player_preferences() -> None:
 
 
 @app.task
-@transaction.atomic
 def update_player_preferences_for_profile(profile_pk: int) -> None:
     """Update preferences for given profile"""
     profile = Profile.objects.get(pk=profile_pk)

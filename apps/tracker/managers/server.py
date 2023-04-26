@@ -9,17 +9,19 @@ import voluptuous
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from voluptuous import Invalid
 
+from apps.tracker.exceptions import MergeServersError
 from apps.tracker.schema import serverquery_schema
 from apps.tracker.aio_tasks.discovery import ServerDiscoveryTask
 from apps.tracker.aio_tasks.serverquery import ServerStatusTask, ServerInfo
 from apps.tracker.utils import aio
-from apps.utils.misc import dumps
+from apps.utils.misc import dumps, concat_it
 
 if TYPE_CHECKING:
     from apps.tracker.models import Server  # noqa
@@ -142,7 +144,7 @@ class ServerQuerySet(models.QuerySet):
 class ServerManager(models.Manager):
 
     def get_queryset(self, *args, **kwargs):
-        return super().get_queryset(*args, **kwargs).order_by('-pinned', 'pk')
+        return super().get_queryset(*args, **kwargs).order_by('pk')
 
     def create_server(self, ip, port, **options):
         # attempt to check for duplicates
@@ -177,6 +179,56 @@ class ServerManager(models.Manager):
             return self.none()
 
         return self.filter(pk__in=server_pks)
+
+    def merge_servers(self, *, main: 'Server', merged: list['Server'], no_savepoint: bool = False) -> None:
+        main_id = main.pk
+        merged_ids = [server.pk for server in merged]
+
+        # cannot merge to a server that is already merged
+        if main.merged_into is not None:
+            raise MergeServersError('cannot merge to a merged server')
+
+        # need at least one server to merge
+        if not merged_ids:
+            raise MergeServersError('too few servers to merge')
+
+        # cannot merge a server into itself
+        if main_id in merged_ids:
+            raise MergeServersError('cannot merge a server into itself')
+
+        with transaction.atomic(savepoint=not no_savepoint):
+            self._merge_servers(main_id, merged_ids)
+
+    def _merge_servers(self, main_id: int, merged_ids: list[int]) -> None:
+        from apps.tracker.models import Game
+
+        merged_ids_str = concat_it(merged_ids)
+
+        logger.info('updating games of servers %s to %s', merged_ids_str, main_id)
+        affected_games_cnt = (Game.objects
+                              .filter(~Q(server_id=main_id), server_id__in=merged_ids)
+                              .update(server_id=main_id))
+        logger.info('finished updating %s games of servers %s to %s', affected_games_cnt, merged_ids_str, main_id)
+
+        # disable merged servers and save merge reference to the main server
+        affected_servers_cnt = (
+            self
+            .filter(~Q(pk=main_id), merged_into__isnull=True, pk__in=merged_ids)
+            .update(enabled=False, merged_into=main_id, merged_into_at=timezone.now())
+        )
+        if affected_servers_cnt != len(merged_ids):
+            raise MergeServersError('failed to merge all servers')
+
+        # also update references for those servers
+        # that were earlier merged into the servers that are being merged right now
+        indirect_servers_qs = (self
+                               .filter(~Q(pk=main_id), Q(merged_into__in=merged_ids))
+                               .values_list('pk', flat=True))
+        if indirect_servers_ids := list(indirect_servers_qs):
+            # don't update merged_into_at because the server were already merged
+            self.filter(pk__in=indirect_servers_ids).update(merged_into=main_id)
+            logger.info('updated merge references for %d servers %s to %s',
+                        len(indirect_servers_ids), concat_it(indirect_servers_ids), main_id)
 
     def probe_server_addr(self, server_addr: tuple[str, int]) -> ServerInfo | Exception:
         """Probe a server address for its status"""
@@ -336,7 +388,7 @@ class ServerManager(models.Manager):
 
             logger.debug('discovered %d ports for %s:%s: %s',
                          len(query_ports), server_ip, server_port,
-                         ', '.join(f'{item["port"]} [GS1={item["is_gs1"]}, AM={item["is_am"]}]'
+                         concat_it(f'{item["port"]} [GS1={item["is_gs1"]}, AM={item["is_am"]}]'
                                    for item in query_ports))
 
             update_qs = self.filter(Q(ip=server_ip, port=server_port) & ~Q(status_port=preferred_status_port))

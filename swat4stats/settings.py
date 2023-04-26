@@ -278,6 +278,9 @@ CELERY_TASK_IGNORE_RESULT = True
 CELERY_TASK_DEFAULT_QUEUE = 'default'
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 
+if env_bool('SETTINGS_CELERY_TASK_ALWAYS_EAGER', False) and DEBUG:
+    CELERY_TASK_ALWAYS_EAGER = True
+
 CELERY_TASK_ROUTES = {
     'cacheback.tasks.refresh_cache': {
         'queue': 'cacheback',
@@ -326,6 +329,13 @@ CELERY_BEAT_SCHEDULE = {
     'update_player_stats': {
         'task': 'update_player_stats',
         'schedule': crontab(minute=0),
+        'options': {
+            'expires': 30 * 60,
+        },
+    },
+    'merge_server_stats': {
+        'task': 'merge_server_stats',
+        'schedule': crontab(minute=30),
         'options': {
             'expires': 30 * 60,
         },

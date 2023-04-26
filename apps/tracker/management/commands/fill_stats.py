@@ -15,8 +15,8 @@ def fill_profile_stats(queryset):
 
     for year_date in iterate_years(date(2007, 1, 1), timezone.now().date()):
         year = year_date.year
-        for profile in queryset:
-            profile.update_annual_stats(year=year)
+        for profile in queryset.iterator():
+            Profile.objects.update_annual_stats_for_profile(profile=profile, year=year)
 
     queryset.update(stats_updated_at=timezone.now())
 

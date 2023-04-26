@@ -1,4 +1,4 @@
-{% load i18n tracker %}{% if players %}{{ initial }}	{{ repeat }}
+{% load i18n %}{% if players %}{{ initial }}	{{ repeat }}
 [c=FFFF00]{{ request.site.name }} [b]-[\b] {% blocktrans with title=title limit=limit %}TOP {{ limit }} by {{ title }}{% endblocktrans %}
 {% for obj in players %}
 {% if nodelay %}{{ initial }}{% else %}{{ initial|add:forloop.counter }}{% endif %}	{{ repeat }}

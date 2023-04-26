@@ -1,8 +1,11 @@
 import logging
 from typing import Any
 
+from django.db import transaction
+
+from apps.utils.misc import concat_it
 from swat4stats.celery import app
-from apps.tracker.models import Server
+from apps.tracker.models import Server, ServerStats
 from apps.tracker.signals import live_servers_detected, failed_servers_detected
 from apps.geoip.models import ISP
 
@@ -10,6 +13,8 @@ from apps.geoip.models import ISP
 __all__ = [
     'refresh_listed_servers',
     'update_server_country',
+    'merge_servers',
+    'merge_server_stats',
 ]
 
 logger = logging.getLogger(__name__)
@@ -60,3 +65,31 @@ def update_server_country(server_id: int) -> None:
 
     logger.info('updating country to %s for server %s', isp.country, server_id)
     Server.objects.filter(pk=server_id).update(country=isp.country)
+
+
+@app.task
+@transaction.atomic(durable=True)
+def merge_servers(main_server_id: int, merged_server_ids: list[int]) -> None:
+    logger.info('about to start merging servers %s into %s', concat_it(merged_server_ids), main_server_id)
+
+    server_ids = merged_server_ids + [main_server_id]
+    servers = (Server.objects
+               .select_for_update(no_key=True)
+               .order_by('pk')
+               .in_bulk(id_list=server_ids))
+
+    main_server = servers[main_server_id]
+    merged_servers = [servers[server_id] for server_id in merged_server_ids]
+
+    merged_servers_str = concat_it([f'{server} {server.pk}' for server in merged_servers]),
+    logger.info('merging %d servers %s into %s (%s)',
+                len(merged_server_ids), merged_servers_str, main_server, main_server_id)
+    Server.objects.merge_servers(main=main_server, merged=merged_servers, no_savepoint=True)
+
+    logger.info('finished merging %d servers %s into %s (%s)',
+                len(merged_server_ids), merged_servers_str, main_server, main_server_id)
+
+
+@app.task(name='merge_server_stats')
+def merge_server_stats() -> None:
+    ServerStats.objects.merge_unmerged_stats()

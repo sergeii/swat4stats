@@ -1,26 +1,11 @@
 import json
 from datetime import datetime, timedelta, time
 from functools import partial
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 
 from django.utils import timezone
 from django.utils.timezone import is_aware
 from pytz import UTC
-
-
-def flatten_list(items):
-    """
-    Recursively flatten a list of items
-
-    :return: Flattened list
-    """
-    result = []
-    for item in items:
-        if isinstance(item, (list, tuple)):
-            result.extend(flatten_list(item))
-        else:
-            result.append(item)
-    return result
 
 
 def timestamp():
@@ -79,6 +64,10 @@ def iterate_queryset(queryset, *, fields: list[str], chunk_size=1000):
 def iterate_list(list_: list, *, size: int) -> Iterator[list]:
     for i in range(0, len(list_), size):
         yield list_[i:i + size]
+
+
+def concat_it(iterable: Iterable, sep: str = ', ') -> str:
+    return sep.join(str(item) for item in iterable)
 
 
 dumps = partial(json.dumps, separators=(',', ':'))

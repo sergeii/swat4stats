@@ -3,6 +3,7 @@ import logging
 from collections import namedtuple
 from ipaddress import IPv4Address, IPv4Network
 
+from django.contrib import admin
 from django.db import models, transaction
 from django.db.models import Case, When, F, Q, Value
 from django.core.exceptions import ObjectDoesNotExist
@@ -54,41 +55,32 @@ class IP(models.Model):
             models.Index(F('range_to') - F('range_from'), name='tracker_ip_length'),
         ]
 
+    def __str__(self):
+        return f'{self.range_from_normal}-{self.range_to_normal}'
+
     def is_actual(self):
         """Tell whether an IP entry should be considered actual."""
         return (timezone.now() - self.date_created).total_seconds() <= settings.GEOIP_IP_EXPIRY
 
+    @admin.display(description=_('Start'), ordering='range_from')
     @cached_property
     def range_from_normal(self):
         """Return the range start address in dotted form."""
         return str(IPv4Address(self.range_from))
 
-    range_from_normal.short_description = _('Start')
-    range_from_normal.admin_order_field = 'range_from'
-
+    @admin.display(description=_('End'), ordering='range_to')
     @cached_property
     def range_to_normal(self):
         """Return the range end address in dotted form."""
         return str(IPv4Address(self.range_to))
 
-    range_to_normal.admin_order_field = 'range_to'
-    range_to_normal.short_description = _('End')
-
-    def __str__(self):
-        return f'{self.range_from_normal}-{self.range_to_normal}'
-
+    @admin.display(description=_('Length'), ordering='length')
     def admin_length(self):
         return self.length
 
-    admin_length.admin_order_field = 'length'
-    admin_length.short_description = _('Length')
-
-    def admin_is_fresh(self):
+    @admin.display(description=_('Freshness'), boolean=True, ordering='-date_created')
+    def admin_is_fresh(self) -> bool:
         return self.is_fresh
-
-    admin_is_fresh.admin_order_field = '-date_created'
-    admin_is_fresh.short_description = _('Freshness')
-    admin_is_fresh.boolean = True
 
 
 class ISPManager(models.Manager):

@@ -8,7 +8,7 @@ class JuliaQueryString(dict):
         """
         Parse a raw querystring and set the parsed items as members of the instance.
         Do not let duplicate keys to shadow the same keys that have been set previously.
-        Instead turn the item into a list of concurrent values.
+        Instead, turn the item into a list of concurrent values.
 
         Example:
             >>> qs = QueryString()

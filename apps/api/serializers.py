@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 from collections.abc import Callable
+from urllib.parse import quote as urlquote
 
 import voluptuous
 from django.db import transaction
@@ -8,17 +9,21 @@ from django.utils.safestring import SafeString
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.templatetags.static import static
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.news.models import Article
-from apps.tracker.entities import GameType
+from apps.tracker.entities import GameType, CoopStatus
 from apps.tracker.models import Server, Map, Game, Player, Objective, Procedure, Weapon, PlayerStats, Profile, Loadout
 from apps.tracker.schema import coop_status_encoded, serverquery_schema
 from apps.tracker.utils import force_clean_name, format_name, html
-from apps.tracker.templatetags import country, gametype_rules_text, map_background_picture, map_briefing_text
-
+from apps.tracker.utils.game import (
+    get_player_portrait_image,
+    gametype_rules_text,
+    map_briefing_text,
+    map_background_picture,
+)
+from apps.tracker.utils.geo import country
 
 logger = logging.getLogger(__name__)
 
@@ -77,21 +82,22 @@ class StatusPlayerSerializer(serializers.Serializer):
     special = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
 
-    def get_coop_status(self, obj: dict) -> str:
+    def get_coop_status(self, obj: dict[str, Any]) -> str:
         return _(obj.get('coop_status') or self.default_coop_status)
 
-    def get_coop_status_slug(self, obj: dict) -> str:
+    def get_coop_status_slug(self, obj: dict[str, Any]) -> str:
         return slugify(obj.get('coop_status') or self.default_coop_status)
 
-    def get_special(self, obj: dict) -> int:
+    def get_special(self, obj: dict[str, Any]) -> int:
         return (obj['vescaped'] +
                 obj['arrestedvip'] +
                 obj['unarrestedvip'] +
                 obj['bombsdiffused'] +
                 obj['escapedcase'])
 
-    def get_url(self, obj: dict) -> str:
-        return f"search/?player={obj['name']}/"
+    def get_url(self, obj: dict[str, Any]) -> str:
+        html_name = urlquote(obj['name'])
+        return f"/search/?player={html_name}"
 
 
 class StatusBaseSerializer(serializers.Serializer):
@@ -186,9 +192,10 @@ class ServerBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Server
-        read_only_fields = ('id', 'pinned',
-                            'country', 'country_human', 'hostname', 'name_clean', 'status',
-                            'address')
+        read_only_fields = (
+            'id', 'address', 'pinned',
+            'country', 'country_human', 'hostname', 'name_clean', 'status',
+        )
         fields = read_only_fields + ('ip', 'port',)
         validators: list[Callable] = []
 
@@ -203,6 +210,11 @@ class ServerBaseSerializer(serializers.ModelSerializer):
 
 class ServerFullSerializer(ServerBaseSerializer):
     status = StatusFullSerializer(read_only=True)
+    merged_into = ServerBaseSerializer(read_only=True)
+
+    class Meta(ServerBaseSerializer.Meta):
+        read_only_fields = ServerBaseSerializer.Meta.read_only_fields + ('merged_into',)
+        fields = ServerBaseSerializer.Meta.fields + ('merged_into',)
 
 
 class ServerCreateSerializer(ServerFullSerializer):
@@ -275,9 +287,30 @@ class MapSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class PlayerSerializer(serializers.ModelSerializer):
-    default_coop_status = coop_status_encoded[1]
+class ProfileBaseSerializer(serializers.ModelSerializer):
+    country_human = serializers.SerializerMethodField()
+    portrait_picture = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Profile
+        fields = ('id', 'name', 'team', 'country', 'country_human', 'portrait_picture')
+        read_only_fields = fields
+
+    def get_portrait_picture(self, obj: Profile) -> str:
+        return get_player_portrait_image(
+            team=obj.team,
+            head=obj.loadout.head if obj.loadout else None,
+            body=obj.loadout.body if obj.loadout else None,
+        )
+
+    def get_country_human(self, obj: Profile) -> str | None:
+        if obj.country:
+            return country(obj.country)
+        return None
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+    profile = ProfileBaseSerializer()
     portrait_picture = serializers.SerializerMethodField()
     country = serializers.SerializerMethodField()
     country_human = serializers.SerializerMethodField()
@@ -286,7 +319,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ('id', 'name', 'portrait_picture', 'country',
+        fields = ('id', 'name', 'portrait_picture', 'country', 'profile',
                   'country_human', 'team', 'coop_status', 'coop_status_slug', 'vip', 'dropped',
                   'score', 'time', 'kills', 'teamkills', 'deaths', 'suicides', 'arrests',
                   'arrested', 'kill_streak', 'arrest_streak', 'death_streak',
@@ -298,16 +331,12 @@ class PlayerSerializer(serializers.ModelSerializer):
                   'special')
 
     def get_portrait_picture(self, obj: Player) -> str:
-        path_format = 'images/portraits/{name}.jpg'
-        if obj.vip:
-            static_path = path_format.format(name='vip')
-        elif obj.loadout and obj.loadout.has_armor():
-            head_slug = slugify(obj.loadout.head.lower())
-            body_slug = slugify(obj.loadout.body.lower())
-            static_path = path_format.format(name=f'{obj.team}-{body_slug}-{head_slug}')
-        else:
-            static_path = path_format.format(name=f'{obj.team}')
-        return static(static_path)
+        return get_player_portrait_image(
+            team=obj.team,
+            is_vip=obj.vip,
+            head=obj.loadout.head if obj.loadout else None,
+            body=obj.loadout.body if obj.loadout else None,
+        )
 
     def get_country(self, obj: Player) -> str | None:
         if obj.alias.isp and obj.alias.isp.country:
@@ -320,10 +349,10 @@ class PlayerSerializer(serializers.ModelSerializer):
         return None
 
     def get_coop_status(self, obj: Player) -> str:
-        return _(obj.coop_status or self.default_coop_status)
+        return _(obj.coop_status or CoopStatus.ready.value)
 
     def get_coop_status_slug(self, obj: Player) -> str:
-        return slugify(obj.coop_status or self.default_coop_status)
+        return slugify(obj.coop_status or CoopStatus.ready.value)
 
 
 class PlayerWeaponSerializer(serializers.ModelSerializer):
@@ -420,7 +449,13 @@ class GameBaseSerializer(serializers.ModelSerializer):
         return slugify(obj.gametype)
 
 
+class GameNeighborsSerializer(serializers.Serializer):
+    next = GameBaseSerializer()
+    prev = GameBaseSerializer()
+
+
 class GameSerializer(GameBaseSerializer):
+    neighbors = GameNeighborsSerializer(source='get_neighboring_games', read_only=True)
     players = PlayerSerializer(many=True, source='player_set')
     objectives = ObjectiveSerializer(many=True, source='objective_set')
     procedures = ProcedureSerializer(many=True, source='procedure_set')
@@ -429,7 +464,7 @@ class GameSerializer(GameBaseSerializer):
     coop_rank = serializers.SerializerMethodField()
 
     class Meta(GameBaseSerializer.Meta):
-        fields = GameBaseSerializer.Meta.fields + ('players', 'objectives', 'procedures',
+        fields = GameBaseSerializer.Meta.fields + ('neighbors', 'players', 'objectives', 'procedures',
                                                    'time', 'outcome', 'player_num',
                                                    'rules', 'briefing', 'coop_rank',
                                                    'vict_swat', 'vict_sus', 'rd_bombs_defused', 'rd_bombs_total')

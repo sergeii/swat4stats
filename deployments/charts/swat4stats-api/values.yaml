@@ -38,7 +38,7 @@ celery:
       replicas: 4
       concurrency: 1
       queues: [default]
-      time_limit: 120
+      time_limit: 300
       max_tasks: 1000
 
     - name: sq
@@ -99,9 +99,9 @@ livenessProbe:
 
 sharedEnv:
   SETTINGS_ALLOWED_HOSTS: ".swat4stats.com"
-  SETTINGS_LOG_LEVEL: DEBUG
+  SETTINGS_LOG_LEVEL: INFO
   SETTINGS_EMAIL_BACKEND_ALIAS: smtp
   SETTINGS_SERVER_EMAIL: django@swat4stats.com
   SETTINGS_DEFAULT_FROM_EMAIL: noreply@swat4stats.com
-  SETTINGS_SENTRY_API_SAMPLE_RATE: "1.0"
-  SETTINGS_SENTRY_CELERY_SAMPLE_RATE: "1.0"
+  SETTINGS_SENTRY_API_SAMPLE_RATE: "0.1"
+  SETTINGS_SENTRY_CELERY_SAMPLE_RATE: "0.1"

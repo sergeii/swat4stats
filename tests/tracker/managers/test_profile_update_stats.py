@@ -5,7 +5,7 @@ import pytest
 from pytz import UTC
 
 from apps.tracker.factories import PlayerFactory, ProfileFactory, MapFactory, WeaponFactory, ServerFactory
-from apps.tracker.models import MapStats, PlayerStats, WeaponStats, ServerStats, GametypeStats
+from apps.tracker.models import MapStats, PlayerStats, WeaponStats, ServerStats, GametypeStats, Profile
 
 
 @pytest.fixture
@@ -467,8 +467,8 @@ def flatten_stats(stat_items, *keys):
 
 @pytest.mark.django_db(databases=['default', 'replica'])
 def test_update_player_stats(db, settings, spieler, jogador):
-    jogador.update_stats()
-    spieler.update_stats()
+    Profile.objects.update_stats_for_profile(jogador)
+    Profile.objects.update_stats_for_profile(spieler)
 
     jogador_stats = partial(PlayerStats.objects.get, year=2015, profile=jogador)
     assert jogador_stats(category='draws').points == 1
@@ -541,16 +541,16 @@ def test_update_player_stats_for_empty_profile(db):
                               last_seen_at=datetime(2015, 12, 31, tzinfo=UTC))
     profile2 = ProfileFactory(first_seen_at=None, last_seen_at=None)
 
-    profile1.update_stats()
-    profile2.update_stats()
+    Profile.objects.update_stats_for_profile(profile1)
+    Profile.objects.update_stats_for_profile(profile2)
 
     assert PlayerStats.objects.count() == 0
 
 
 @pytest.mark.django_db(databases=['default', 'replica'])
 def test_update_weapon_stats(db, settings, jogador, spieler):
-    jogador.update_stats()
-    spieler.update_stats()
+    Profile.objects.update_stats_for_profile(jogador)
+    Profile.objects.update_stats_for_profile(spieler)
 
     jogador_stats_qs = (WeaponStats.objects
                         .filter(profile=jogador)
@@ -694,8 +694,8 @@ def test_update_weapon_stats(db, settings, jogador, spieler):
 
 @pytest.mark.django_db(databases=['default', 'replica'])
 def test_update_server_stats(db, settings, spieler, jogador, myt, wm, sef):
-    jogador.update_stats()
-    spieler.update_stats()
+    Profile.objects.update_stats_for_profile(jogador)
+    Profile.objects.update_stats_for_profile(spieler)
 
     jogador_stats_qs = (ServerStats.objects
                         .filter(profile=jogador)
@@ -909,8 +909,8 @@ def test_update_map_stats(abomb, brewer, spieler, jogador):
                   arrests=0,
                   arrest_streak=0)
 
-    profile.update_stats()
-    spieler.update_stats()
+    Profile.objects.update_stats_for_profile(profile)
+    Profile.objects.update_stats_for_profile(spieler)
 
     map_stats = (MapStats.objects
                  .filter(profile=profile)
@@ -956,13 +956,13 @@ def test_update_map_stats(abomb, brewer, spieler, jogador):
     }
 
     # no exception
-    ProfileFactory().update_stats()
+    Profile.objects.update_stats_for_profile(ProfileFactory())
 
 
 @pytest.mark.django_db(databases=['default', 'replica'])
 def test_update_gametype_stats(db, settings, spieler, jogador):
-    jogador.update_stats()
-    spieler.update_stats()
+    Profile.objects.update_stats_for_profile(jogador)
+    Profile.objects.update_stats_for_profile(spieler)
 
     jogador_stats_qs = (GametypeStats.objects
                         .filter(profile=jogador)

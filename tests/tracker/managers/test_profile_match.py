@@ -9,6 +9,7 @@ from apps.geoip.models import ISP, IP
 from apps.tracker.factories import (ServerFactory, GameFactory,
                                     PlayerFactory, ProfileFactory,
                                     AliasFactory)
+from apps.tracker.managers.profile import is_name_popular
 from apps.tracker.models import Profile, Alias
 
 
@@ -118,17 +119,6 @@ def test_match_smart_does_not_match_against_popular_names(db):
 
     with pytest.raises(ObjectDoesNotExist):
         Profile.objects.match_smart(name='newname', ip='127.0.0.3', isp=isp)
-
-
-def test_popular_names(db):
-    popular_names = (
-        'Player', 'player', 'Player2', 'player3',
-        'newname', 'swat', 'lol', 'TODOsetname2231',
-        'afk', 'afk5min', 'afk_dont_kick', 'killer',
-        'spieler', 'gracz', 'testing', 'test', 'testing_mod',
-    )
-    for name in popular_names:
-        assert Profile.is_name_popular(name)
 
 
 class TestProfileMatch:
@@ -272,3 +262,14 @@ def test_player_does_not_receive_same_profile_after_long_period(db):
     alias3 = Alias.objects.match_or_create(name='Another', ip='127.0.0.1', isp=isp)[0]
     assert alias3.pk != alias1.pk
     assert alias3.profile.pk == alias1.profile.pk
+
+
+def test_popular_names(db):
+    popular_names = (
+        'Player', 'player', 'Player2', 'player3',
+        'newname', 'swat', 'lol', 'TODOsetname2231',
+        'afk', 'afk5min', 'afk_dont_kick', 'killer',
+        'spieler', 'gracz', 'testing', 'test', 'testing_mod',
+    )
+    for name in popular_names:
+        assert is_name_popular(name)

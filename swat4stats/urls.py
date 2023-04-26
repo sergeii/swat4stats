@@ -2,13 +2,16 @@ from django.conf import settings
 from django.urls import include, path, re_path
 from django.contrib import admin
 from django.http import response, HttpResponse
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.sitemaps.views import sitemap, index as sitemap_index
 from rest_framework import routers
 
-from apps.api.views import (ServerViewSet, ArticleViewSet,
-                            PopularMapnamesViewSet, PopularServersViewSet,
-                            GameViewSet, ServerLeaderboardViewSet)
+from apps.api.views import (
+    ServerViewSet, ArticleViewSet,
+    PopularMapnamesViewSet, PopularServersViewSet,
+    GameViewSet, ServerLeaderboardViewSet,
+)
 from apps.tracker.sitemaps import ServerSitemap, ProfileSitemap, GameSitemap
 from apps.tracker.views import APIWhoisView, DataStreamView
 from apps.tracker.views.motd import APIMotdLeaderboardView, APILegacySummaryView
@@ -38,8 +41,8 @@ api_urls = [
 ]
 
 urlpatterns = [
-    path('sitemap.xml', sitemap_index, {'sitemaps': sitemaps, 'sitemap_url_name': 'sitemaps'}),
-    re_path(r'^sitemap-(?P<section>.+)\.xml$', sitemap, {'sitemaps': sitemaps}, name='sitemaps'),
+    path('sitemap.xml', cache_page(3600 * 24)(sitemap_index), {'sitemaps': sitemaps, 'sitemap_url_name': 'sitemaps'}),
+    path('sitemap-<section>.xml', cache_page(3600 * 6)(sitemap), {'sitemaps': sitemaps}, name='sitemaps'),
     path('admin/', admin.site.urls),
 
     # swat server api

@@ -5,7 +5,6 @@ from django.dispatch import receiver, Signal
 from django.db.models.signals import post_save
 from django.db import transaction
 from django.db.models import F
-from django.utils import timezone
 from django.conf import settings
 from django_redis import get_redis_connection
 
@@ -13,7 +12,7 @@ from apps.tracker.models import Server, Game
 
 logger = logging.getLogger(__name__)
 
-game_data_received = Signal()  # providing_args=['data', 'server', 'raw', 'request']
+game_data_received = Signal()  # providing_args=['data', 'server', 'request']
 game_data_saved = Signal()  # providing_args=['data', 'server', 'game']
 live_servers_detected = Signal()  # providing_args=['servers']
 failed_servers_detected = Signal()  # providing_args=['servers']
@@ -21,7 +20,8 @@ offline_servers_detected = Signal()  # providing_args=['servers']
 
 
 @receiver(post_save, sender=Server)
-def queue_update_server_country(sender, instance, **kwargs):
+@transaction.atomic(savepoint=False)
+def queue_update_server_country(sender: Any, instance: Server, **kwargs: Any) -> None:
     from apps.tracker.tasks import update_server_country
     transaction.on_commit(lambda: update_server_country.delay(instance.pk))
 
@@ -106,31 +106,7 @@ def update_streaming_server(sender, data, server, game, **kwargs):
 
 
 @receiver(game_data_saved)
+@transaction.atomic(savepoint=False)
 def queue_update_profile_games(sender: Any, game: Game, **kwargs: Any) -> None:
     from apps.tracker.tasks import update_profile_games
     transaction.on_commit(lambda: update_profile_games.delay(game.pk))
-
-
-@receiver(game_data_received)
-def queue_save_game_data(sender, data, server, **kwargs):
-    """
-    Attempt to create a new game in background from parsed data.
-    """
-    from apps.tracker.tasks import process_game_data
-    transaction.on_commit(lambda: process_game_data.delay(server_id=server.pk,
-                                                          data=data,
-                                                          data_received_at=timezone.now()))
-
-
-@receiver(game_data_received)
-def log_raw_game_data(sender, raw, server, **kwargs):
-    logging.getLogger('stream').info('%s: %s', server.address, raw)
-
-
-@receiver(game_data_received)
-def update_server_version(sender, data, server, **kwargs):
-    """
-    Store version of the tracker mod running on the server.
-    """
-    server.version = data['version']
-    server.save(update_fields=['version'])

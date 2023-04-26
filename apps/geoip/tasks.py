@@ -9,8 +9,10 @@ logger = logging.getLogger(__name__)
 @app.task(name='delete_expired_ips')
 def delete_expired_ips():
     """
-    Remove old expired IPs, so they can be renewed with fresh data.
+    Remove old expired IPs, so they can be renewed with fresh ones.
     """
-    queryset = IP.objects.expired()
-    logger.info('deleting %s expired ips', queryset.count())
-    queryset.delete()
+    deleted, _ = IP.objects.expired().delete()
+    if deleted:
+        logger.info('pruned %d expired ips', deleted)
+    else:
+        logger.info('no expired ips to prune')

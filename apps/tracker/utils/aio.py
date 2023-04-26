@@ -47,7 +47,8 @@ def run_many(tasks: list['Task'], concurrency: int | None = None) -> None:
 
 class Task(ABC):
 
-    def __init__(self, *,
+    def __init__(self,
+                 *,
                  callback: Callable | None = None,
                  id: Any | None = None):
         """

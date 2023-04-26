@@ -1,6 +1,8 @@
 import logging
 from collections import defaultdict
+from datetime import datetime
 from functools import partial
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db import models
@@ -8,6 +10,9 @@ from django.db.models import Sum, Max, Count, Case, When, Q, Min, Value
 from django.db.models.functions import NullIf, Cast, Round
 
 from apps.tracker.entities import Team, GameType, GameOutcome, Equipment
+
+if TYPE_CHECKING:
+    from apps.tracker.models import Profile, Server  # noqa
 
 logger = logging.getLogger(__name__)
 
@@ -201,21 +206,24 @@ class PlayerQuerySet(models.QuerySet):
         'vip_escape_time': Min(Case(When(Q(vip=True, vip_escapes=1, game__player_num__gte=14), then='time'))),
     }]
 
-    def with_qualified_games(self):
+    def with_qualified_games(self) -> 'PlayerQuerySet':
         """
         Include game rounds that have enough players to be qualified (except for CO-OP games)
         """
         return self.filter(Q(game__player_num__gte=settings.TRACKER_MIN_PLAYERS) |
                            Q(q_coop_modes))
 
-    def for_period(self, start_date, end_date):
+    def for_period(self, start_date: datetime, end_date: datetime) -> 'PlayerQuerySet':
         """
         Filter games by period tuple.
         """
         return self.filter(Q(game__date_finished__gte=start_date,
                              game__date_finished__lte=end_date))
 
-    def for_profile(self, profile):
+    def for_server(self, server: 'Server') -> 'PlayerQuerySet':
+        return self.filter(game__server=server)
+
+    def for_profile(self, profile: 'Profile') -> 'PlayerQuerySet':
         return self.filter(alias__profile=profile)
 
     def aggregate_player_stats(self) -> dict[str, int | float]:

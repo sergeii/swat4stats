@@ -1,7 +1,12 @@
+import functools
 import json
 import logging
+from enum import Enum
+from typing import Any
+from collections.abc import Callable
 
-from django.http import HttpResponse
+from django.core.exceptions import BadRequest
+from django.http import HttpResponse, HttpRequest
 from django.utils.translation import gettext_lazy as _
 from voluptuous import Invalid
 
@@ -12,121 +17,123 @@ from apps.tracker.utils.parser import JuliaQueryString
 logger = logging.getLogger(__name__)
 
 
-class APIError(Exception):
+class APIResponseStatus(str, Enum):
+    OK = '0'
+    ERROR = '1'
 
-    def __init__(self, message=None, *args, **kwargs):
+
+class APIResponse:
+    """
+    Return an integer status code accompanied by an optional message or a list of messages.
+    The status code and the following message(s) are delimited with a new line.
+
+    Example responses:
+        1. 0
+        2. 0\nData has been accepted
+        3. 1\nOutdated mod version\nPlease update to 1.2.3
+    """
+
+    @classmethod
+    def from_success(cls, message: str | list[str] | None = None) -> HttpResponse:
+        return cls._make_response(APIResponseStatus.OK, message)
+
+    @classmethod
+    def from_error(cls, message: str | list[str] | None = None) -> HttpResponse:
+        return cls._make_response(APIResponseStatus.ERROR, message)
+
+    @classmethod
+    def _make_response(cls, status: APIResponseStatus, message: str | list[str] | None) -> HttpResponse:
+        parts = [status.value]
+
+        match message:
+            case str():
+                parts.append(message)
+            case list():
+                parts.extend(message)
+
+        body = '\n'.join(map(str, parts))
+        return HttpResponse(body.strip())
+
+
+class APIError(BadRequest):
+
+    def __init__(self, message: str | None = None, *args: Any) -> None:
         self.message = message
-        super().__init__(*args, **kwargs)
+        super().__init__(*args)
 
 
-class StatusAPIViewMixin:
-    STATUS_OK = '0'
-    STATUS_ERROR = '1'
-
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Return an integer status code accompanied by an optional message.
-        The status code and message are delimited with a new line.
-
-        To return an error, simply raise APIError providing it
-        an optional error message (or a list of messages)
-
-        Example responses:
-            1. 0
-            2. 0\nData has been accepted
-            3. 1\nOutdated mod version\nPlease update to 1.2.3
-        """
-        try:
-            message = super().dispatch(request, *args, **kwargs)
-        except Exception as exc:
-            if isinstance(exc, APIError):
-                message = exc.message
-            else:
-                logger.error('error while handling server request %s', exc,
-                             exc_info=True,
-                             extra={'data': {'request': request}})
-                message = _('Failed to accept data due to a server error.')
-            status = self.STATUS_ERROR
-        else:
-            # only handle intermediate response messages
-            if isinstance(message, HttpResponse):
-                return message
-            status = self.STATUS_OK
-
-        # ensure result is a list of messages
-        messages = message if isinstance(message, (list, tuple)) else [message]
-        return HttpResponse('\n'.join(map(str, filter(None, [status] + list(messages)))))
-
-
-class SchemaDataRequiredMixin:
+def require_julia_schema(schema: Callable, schema_error_message: str | None = None) -> Callable:
     """
-    Attempt to parse request data (body POST requests, querystring for the rest methods)
-    with specified schema.
+    Decorator to validate request data with specified schema.
 
-    Raise APIError if failed to parse the data.
+    The view input (body or querystring) of a decorated function
+    is decoded by the most compatible decoder and is parsed with the specified schema.
+    The parsed data is passed as the second argument to the decorated function (after the request).
+
+    In case of validation error, the view returns an error response with the specified error message.
     """
-    schema = None
-    schema_methods = ['post']
-    schema_error_message = None
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+            match request.method:
+                case 'POST':
+                    request_body = request.body.decode()
+                case _:
+                    request_body = request.META['QUERY_STRING']
 
-    def dispatch(self, request, *args, **kwargs):
-        super_ = super().dispatch
+            # json
+            match request.META.get('CONTENT_TYPE'):
+                case 'application/json':
+                    try:
+                        decoded_body = json.loads(request_body)
+                    except (TypeError, ValueError) as e:
+                        logger.error('failed to parse json request (%s)', e,
+                                     exc_info=True,
+                                     extra={'data': {'request': request, 'body': request_body}})
+                        return APIResponse.from_error(schema_error_message)
+                # legacy formats
+                case _:
+                    julia_parser = JuliaQueryString()
+                    julia_parser.parse(request_body)
+                    julia_dotted = any('.' in key for key in julia_parser)
+                    expand_func = JuliaQueryString.expand_dots if julia_dotted else JuliaQueryString.expand_array
+                    # expand data with either method
+                    decoded_body = expand_func(julia_parser)
 
-        if request.method.lower() not in self.schema_methods:
-            return super_(request, *args, **kwargs)
-
-        if request.method in ('POST',):
-            request_body = request.body.decode()
-        else:
-            request_body = request.META['QUERY_STRING']
-
-        # json
-        if request.META.get('CONTENT_TYPE') in ('application/json',):
             try:
-                request_data = json.loads(request_body)
-            except (TypeError, ValueError) as e:
-                logger.error('failed to parse json request (%s)', e,
+                # validate the request data with the specified schema
+                request_data = schema(decoded_body)
+            except Invalid as e:
+                logger.error('failed to parse game data data (%s)', e,
                              exc_info=True,
-                             extra={'data': {'request': request,
-                                             'body': request_body}})
-                error_message = self.schema_error_message
-                raise APIError(error_message)
-        # old querystring formats
-        else:
-            julia_parser = JuliaQueryString()
-            julia_parser.parse(request_body)
-            julia_dotted = any('.' in key for key in julia_parser)
-            expand_func = JuliaQueryString.expand_dots if julia_dotted else JuliaQueryString.expand_array
-            # expand data with either method
-            request_data = expand_func(julia_parser)
+                             extra={'data': {'request': request, 'body': request_body}})
+                return APIResponse.from_error(schema_error_message)
 
-        try:
-            self.request_body = request_body
-            # validate the request data with the specified schema
-            self.request_data = self.schema(request_data)
-        except Invalid as e:
-            logger.error('failed to parse game data data (%s)', e,
-                         exc_info=True,
-                         extra={'data': {'request': request,
-                                         'body': request_body}})
-            error_message = self.schema_error_message
-            raise APIError(error_message)
+            return func(request, request_data, *args, **kwargs)
 
-        return super_(request, *args, **kwargs)
+        return wrapper
+
+    return decorator
 
 
-class KnownServerRequiredMixin:
+def require_known_server(func: Callable) -> Callable:
     """
-    Check whether there are any listed servers matching the client IP.
+    Decorator to check if the requesting client is known to the tracker.
 
-    Raise an APIError if none found.
+    The decorated view function checks whether
+    there are any listed servers matching the client IP.
+    Otherwise, return an error api response
     """
-
-    def dispatch(self, request, *args, **kwargs):
+    @functools.wraps(func)
+    def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         queryset = Server.objects.listed().filter(ip=request.META['REAL_REMOTE_ADDR'])
 
         if not queryset.exists():
-            raise APIError(_('The server is not allowed to use this service\n'
-                             'Please check whether it is listed at swat4stats.com/servers'))
+            return APIResponse.from_error([
+                _('The server is not allowed to use this service'),
+                _('Please check whether it is listed at swat4stats.com/servers')
+            ])
 
-        return super().dispatch(request, *args, **kwargs)
+        return func(request, *args, **kwargs)
+
+    return wrapper

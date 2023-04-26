@@ -1,0 +1,13 @@
+{% extends 'admin/base_site.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="module">
+  <h2>{% translate "Select servers to merge" %}</h2>
+  <form method="post" action="">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" name="apply" value="{% translate "Merge" %}" class="button">
+  </form>
+</div>
+{% endblock %}
