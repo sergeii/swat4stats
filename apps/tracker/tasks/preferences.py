@@ -1,7 +1,7 @@
 import random
 import logging
 
-from swat4stats.celery import app
+from swat4stats.celery import app, Queue
 from apps.tracker.models import Profile
 
 
@@ -14,10 +14,10 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-@app.task(name='update_player_preferences')
+@app.task(name='update_player_preferences', queue=Queue.default.value)
 def update_player_preferences() -> None:
     """
-    Update preferences such as name, country, loadout, etc
+    Update preferences such as name, country, loadout, etc.
     for players recently seen playing.
     """
     queryset = Profile.objects.require_preference_update()
@@ -27,7 +27,7 @@ def update_player_preferences() -> None:
                                                           countdown=random.randint(30, 300))
 
 
-@app.task
+@app.task(queue=Queue.default.value)
 def update_player_preferences_for_profile(profile_pk: int) -> None:
     """Update preferences for given profile"""
     profile = Profile.objects.get(pk=profile_pk)

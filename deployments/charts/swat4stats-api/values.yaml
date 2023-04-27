@@ -8,6 +8,7 @@ uwsgi:
   port: 9090
   targetPort: 9090
   replicas: 8
+  terminationGracePeriodSeconds: 10
   env:
     UWSGI_CHDIR: /app/src
     UWSGI_DISABLE_LOGGING: "true"
@@ -38,8 +39,15 @@ celery:
       replicas: 4
       concurrency: 1
       queues: [default]
-      time_limit: 600
+      time_limit: 300
       max_tasks: 1000
+
+    - name: heavy
+      replicas: 2
+      concurrency: 1
+      queues: [heavy]
+      time_limit: 3600
+      max_tasks: 100
 
     - name: sq
       replicas: 2
@@ -56,6 +64,16 @@ celery:
       max_tasks: 10000
   beat:
     replicas: 1
+
+
+celery_exporter:
+  enabled: true
+  image:
+    repository: danihodovic/celery-exporter
+    pullPolicy: IfNotPresent
+    pullSecrets: ""
+    tag: "0.7.5"
+    sha: "ac34dfb4edbc8a1eec047df8a5a705d3064ef7a55715ef3832156e076097dba3"
 
 staticfiles:
   port: 10080
@@ -105,3 +123,4 @@ sharedEnv:
   SETTINGS_DEFAULT_FROM_EMAIL: noreply@swat4stats.com
   SETTINGS_SENTRY_API_SAMPLE_RATE: "0.1"
   SETTINGS_SENTRY_CELERY_SAMPLE_RATE: "0.1"
+  SETTINGS_CELERY_BROKER_URL: redis://ha.int.khoroshilov.tech:16379/5

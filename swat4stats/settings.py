@@ -24,7 +24,6 @@ REDIS_PORT = env('SETTINGS_REDIS_PORT', 6379)
 REDIS_DB = {
     'default': int(env('SETTINGS_REDIS_CACHE_DB', 1)),
     'cacheback': int(env('SETTINGS_REDIS_CACHE_DB', 1)),
-    'celery': int(env('SETTINGS_REDIS_BROKER_DB', 2)),
 }
 
 EMAIL_BACKENDS = {
@@ -269,7 +268,7 @@ CACHEBACK_CACHE_ALIAS = 'cacheback'
 CACHEBACK_TASK_IGNORE_RESULT = True
 
 # celery
-CELERY_BROKER_URL = redis_url('celery')
+CELERY_BROKER_URL = env('SETTINGS_CELERY_BROKER_URL', 'memory://')
 CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_ACCEPT_CONTENT = ['json', 'xjson']

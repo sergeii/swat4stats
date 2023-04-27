@@ -23,6 +23,7 @@ spec:
       imagePullSecrets:
           {{- toYaml . | nindent 8 }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.uwsgi.terminationGracePeriodSeconds }}
       initContainers:
         - name: {{ include "swat4stats-api.podname" (set . "Name" "copystatic") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -91,6 +92,7 @@ spec:
     "--loglevel" $.Values.celery.log_level
     "--time-limit" .time_limit
     "--max-tasks-per-child" .max_tasks
+    "--events"
     "--pidfile="
 }}
 ---
@@ -117,6 +119,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .time_limit }}
       containers:
         - name: {{ include "swat4stats-api.podname" (set $ "Name" $workerName) }}
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
@@ -191,4 +194,39 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
+{{ end -}}
+
+{{- with .Values.celery_exporter }}
+{{- $exporterName := printf "%s-%s" "celery" "exporter" -}}
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "swat4stats-api.podname" (set $ "Name" $exporterName) }}
+  labels:
+    {{- include "swat4stats-api.labels" $ | nindent 4 }}
+spec:
+  replicas: {{ if .enabled }}1{{ else }}0{{ end }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $exporterName) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $exporterName) | nindent 8 }}
+    spec:
+      {{- with $.Values.image.pullSecrets }}
+      imagePullSecrets:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "swat4stats-api.podname" (set $ "Name" $exporterName) }}
+          image: "{{ .image.repository }}:{{ .image.tag | default "latest" }}{{ if .image.sha }}@sha256:{{ .image.sha }}{{ end }}"
+          imagePullPolicy: {{ .image.pullPolicy }}
+          env:
+            - name: CE_BROKER_URL
+              value: "{{ $.Values.sharedEnv.SETTINGS_CELERY_BROKER_URL }}"
 {{ end -}}

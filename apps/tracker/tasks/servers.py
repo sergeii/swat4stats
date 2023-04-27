@@ -4,7 +4,7 @@ from typing import Any
 from django.db import transaction
 
 from apps.utils.misc import concat_it
-from swat4stats.celery import app
+from swat4stats.celery import app, Queue
 from apps.tracker.models import Server, ServerStats
 from apps.tracker.signals import live_servers_detected, failed_servers_detected
 from apps.geoip.models import ISP
@@ -20,7 +20,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-@app.task(name='refresh_listed_servers', queue='serverquery')
+@app.task(name='refresh_listed_servers', queue=Queue.serverquery.value)
 def refresh_listed_servers() -> None:
     """
     Refresh listed servers (i.e. the servers that are expected to be online)
@@ -51,7 +51,7 @@ def refresh_listed_servers() -> None:
         failed_servers_detected.send(sender=None, servers=servers_failed)
 
 
-@app.task(time_limit=10)
+@app.task(time_limit=10, queue=Queue.default.value)
 def update_server_country(server_id: int) -> None:
     """
     Detect and update the server's country.
@@ -67,7 +67,7 @@ def update_server_country(server_id: int) -> None:
     Server.objects.filter(pk=server_id).update(country=isp.country)
 
 
-@app.task
+@app.task(queue=Queue.heavy.value)
 @transaction.atomic(durable=True)
 def merge_servers(main_server_id: int, merged_server_ids: list[int]) -> None:
     logger.info('about to start merging servers %s into %s', concat_it(merged_server_ids), main_server_id)
@@ -90,6 +90,6 @@ def merge_servers(main_server_id: int, merged_server_ids: list[int]) -> None:
                 len(merged_server_ids), merged_servers_str, main_server, main_server_id)
 
 
-@app.task(name='merge_server_stats')
+@app.task(name='merge_server_stats', queue=Queue.heavy.value)
 def merge_server_stats() -> None:
     ServerStats.objects.merge_unmerged_stats()

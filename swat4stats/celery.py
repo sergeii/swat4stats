@@ -1,4 +1,5 @@
 import os
+from enum import StrEnum, auto
 
 from celery import Celery
 from celery.signals import setup_logging, celeryd_init
@@ -9,6 +10,12 @@ from apps.utils import xjson
 from .sentry import configure_sentry_for_celery
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'swat4stats.settings')
+
+
+class Queue(StrEnum):
+    default = auto()
+    serverquery = auto()
+    heavy = auto()
 
 
 @setup_logging.connect

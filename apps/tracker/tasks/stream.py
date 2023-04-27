@@ -6,7 +6,7 @@ import celery
 from django.db import transaction
 
 from apps.tracker.exceptions import GameDataAlreadySaved
-from swat4stats.celery import app
+from swat4stats.celery import app, Queue
 from apps.tracker.models import Server, Game, Profile
 from apps.tracker.signals import game_data_saved
 
@@ -19,7 +19,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-@app.task(bind=True, default_retry_delay=60, max_retries=5)
+@app.task(bind=True, default_retry_delay=60, max_retries=5, queue=Queue.default.value)
 def process_game_data(
     self: celery.Task,
     server_id: int,
@@ -48,16 +48,16 @@ def process_game_data(
         game_data_saved.send_robust(sender=None, data=data, server=server, game=game)
 
 
-@app.task
-@transaction.atomic
+@app.task(queue=Queue.default.value)
 def update_profile_games(game_id: int) -> None:
     game = Game.objects.get(pk=game_id)
     queryset = Profile.objects.filter(alias__player__game=game)
 
     # the very first game
-    (queryset
-        .filter(game_first__isnull=True)
-        .update(game_first=game,
-                first_seen_at=game.date_finished))
-    # to the latest game
-    queryset.update(game_last=game, last_seen_at=game.date_finished)
+    with transaction.atomic(durable=True):
+        (queryset
+            .filter(game_first__isnull=True)
+            .update(game_first=game,
+                    first_seen_at=game.date_finished))
+        # to the latest game
+        queryset.update(game_last=game, last_seen_at=game.date_finished)

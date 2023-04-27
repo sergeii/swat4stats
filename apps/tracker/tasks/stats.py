@@ -3,7 +3,7 @@ import logging
 
 from django.utils import timezone
 
-from swat4stats.celery import app
+from swat4stats.celery import app, Queue
 from apps.tracker.models import Profile
 
 __all__ = [
@@ -16,7 +16,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-@app.task(name='update_player_stats')
+@app.task(name='update_player_stats', queue=Queue.default.value)
 def update_player_stats():
     """
     Queue stats update tasks for players that have played past the latest stats update time.
@@ -31,7 +31,7 @@ def update_player_stats():
         logger.info('updating stats for %s profiles', cnt)
 
 
-@app.task
+@app.task(queue=Queue.default.value)
 def update_player_stats_for_profile(profile_id: int) -> None:
     profile = Profile.objects.get(pk=profile_id)
     logger.info('updating stats for profile (%s) %s', profile_id, profile)
@@ -39,7 +39,7 @@ def update_player_stats_for_profile(profile_id: int) -> None:
     logger.info('finished updating stats for profile %s (%s)', profile_id, profile)
 
 
-@app.task(name='update_player_positions')
+@app.task(name='update_player_positions', queue=Queue.default.value)
 def update_player_positions():
     """
     Update leaderboards' positions for a period of the current year
@@ -48,7 +48,7 @@ def update_player_positions():
     Profile.objects.update_player_positions_for_year(now.year)
 
 
-@app.task(name='settle_annual_player_positions')
+@app.task(name='settle_annual_player_positions', queue=Queue.default.value)
 def settle_annual_player_positions():
     """
     Update leaderboards' positions for completed year
