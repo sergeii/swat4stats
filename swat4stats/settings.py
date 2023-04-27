@@ -14,9 +14,9 @@ warnings.simplefilter('ignore', RemovedInDjango50Warning)
 warnings.simplefilter('ignore', DeprecationWarning)
 
 
-def redis_url(alias):
+def redis_url(alias: str) -> str:
     db = REDIS_DB[alias]
-    return f'redis://{REDIS_HOST}:{REDIS_PORT}/{db}',
+    return f'redis://{REDIS_HOST}:{REDIS_PORT}/{db}'
 
 
 REDIS_HOST = env('SETTINGS_REDIS_HOST', '127.0.0.1')
@@ -86,7 +86,7 @@ DATABASES = {
     }
 }
 
-INSTALLED_APPS = (
+INSTALLED_APPS: tuple[str, ...] = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -112,7 +112,7 @@ INSTALLED_APPS = (
 if DEBUG:
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 
-MIDDLEWARE = (
+MIDDLEWARE: tuple[str, ...] = (
     'apps.utils.middleware.RealRemoteAddrMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -277,6 +277,8 @@ CELERY_TASK_SERIALIZER = 'xjson'
 CELERY_TASK_IGNORE_RESULT = True
 CELERY_TASK_DEFAULT_QUEUE = 'default'
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
+CELERY_WORKER_SEND_TASK_EVENTS = True
+CELERY_TASK_SEND_SENT_EVENT = True
 
 if env_bool('SETTINGS_CELERY_TASK_ALWAYS_EAGER', False) and DEBUG:
     CELERY_TASK_ALWAYS_EAGER = True
@@ -335,7 +337,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'merge_server_stats': {
         'task': 'merge_server_stats',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(hour='*/2', minute=30),
         'options': {
             'expires': 30 * 60,
         },

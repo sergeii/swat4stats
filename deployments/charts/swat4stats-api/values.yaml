@@ -38,7 +38,7 @@ celery:
       replicas: 4
       concurrency: 1
       queues: [default]
-      time_limit: 300
+      time_limit: 600
       max_tasks: 1000
 
     - name: sq
