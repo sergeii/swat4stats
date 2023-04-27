@@ -54,7 +54,7 @@ def update_profile_games(game_id: int) -> None:
     queryset = Profile.objects.filter(alias__player__game=game)
 
     # the very first game
-    with transaction.atomic(durable=True):
+    with transaction.atomic():
         (queryset
             .filter(game_first__isnull=True)
             .update(game_first=game,
