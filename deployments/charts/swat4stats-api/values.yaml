@@ -35,39 +35,39 @@ uwsgi:
 
 celery:
   app: swat4stats
-  log_level: INFO
+  logLevel: INFO
   workers:
     - name: default
       replicas: 4
       concurrency: 1
       queues: [default]
-      time_limit: 300
-      max_tasks: 1000
+      timeLimit: 300
+      maxTasks: 1000
 
     - name: heavy
       replicas: 2
       concurrency: 1
       queues: [heavy]
-      time_limit: 3600
-      max_tasks: 100
+      timeLimit: 3600
+      maxTasks: 100
 
     - name: sq
       replicas: 2
       concurrency: 1
       queues: [serverquery]
-      time_limit: 120
-      max_tasks: 1000
+      timeLimit: 120
+      maxTasks: 1000
 
     - name: cacheback
       concurrency: 2
       replicas: 1
       queues: [cacheback]
-      time_limit: 60
-      max_tasks: 10000
+      timeLimit: 60
+      maxTasks: 10000
   beat:
     replicas: 1
 
-uwsgi_exporter:
+uwsgiExporter:
   enabled: true
   port: 9117
   targetPort: 9117
@@ -78,7 +78,7 @@ uwsgi_exporter:
     tag: "v1.3.0"
     sha: "7770355b87055b7d6c516a830e5cb1fc2c3e692f265b6d1656df0bccb9456155"
 
-celery_exporter:
+celeryExporter:
   enabled: true
   port: 9808
   targetPort: 9808

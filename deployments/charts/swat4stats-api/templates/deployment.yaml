@@ -19,7 +19,10 @@ spec:
       labels:
         {{- include "swat4stats-api.selectorLabels" (set $ "Backend" "uwsgi") | nindent 8 }}
       annotations:
+      {{- if .Values.uwsgiExporter.enabled }}
         prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.uwsgiExporter.targetPort }}"
+      {{- end }}
     spec:
       {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
@@ -50,16 +53,16 @@ spec:
             - name: config
               mountPath: /etc/nginx/nginx.conf
               subPath: staticfiles.conf
-        {{- if .Values.uwsgi_exporter.enabled }}
+        {{- if .Values.uwsgiExporter.enabled }}
         - name: {{ include "swat4stats-api.podname" (set . "Name" "uwsgi-exporter") }}
-          {{- with .Values.uwsgi_exporter.image }}
+          {{- with .Values.uwsgiExporter.image }}
           image: "{{ .repository }}:{{ .tag | default "latest" }}{{ if .sha }}@sha256:{{ .sha }}{{ end }}"
           imagePullPolicy: {{ .pullPolicy }}
           {{- end }}
           args: ["--stats.uri", "http://localhost:1717"]
           ports:
             - name: exporter
-              containerPort: {{ .Values.uwsgi_exporter.targetPort }}
+              containerPort: {{ .Values.uwsgiExporter.targetPort }}
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -107,9 +110,9 @@ spec:
     "celery" "-A" $.Values.celery.app "worker"
     "--queues" $workerQueues
     "--concurrency" .concurrency
-    "--loglevel" $.Values.celery.log_level
-    "--time-limit" .time_limit
-    "--max-tasks-per-child" .max_tasks
+    "--loglevel" $.Values.celery.logLevel
+    "--time-limit" .timeLimit
+    "--max-tasks-per-child" .maxTasks
     "--events"
     "--pidfile="
 }}
@@ -137,7 +140,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      terminationGracePeriodSeconds: {{ .time_limit }}
+      terminationGracePeriodSeconds: {{ .timeLimit }}
       containers:
         - name: {{ include "swat4stats-api.podname" (set $ "Name" $workerName) }}
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
@@ -161,7 +164,7 @@ spec:
 {{- $beatName := printf "%s-%s" "celery" "beat" -}}
 {{- $beatCmd := list
     "celery" "-A" .app "beat"
-    "--loglevel" .log_level
+    "--loglevel" .logLevel
     "--schedule" "/tmp/celerybeat.db"
     "--pidfile="
 -}}
@@ -214,7 +217,7 @@ spec:
           emptyDir: {}
 {{ end -}}
 
-{{- with .Values.celery_exporter }}
+{{- with .Values.celeryExporter }}
 {{- $exporterName := "celery-exporter" -}}
 ---
 
@@ -236,7 +239,10 @@ spec:
       labels:
         {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $exporterName) | nindent 8 }}
       annotations:
+      {{- if .enabled }}
         prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .targetPort }}"
+      {{- end }}
     spec:
       {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
