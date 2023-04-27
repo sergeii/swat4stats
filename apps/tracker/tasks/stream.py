@@ -4,6 +4,7 @@ from typing import Any
 
 import celery
 from django.db import transaction
+from pytz import utc
 
 from apps.tracker.exceptions import GameDataAlreadySaved
 from swat4stats.celery import app, Queue
@@ -24,7 +25,7 @@ def process_game_data(
     self: celery.Task,
     server_id: int,
     data: dict[str, Any],
-    data_received_at: datetime,
+    data_received_ts: float,
 ) -> None:
     """
     Attempt to save a game with given server
@@ -33,6 +34,7 @@ def process_game_data(
     :param data: Validated game data
     :param data_received_at: Time the data was received at
     """
+    data_received_at = datetime.fromtimestamp(data_received_ts, tz=utc)
     server = Server.objects.get(pk=server_id)
 
     try:

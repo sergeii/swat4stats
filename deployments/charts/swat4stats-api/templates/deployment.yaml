@@ -229,6 +229,4 @@ spec:
           env:
             - name: CE_BROKER_URL
               value: "{{ $.Values.sharedEnv.SETTINGS_CELERY_BROKER_URL }}"
-            - name: CE_ACCEPT_CONTENT
-              value: "{{ $.Values.sharedEnv.SETTINGS_CELERY_ACCEPT_CONTENT }}"
 {{ end -}}

@@ -37,11 +37,12 @@ class DataStreamView(generic.View):
     def handle(self, request, game_data: dict[str, Any]) -> HttpResponse:
         server = self._get_or_create_server(ip=request.META['REAL_REMOTE_ADDR'],
                                             port=game_data['port'])
-        logger.debug('received data for %s', server.address)
+        received_at = timezone.now()
 
+        logger.info('process data for game %s from %s at %s', game_data['tag'], server.address, received_at)
         transaction.on_commit(lambda: process_game_data.delay(server_id=server.pk,
                                                               data=game_data,
-                                                              data_received_at=timezone.now()))
+                                                              data_received_ts=received_at.timestamp()))
 
         self._update_server_mod_version(server, game_data['version'])
 
