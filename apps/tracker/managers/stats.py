@@ -225,7 +225,7 @@ class ServerStatsManager(StatsManager):
         profiles = (Profile.objects.using('replica')
                     .in_bulk(id_list=[profile_id for profile_id, _ in affected_profiles]))
 
-        logger.info('calculating merged stats for %d for %d annual profiles',
+        logger.info('calculating merged stats for server %d of %d annual profiles',
                     main_server_id, len(affected_profiles))
 
         for profile_id, year in affected_profiles:

@@ -25,6 +25,8 @@ uwsgi:
     UWSGI_MODULE: swat4stats.wsgi
     UWSGI_RELOAD_MERCY: 10
     UWSGI_RELOAD_ON_RSS: 256
+    UWSGI_STATS: ":1717"
+    UWSGI_STATS_HTTP: "true"
     UWSGI_STRICT: "true"
     UWSGI_WORKERS: 1
     UWSGI_UID: 10001
@@ -65,9 +67,21 @@ celery:
   beat:
     replicas: 1
 
+uwsgi_exporter:
+  enabled: true
+  port: 9117
+  targetPort: 9117
+  image:
+    repository: timonwong/uwsgi-exporter
+    pullPolicy: IfNotPresent
+    pullSecrets: ""
+    tag: "v1.3.0"
+    sha: "7770355b87055b7d6c516a830e5cb1fc2c3e692f265b6d1656df0bccb9456155"
 
 celery_exporter:
   enabled: true
+  port: 9808
+  targetPort: 9808
   image:
     repository: danihodovic/celery-exporter
     pullPolicy: IfNotPresent
