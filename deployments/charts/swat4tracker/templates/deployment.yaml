@@ -18,11 +18,17 @@ spec:
     metadata:
       labels:
         {{- include "swat4tracker.selectorLabels" (set $ "Backend" "uwsgi") | nindent 8 }}
+      annotations:
+      {{- if .Values.uwsgiExporter.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.uwsgiExporter.targetPort }}"
+      {{- end }}
     spec:
       {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
           {{- toYaml . | nindent 8 }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.uwsgi.terminationGracePeriodSeconds }}
       initContainers:
         - name: {{ include "swat4tracker.podname" (set . "Name" "copystatic") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -38,8 +44,8 @@ spec:
           imagePullPolicy: {{ .pullPolicy }}
           {{- end }}
           ports:
-            - name: static
-              containerPort: {{ .Values.staticfiles.port }}
+            - name: nginx
+              containerPort: {{ .Values.staticfiles.targetPort }}
               protocol: TCP
           volumeMounts:
             - name: staticfiles
@@ -49,12 +55,28 @@ spec:
               subPath: staticfiles.conf
           resources:
             {{- toYaml .Values.staticfiles.resources | nindent 12 }}
+        {{- if .Values.uwsgiExporter.enabled }}
+        - name: {{ include "swat4tracker.podname" (set . "Name" "uwsgi-exporter") }}
+          {{- with .Values.uwsgiExporter.image }}
+          image: "{{ .repository }}:{{ .tag | default "latest" }}{{ if .sha }}@sha256:{{ .sha }}{{ end }}"
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- end }}
+          args: ["--stats.uri", "http://localhost:1717"]
+          ports:
+            - name: exporter
+              containerPort: {{ .Values.uwsgiExporter.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: exporter
+        {{- end }}
         - name: {{ include "swat4tracker.podname" (set . "Name" "uwsgi") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: uwsgi
-              containerPort: {{ .Values.uwsgi.port }}
+              containerPort: {{ .Values.uwsgi.targetPort }}
               protocol: TCP
           env:
           {{- range $key, $val := .Values.uwsgi.env }}
