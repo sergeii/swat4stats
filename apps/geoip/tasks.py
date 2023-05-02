@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 @app.task(name='delete_expired_ips')
-def delete_expired_ips():
+def delete_expired_ips() -> None:
     """
     Remove old expired IPs, so they can be renewed with fresh ones.
     """

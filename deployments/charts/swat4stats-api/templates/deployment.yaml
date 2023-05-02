@@ -53,6 +53,8 @@ spec:
             - name: config
               mountPath: /etc/nginx/nginx.conf
               subPath: staticfiles.conf
+          resources:
+            {{- toYaml .Values.staticfiles.resources | nindent 12 }}
         {{- if .Values.uwsgiExporter.enabled }}
         - name: {{ include "swat4stats-api.podname" (set . "Name" "uwsgi-exporter") }}
           {{- with .Values.uwsgiExporter.image }}
@@ -92,9 +94,11 @@ spec:
                 optional: {{ .optional | default false }}
           {{- end }}
           livenessProbe:
-{{ toYaml .Values.livenessProbe | indent 12 }}
+            {{ toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
-{{ toYaml .Values.readinessProbe | indent 12 }}
+            {{ toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.uwsgi.resources | nindent 12 }}
       volumes:
         - name: staticfiles
           emptyDir: {}

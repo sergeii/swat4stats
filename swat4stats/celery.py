@@ -1,5 +1,6 @@
 import os
 from enum import StrEnum, auto
+from typing import Any
 
 from celery import Celery
 from celery.signals import setup_logging, celeryd_init
@@ -16,16 +17,15 @@ class Queue(StrEnum):
 
 
 @setup_logging.connect
-def configure_logging(sender=None, **kwargs):
+def configure_logging(sender: Any | None = None, **kwargs: Any) -> None:
     """
     Stop celery from hijacking loggers.
     https://github.com/celery/celery/issues/1867
     """
-    pass
 
 
 @celeryd_init.connect
-def init_sentry(**_kwargs):
+def init_sentry(**kwargs: Any) -> None:
     configure_sentry_for_celery()
 
 

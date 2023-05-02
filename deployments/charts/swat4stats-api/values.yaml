@@ -32,6 +32,13 @@ uwsgi:
     UWSGI_UID: 10001
     UWSGI_VIRTUALENV: /app/.venv
     UWSGI_WORKER_RELOAD_MERCY: 10
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
 celery:
   app: swat4stats
@@ -96,6 +103,13 @@ staticfiles:
     repository: nginx
     pullPolicy: IfNotPresent
     tag: ""
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
 service:
   name: swat4stats-api

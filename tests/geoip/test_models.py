@@ -213,6 +213,56 @@ def test_matching_range_from_known_ip_range_skips_whois_lookup_even_null_isp_nam
     assert obj1.pk == obj2.pk
 
 
+@pytest.mark.parametrize('net_description, isp_name', [
+    ('foo', 'foo'),
+    (' foo', 'foo'),
+    ('foo\nbar', 'foo'),
+    (' foo\nbar', 'foo'),
+    ('\nfoo\nbar', 'foo'),
+    ('\n\nfoo\nbar', 'foo'),
+    ('\n foo\nbar', 'foo'),
+    ('\n \nfoo\n\nbar', 'foo'),
+    ('foo\rbar', 'foo'),
+    (' foo\rbar', 'foo'),
+    ('\rfoo\rbar', 'foo'),
+    ('\r\rfoo\rbar', 'foo'),
+    ('\r foo\rbar', 'foo'),
+    ('\r \nfoo\r\rbar', 'foo'),
+    ('Mobile Services\n'
+     'Infra-aw\n'
+     '********************************************\n'
+     'In case of improper use originating from our\n'
+     'network, please mail Tele2 Security at\n'
+     '<abuse@tele2.com>\n'
+     '********************************************',
+     'Mobile Services'),
+])
+def test_multiline_description_is_handled(whois_mock, net_description, isp_name):
+    whois_mock.return_value = {
+        'nets': [{'country': 'eu', 'description': net_description, 'cidr': '1.2.0.0/16'}]
+    }
+    obj, created = ISP.objects.match_or_create('1.2.3.4')
+    assert created
+    assert obj.name == isp_name
+    assert obj.country == 'eu'
+    assert obj.ip_set.count() == 1
+
+
+@pytest.mark.parametrize('net_description, isp_name', [
+    ('foo', 'foo'),
+    ('foo' * 1000, ('foo' * 1000)[:255]),
+])
+def test_long_description_is_truncated(whois_mock, net_description, isp_name):
+    whois_mock.return_value = {
+        'nets': [{'country': 'eu', 'description': net_description, 'cidr': '1.2.0.0/16'}]
+    }
+    obj, created = ISP.objects.match_or_create('1.2.3.4')
+    assert created
+    assert obj.name == isp_name
+    assert obj.country == 'eu'
+    assert obj.ip_set.count() == 1
+
+
 def test_invalid_ip_ranges_from_whois_result_are_ignored(whois_mock):
     invalid_ranges = [
         'foo',
