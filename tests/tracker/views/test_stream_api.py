@@ -49,6 +49,12 @@ def assert_error_code(response):
     assert response.content.decode()[0] == '1'
 
 
+def test_get_redirects_to_main(db, client):
+    response = client.get('/stream/')
+    assert response.status_code == 302
+    assert response.url == '/'
+
+
 def test_stream_endpoint_method_bypasses_csrf_check(db, test_game_data, post_game_data):
     client = Client(enforce_csrf_checks=True, HTTP_X_REAL_IP='127.0.0.1')
     response = post_game_data(test_game_data, client=client)

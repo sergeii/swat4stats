@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.conf import settings
 from django.urls import include, path, re_path
 from django.contrib import admin
@@ -12,20 +14,19 @@ from apps.api.views import (
     PopularMapnamesViewSet, PopularServersViewSet,
     GameViewSet, ServerLeaderboardViewSet,
 )
-from apps.tracker.sitemaps import ServerSitemap, ProfileSitemap, GameSitemap
+from apps.tracker.sitemaps import ServerSitemap, ProfileSitemap
 from apps.tracker.views import APIWhoisView, DataStreamView
 from apps.tracker.views.motd import APIMotdLeaderboardView, APILegacySummaryView
 from apps.utils.views import healthcheck
 
 
-def noop(*args, **kwargs):
+def noop(*args: Any, **kwargs: Any) -> HttpResponse:
     return HttpResponse('noop')
 
 
 sitemaps = {
     'servers': ServerSitemap,
     'players': ProfileSitemap,
-    'games': GameSitemap,
 }
 
 api_router = routers.DefaultRouter()
@@ -90,13 +91,13 @@ if settings.DEBUG:
     ] + urlpatterns
 
 
-def handler400(request, *args, **kwargs):
+def handler400(*args: Any, **kwargs: Any) -> response.HttpResponseBadRequest:
     return response.HttpResponseBadRequest()
 
 
-def handler404(request, *args, **kwargs):
+def handler404(*args: Any, **kwargs: Any) -> response.HttpResponseNotFound:
     return response.HttpResponseNotFound()
 
 
-def handler500(request, *args, **kwargs):
+def handler500(*args: Any, **kwargs: Any) -> response.HttpResponseServerError:
     return response.HttpResponseServerError()

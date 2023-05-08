@@ -19,7 +19,7 @@ def is_proper_armor(head: Equipment | None, body: Equipment | None,) -> bool:
 
 
 def get_player_portrait_image(
-    team: Team,
+    team: Team | None,
     head: Equipment | None,
     body: Equipment | None,
     is_vip: bool = False,
@@ -27,12 +27,14 @@ def get_player_portrait_image(
     path_format = 'images/portraits/{name}.jpg'
     if is_vip:
         static_path = path_format.format(name='vip')
-    elif is_proper_armor(head, body):
+    elif team and is_proper_armor(head, body):
         head_slug = slugify(head.lower())
         body_slug = slugify(body.lower())
         static_path = path_format.format(name=f'{team}-{body_slug}-{head_slug}')
-    else:
+    elif team:
         static_path = path_format.format(name=f'{team}')
+    else:
+        static_path = path_format.format(name='swat')
     return static(static_path)
 
 

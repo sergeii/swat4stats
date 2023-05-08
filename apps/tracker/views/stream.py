@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from django.db import transaction
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
@@ -13,19 +13,21 @@ from apps.tracker import schema
 from apps.tracker.tasks import process_game_data
 from apps.tracker.views.api import APIResponse, APIError, require_julia_schema
 
+
 logger = logging.getLogger(__name__)
 
+schema_error_message = _(
+    'Unable to process the round data due to version mismatch\n'
+    'Are you using the latest mod version?\n'
+    'If not, please install the latest version from swat4stats.com/install'
+)
 
+
+@method_decorator(require_julia_schema(schema.game_schema, schema_error_message), name='post')
 class DataStreamView(generic.View):
-    schema_error_message = _(
-        'Unable to process the round data due to version mismatch\n'
-        'Are you using the latest mod version?\n'
-        'If not, please install the latest version from swat4stats.com/install'
-    )
 
-    @method_decorator(require_julia_schema(schema.game_schema, schema_error_message))
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+    def get(self, request: HttpRequest) -> HttpResponse:
+        return HttpResponseRedirect('/')
 
     def post(self, request: HttpRequest, game_data: dict[str, Any]) -> HttpResponse:
         try:

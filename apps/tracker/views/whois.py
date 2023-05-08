@@ -19,13 +19,10 @@ from apps.tracker.views.api import (
 logger = logging.getLogger(__name__)
 
 
+@method_decorator(require_julia_schema(schema.whois_schema), name='get')
+@method_decorator(require_known_server, name='get')
 class APIWhoisView(generic.View):
     template_name = 'tracker/api/whois/{command}.html'
-
-    @method_decorator(require_julia_schema(schema.whois_schema))
-    @method_decorator(require_known_server)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
 
     def get(self, request: HttpRequest, whois_args: dict[str, str]) -> HttpResponse:
         try:

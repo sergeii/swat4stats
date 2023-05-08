@@ -89,6 +89,12 @@ def redis():
     return get_redis_connection()
 
 
+@pytest.fixture
+def site(db):
+    from django.contrib.sites.models import Site
+    return Site.objects.get_current()
+
+
 @pytest.fixture(autouse=True)
 def caches():
     """

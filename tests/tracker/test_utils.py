@@ -1,7 +1,11 @@
 from datetime import date, datetime
 
+import pytest
+
+from apps.tracker.entities import Team, Equipment as EQ
 from apps.tracker.utils import (force_name, force_clean_name,
                                 iterate_weeks, iterate_years, iterate_months)
+from apps.tracker.utils.game import get_player_portrait_image
 
 
 def test_force_name():
@@ -85,3 +89,34 @@ def test_iterate_months():
     ]
     for (period_from, period_till), expected in test_data:
         assert list(iterate_months(period_from, period_till)) == expected
+
+
+@pytest.mark.parametrize('team, is_vip, head, body, image', [
+    # team specific pictures
+    (Team.swat, False, EQ.helmet, EQ.light_armor, 'swat-light-armor-helmet'),
+    (Team.suspects, False, EQ.helmet, EQ.light_armor, 'suspects-light-armor-helmet'),
+    (Team.swat, False, EQ.gas_mask, EQ.heavy_armor, 'swat-heavy-armor-gas-mask'),
+    (Team.suspects, False, EQ.night_vision_goggles, EQ.no_armor, 'suspects-no-armor-night-vision-goggles'),
+    # no team pictures
+    (None, False, EQ.helmet, EQ.light_armor, 'swat'),
+    (None, False, EQ.gas_mask, EQ.heavy_armor, 'swat'),
+    (None, False, EQ.night_vision_goggles, EQ.no_armor, 'swat'),
+    # broken team-specific loadout pictures
+    (Team.swat, False, EQ.none, EQ.none, 'swat'),
+    (Team.suspects, False, EQ.none, EQ.none, 'suspects'),
+    (Team.swat, False, EQ.light_armor, EQ.light_armor, 'swat'),
+    (Team.suspects, False, EQ.gas_mask, EQ.gas_mask, 'suspects'),
+    # broken no team pictures
+    (None, False, EQ.none, EQ.none, 'swat'),
+    (None, False, EQ.helmet, EQ.helmet, 'swat'),
+    (None, False, EQ.heavy_armor, EQ.heavy_armor, 'swat'),
+    # vip picture
+    (Team.swat, True, EQ.helmet, EQ.light_armor, 'vip'),
+    (Team.suspects, True, EQ.helmet, EQ.light_armor, 'vip'),
+    (Team.swat, True, EQ.none, EQ.none, 'vip'),
+    (Team.suspects, True, EQ.none, EQ.none, 'vip'),
+    (None, True, EQ.none, EQ.none, 'vip'),
+    (None, True, EQ.none, EQ.none, 'vip'),
+])
+def test_get_player_portrait_image(settings, team, is_vip, head, body, image):
+    assert get_player_portrait_image(team, head, body, is_vip) == f'{settings.STATIC_URL}images/portraits/{image}.jpg'
