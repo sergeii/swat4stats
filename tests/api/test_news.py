@@ -1,8 +1,8 @@
 from datetime import timedelta
 from django.utils import timezone
 
+from apps.news.entities import RendererType
 from apps.news.factories import ArticleFactory
-from apps.news.models import Article
 
 
 def test_get_articles(db, api_client):
@@ -13,15 +13,15 @@ def test_get_articles(db, api_client):
                                    text='Download it <a href="http://example.com/">here</a>',
                                    signature='Kind regards, Serge.',
                                    date_published=now - timedelta(days=1),
-                                   renderer=Article.Renderer.PLAINTEXT)
+                                   renderer=RendererType.PLAINTEXT)
     markdown_article = ArticleFactory(title='New master server patch is out',
                                       text='Download it [here](http://example.com/)',
                                       date_published=now,
-                                      renderer=Article.Renderer.MARKDOWN)
+                                      renderer=RendererType.MARKDOWN)
     html_article = ArticleFactory(date_published=now,
                                   title='New master server patch is out',
                                   text='Download it <a href="http://example.com/">here</a>',
-                                  renderer=Article.Renderer.HTML)
+                                  renderer=RendererType.HTML)
     older_articles = ArticleFactory.create_batch(5, date_published=now - timedelta(days=7))
 
     response = api_client.get('/api/articles/')

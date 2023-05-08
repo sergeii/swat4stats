@@ -5,31 +5,26 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from apps.news.renderer import PlainRenderer, MarkdownRenderer, HtmlRenderer
+from apps.news.entities import RendererType
+from apps.news.renderer import PlainRenderer, MarkdownRenderer, HtmlRenderer, BaseRenderer
 
 logger = logging.getLogger(__name__)
 
 
 class PublishedArticleQuerySet(models.QuerySet):
 
-    def published(self):
+    def published(self) -> models.QuerySet['Article']:
         return self.filter(is_published=True, date_published__lte=timezone.now())
 
-    def latest_published(self, limit):
+    def latest_published(self, limit: int) -> models.QuerySet['Article']:
         return self.published().order_by('-date_published', 'pk')[:limit]
 
 
 class Article(models.Model):
-
-    class Renderer:
-        PLAINTEXT = 1
-        HTML = 2
-        MARKDOWN = 3
-
-    renderers = {
-        Renderer.PLAINTEXT: PlainRenderer,
-        Renderer.MARKDOWN: MarkdownRenderer,
-        Renderer.HTML: HtmlRenderer,
+    renderers: dict[RendererType, type[BaseRenderer]] = {
+        RendererType.PLAINTEXT: PlainRenderer,
+        RendererType.MARKDOWN: MarkdownRenderer,
+        RendererType.HTML: HtmlRenderer,
     }
 
     title = models.CharField(blank=True, max_length=64)
@@ -41,11 +36,11 @@ class Article(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
     renderer = models.SmallIntegerField(
         choices=(
-            (Renderer.PLAINTEXT, _('Plain text')),
-            (Renderer.HTML, _('HTML')),
-            (Renderer.MARKDOWN, _('Markdown')),
+            (RendererType.PLAINTEXT, _('Plain text')),
+            (RendererType.HTML, _('HTML')),
+            (RendererType.MARKDOWN, _('Markdown')),
         ),
-        default=Renderer.MARKDOWN
+        default=RendererType.MARKDOWN
     )
 
     objects = PublishedArticleQuerySet.as_manager()
@@ -53,11 +48,11 @@ class Article(models.Model):
     class Meta:
         db_table = 'tracker_article'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
     @cached_property
-    def rendered(self):
+    def rendered(self) -> str:
         """
         Render article text according to the specified renderer.
 

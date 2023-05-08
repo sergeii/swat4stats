@@ -65,7 +65,15 @@ ignore_missing_imports = true
 strict_equality = true
 
 [[tool.mypy.overrides]]
-module = "tests.*"
-disable_error_code = "var-annotated, has-type"
+module = "apps.*.migrations.*"
+disable_error_code = "var-annotated, has-type, arg-type"
 disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = "var-annotated, has-type, arg-type"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
 check_untyped_defs = false

@@ -1,3 +1,4 @@
+from django.db.models import QuerySet
 from rest_framework.mixins import ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 
@@ -10,5 +11,5 @@ class ArticleViewSet(ListModelMixin, GenericViewSet):
     serializer_class = NewsArticleSerializer
     pagination_class = None
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Article]:
         return super().get_queryset().latest_published(5)

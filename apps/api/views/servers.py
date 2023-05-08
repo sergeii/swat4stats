@@ -76,7 +76,7 @@ class ServerLeaderboardViewSet(ListModelMixin, GenericViewSet):
     serializer_class = PlayerStatSerializer
     pagination_class = paginator_factory(page_size=20, ordering=('position', 'id'))
 
-    def get_queryset(self):
+    def get_queryset(self) -> ServerQuerySet:
         return (ServerStats.objects
                 .select_related('profile', 'profile__loadout')
                 .filter(year=get_current_stat_year()))

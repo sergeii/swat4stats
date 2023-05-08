@@ -192,11 +192,11 @@ class ServerBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Server
-        read_only_fields = (
+        read_only_fields: tuple[str, ...] = (
             'id', 'address', 'pinned',
             'country', 'country_human', 'hostname', 'name_clean', 'status',
         )
-        fields = read_only_fields + ('ip', 'port',)
+        fields: tuple[str, ...] = read_only_fields + ('ip', 'port',)
         validators: list[Callable] = []
 
     def get_country_human(self, obj: Server) -> str | None:
@@ -485,7 +485,7 @@ class GameSerializer(GameBaseSerializer):
     }
     coop_rank_default = _('Menace')
 
-    def get_rules(self, obj: Game) -> str:
+    def get_rules(self, obj: Game) -> str | None:
         return gametype_rules_text(obj.gametype)
 
     def get_briefing(self, obj: Game) -> str | None:

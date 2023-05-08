@@ -1,6 +1,7 @@
 import pytest
 from django.utils.safestring import SafeText, SafeData
 
+from apps.news.entities import RendererType
 from apps.news.models import Article
 
 
@@ -26,26 +27,26 @@ class TestArticle:
 
     def test_html_renderer(self):
         text = '<b>Foo!</b>'
-        article = Article(text=text, renderer=Article.Renderer.HTML)
+        article = Article(text=text, renderer=RendererType.HTML)
         assert article.rendered == text
         assert isinstance(article.rendered, SafeText)
         assert isinstance(article.rendered, SafeData)
 
     def test_plaintext_renderer(self):
         text = '<b>Foo!</b>'
-        article = Article(text=text, renderer=Article.Renderer.PLAINTEXT)
+        article = Article(text=text, renderer=RendererType.PLAINTEXT)
         assert article.rendered == text
         assert not isinstance(article.rendered, SafeData)
 
     def test_markdown_renderer(self):
         text = '* foo'
-        article = Article(text=text, renderer=Article.Renderer.MARKDOWN)
+        article = Article(text=text, renderer=RendererType.MARKDOWN)
         assert article.rendered == '<ul>\n<li>foo</li>\n</ul>'
         assert isinstance(article.rendered, SafeText)
 
     def test_default_renderer_is_markdown(self, db):
         article = Article.objects.create(text='foo')
-        assert Article.objects.get(pk=article.pk).renderer == Article.Renderer.MARKDOWN
+        assert Article.objects.get(pk=article.pk).renderer == RendererType.MARKDOWN
 
     def test_default_renderer_for_invalid_values_is_markdown(self, db):
         article = Article.objects.create(text='foo', renderer=9999)
@@ -53,10 +54,10 @@ class TestArticle:
 
     @pytest.mark.parametrize('raw_text, expected_html', html_text)
     def test_html_text(self, raw_text, expected_html):
-        article = Article(text=raw_text, renderer=Article.Renderer.HTML)
+        article = Article(text=raw_text, renderer=RendererType.HTML)
         assert article.rendered == expected_html
 
     @pytest.mark.parametrize('raw_text, expected_html', markdown_text)
     def test_markdown_text(self, raw_text, expected_html):
-        article = Article(text=raw_text, renderer=Article.Renderer.MARKDOWN)
+        article = Article(text=raw_text, renderer=RendererType.MARKDOWN)
         assert article.rendered == expected_html
