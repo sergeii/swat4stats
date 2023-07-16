@@ -69,11 +69,4 @@ class AliasManager(models.Manager):
             isp=isp,
         )
 
-        return self.create(
-            name=name,
-            profile=profile,
-            profile_name=profile.name,
-            isp=isp,
-            isp_name=isp.name if isp else None,
-            isp_country=isp.country if isp else None,
-        )
+        return self.create(name=name, profile=profile, isp=isp)
