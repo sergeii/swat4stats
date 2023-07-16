@@ -11,6 +11,7 @@ from django.views import generic
 from apps.geoip.models import ISP
 from apps.tracker import models
 from apps.tracker import schema
+from apps.tracker.exceptions import NoProfileMatch
 from apps.tracker.views.api import (
     APIError,
     require_known_server, APIResponse, require_julia_schema,
@@ -73,8 +74,8 @@ class APIWhoisView(generic.View):
 
         # attempt to match profile
         try:
-            profile = models.Profile.objects.match_smart(name=name, isp=isp, ip=ip)
-        except ObjectDoesNotExist:
+            profile = models.Profile.objects.match_smart(name=name, isp=isp, ip_address=ip)
+        except NoProfileMatch:
             profile = None
 
         return {

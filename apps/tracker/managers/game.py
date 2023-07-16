@@ -145,8 +145,9 @@ class GameManager(models.Manager):
 
         for player_item in players:
             # handle empty and coloured names
-            alias, _ = Alias.objects.match_or_create(name=force_name(player_item['name'], player_item['ip']),
-                                                     ip=player_item['ip'])
+            alias_name = force_name(player_item['name'], player_item['ip'])
+            alias, _ = Alias.objects.match_or_create(name=alias_name,
+                                                     ip_address=player_item['ip'])
             player_obj = Player(
                 game=game,
                 alias=alias,

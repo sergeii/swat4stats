@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import timedelta, datetime
+from ipaddress import IPv4Address
 from typing import Any, TYPE_CHECKING
 
 from django.conf import settings
@@ -10,6 +11,7 @@ from django.db.models import Q, F
 from django.utils import timezone
 
 from apps.geoip.models import ISP
+from apps.tracker.exceptions import NoProfileMatch
 from apps.tracker.managers.stats import get_stats_period_for_year
 
 if TYPE_CHECKING:
@@ -20,7 +22,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def is_name_popular(name):
+def is_name_popular(name: str) -> bool:
     """
     Tell whether a given name should be considered popular:
 
@@ -43,14 +45,14 @@ def is_name_popular(name):
 
 class ProfileQuerySet(models.QuerySet):
 
-    def for_display_card(self):
+    def for_display_card(self) -> models.QuerySet:
         return (self.select_related('loadout')
                 .only('loadout', 'name', 'team', 'country'))
 
-    def played(self):
+    def played(self) -> models.QuerySet:
         return self.filter(first_seen_at__isnull=False, last_seen_at__isnull=False)
 
-    def require_preference_update(self):
+    def require_preference_update(self) -> models.QuerySet:
         """
         Fetch the profiles that require updating preferences.
         Those are profiles of the players that played past the last update.
@@ -58,7 +60,7 @@ class ProfileQuerySet(models.QuerySet):
         return self.played().filter(Q(preferences_updated_at__isnull=True) |
                                     Q(last_seen_at__gt=F('preferences_updated_at')))
 
-    def require_stats_update(self):
+    def require_stats_update(self) -> models.QuerySet:
         """
         Fetch profiles of the players for periodic stats update.
         """
@@ -69,93 +71,110 @@ class ProfileQuerySet(models.QuerySet):
 class ProfileManager(models.Manager):
 
     @classmethod
-    def match(cls, **kwargs):
+    def match(
+        cls,
+        *,
+        recent: bool = False,
+        **match_kwargs: dict[str, Any],
+    ) -> 'Profile':
         from apps.tracker.models import Alias
 
-        recent = kwargs.pop('recent', False)
-        queryset = kwargs.pop('queryset', Alias.objects.all())
-        # filter by min played date
+        # filter players by recentness
         if recent:
             min_date = timezone.now() - timedelta(seconds=settings.TRACKER_RECENT_TIME)
-            kwargs['player__game__date_finished__gte'] = min_date
+            match_kwargs['player__game__date_finished__gte'] = min_date
 
-        # limit query in case of a lookup different from name+ip pair
-        return queryset.select_related('profile').filter(**kwargs)[0:1].get().profile
+        alias_qs = Alias.objects.select_related('profile').filter(**match_kwargs)
+
+        try:
+            # limit query in case of a lookup different from name+ip pair
+            alias = alias_qs[0:1].get()
+        except ObjectDoesNotExist as exc:
+            raise NoProfileMatch from exc
+
+        return alias.profile
 
     @classmethod
-    def match_recent(cls, **kwargs):
-        return cls.match(recent=True, **kwargs)
-
-    @classmethod
-    def _prepare_match_smart_steps(cls, **kwargs: Any) -> list[tuple[callable, dict[str, Any]]]:
+    def _prepare_match_smart_steps(
+        cls,
+        *,
+        name: str,
+        ip_address: str | IPv4Address,
+        isp: ISP | None,
+    ) -> list[dict[str, Any]]:
         steps = []
         # skip Player, afk and the other popular names
-        skip_name = 'name' in kwargs and is_name_popular(kwargs['name'])
+        can_use_name = not is_name_popular(name)
 
-        if skip_name:
-            logger.debug('will skip name lookup for %s', kwargs['name'])
+        if not can_use_name:
+            logger.debug('will skip name lookup for %s', name)
 
-        if 'ip' in kwargs:
-            if 'name' in kwargs:
-                # match a player with a case-insensitive lookup unless the name is way too popular
-                if not skip_name:
-                    steps.append((cls.match, {'name__iexact': kwargs['name'], 'player__ip': kwargs['ip']}))
-            # isp may as well be None
-            # in that case we should not perform a lookup
-            if 'isp' not in kwargs:
-                kwargs['isp'] = ISP.objects.match_or_create(kwargs['ip'])[0]
+        # the first steps rely on the name.
+        # therefore, if the name is too popular, we must skip them
 
-        # isp must not be None for a name+isp lookup
-        if 'name' in kwargs and (not skip_name) and kwargs.get('isp'):
-            # search for a player by case-insensitive name and non-None isp
-            steps.append((cls.match, {'name__iexact': kwargs['name'], 'isp': kwargs['isp']}))
-            # search by name+non-empty country
-            if kwargs['isp'].country:
-                steps.append((cls.match_recent,
-                              {'name__iexact': kwargs['name'], 'isp__country': kwargs['isp'].country}))
+        # step 1: name+ip lookup
+        if can_use_name:
+            steps.append({'name__iexact': name, 'player__ip': ip_address})
 
-        if 'ip' in kwargs:
-            # search for a player who has recently played with the same ip
-            steps.append((cls.match_recent, {'player__ip': kwargs['ip']}))
+        # step 2: name+isp lookup
+        if can_use_name and isp:
+            steps.append({'name__iexact': name, 'isp': isp})
+
+        # step 3: name+country lookup against the recent players
+        if can_use_name and isp and isp.country:
+            steps.append({'recent': True, 'name__iexact': name, 'isp__country': isp.country})
+
+        # step 4: ip lookup against the recent players
+        steps.append({'recent': True, 'player__ip': ip_address})
 
         return steps
 
     @classmethod
-    def match_smart(cls, **kwargs):
+    def match_smart(
+        cls,
+        *,
+        name: str,
+        ip_address: str | IPv4Address,
+        isp: ISP | None,
+    ) -> 'Profile':
         """
         Attempt to find a profile property of a player in a sequence of steps:
 
-            1.  if `name` and `ip` are provided, perform a `name`+`ip`
-                case-insensitive lookup.
-            2   if `name` and `isp` are provided and the `isp` is not None, perform a
-                `name`+`isp` case-insensitive lookup
-            3.  As an extra step also perform a case-sensitive lookup for a recently
-                created name+non-empty country Player entry.
-            4.  if `ip` is provided, perform an ip lookup against related Player entries
-                that have been created right now or `Profile.TIME_RECENT` seconds earlier.
+            1.  do a name+ip lookup
+            2   if isp is present, do a name+isp lookup
+            3.  if isp is present, and it has a country, do a name+country lookup
+                but only for the players that have been created recently
+            4.  do an ip lookup for the players that have been created recently
 
-        In case neither of the steps return an object, raise a Profile.DoesNotExist exception
+        If neither of the steps return an object, raise NoProfileMatch
         """
-        steps = cls._prepare_match_smart_steps(**kwargs)
+        steps = cls._prepare_match_smart_steps(name=name, ip_address=ip_address, isp=isp)
 
-        for method, attrs in steps:
+        for match_attrs in steps:
             try:
-                obj = method(**attrs)
-            except ObjectDoesNotExist:
-                logger.debug('no profile match with %s by %s', method.__name__, attrs)
+                profile = cls.match(**match_attrs)
+            except NoProfileMatch:
+                logger.debug('no profile match with %s', match_attrs)
                 continue
             else:
-                logger.debug('matched profile %s with %s by %s', obj, method.__name__, attrs)
-                return obj
+                logger.debug('matched profile %s (%s) with %s', profile, profile.pk, match_attrs)
+                return profile
 
-        logger.debug('unable to match any profile by %s', kwargs)
-        raise ObjectDoesNotExist
+        logger.debug('unable to match any profile by name=%s ip_address=%s isp=%s', name, ip_address, isp)
 
-    def match_smart_or_create(self, **kwargs: Any) -> tuple['Profile', bool]:
+        raise NoProfileMatch
+
+    def match_smart_or_create(
+        self,
+        *,
+        name: str,
+        ip_address: str | IPv4Address,
+        isp: ISP | None = None,
+    ) -> tuple['Profile', bool]:
         try:
-            return self.match_smart(**kwargs), False
-        except ObjectDoesNotExist:
-            return super().create(name=kwargs.get('name')), True
+            return self.match_smart(name=name, ip_address=ip_address, isp=isp), False
+        except NoProfileMatch:
+            return self.create(name=name), True
 
     @classmethod
     def update_stats_for_profile(cls, profile: 'Profile') -> None:

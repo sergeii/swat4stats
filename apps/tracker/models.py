@@ -92,7 +92,7 @@ class Server(models.Model):
             self.status_port = self.port + 1
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -101,7 +101,7 @@ class Map(models.Model):
 
     objects = MapManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     @cached_property
@@ -147,7 +147,7 @@ class Game(models.Model):
             models.Index(F('date_finished').desc(), name='tracker_game_date_finished_desc'),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.date_finished} - {self.time} - {self.outcome}'
 
     @cached_property
@@ -231,9 +231,20 @@ class Weapon(models.Model):
 
 
 class Alias(models.Model):
-    profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
     name = models.CharField(max_length=64)
+
+    profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
+    profile_name = models.TextField(null=True,
+                                    help_text=_('Denormalized profile name for faster search'))
+
     isp = models.ForeignKey('geoip.ISP', related_name='+', null=True, on_delete=models.PROTECT)
+    isp_name = models.TextField(null=True,
+                                help_text=_('Denormalized ISP name for faster search'))
+    isp_country = models.CharField(max_length=2, null=True,
+                                   help_text=_('Denormalized ISP country for faster search'))
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     objects = AliasManager()
 
@@ -243,7 +254,7 @@ class Alias(models.Model):
             models.Index(Upper('name'), F('isp_id'), name='tracker_alias_upper_name_isp_id'),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name}, {self.isp}'
 
 
@@ -381,7 +392,7 @@ class Player(models.Model):
             shots += weapon.shots
         return int(ratio(hits, shots, min_divisor=min_shots) * 100)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name}, {self.ip}'
 
 
@@ -396,7 +407,7 @@ class Objective(models.Model):
     class Meta:
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name}, {self.status}'
 
 
@@ -411,7 +422,7 @@ class Procedure(models.Model):
     class Meta:
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name}, {self.score} ({self.status})'
 
 
@@ -430,7 +441,7 @@ class Profile(models.Model):
 
     objects = ProfileManager.from_queryset(ProfileQuerySet)()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name}, {self.country}'
 
     def fetch_first_preferred_game_id(self) -> int | None:

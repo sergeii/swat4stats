@@ -1,49 +1,79 @@
 import logging
+from ipaddress import IPv4Address
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 
 from apps.geoip.models import ISP
 
-
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from apps.tracker.models import Alias
 
 
 class AliasManager(models.Manager):
 
-    def get_queryset(self):
-        return super().get_queryset().select_related()
+    def match_or_create(
+        self,
+        *,
+        name: str,
+        ip_address: str | IPv4Address,
+    ) -> tuple['Alias', bool]:
 
-    def match_or_create(self, defaults=None, **kwargs):
-        from apps.tracker.models import Profile
-        # name is required for a get_or_create call upon AliasManager
-        if 'name' not in kwargs:
-            raise ValueError('name is required')
-        # use ip for lookup
-        ip = kwargs.pop('ip', None)
-        # acquire an isp
-        if not kwargs.get('isp') and ip:
-            kwargs['isp'] = ISP.objects.match_or_create(ip)[0]
-        # attempt to match an existing entry by either name or name+isp pair
-        alias_filters = kwargs.copy()
-        # replace None with notnull lookup
-        if 'isp' in alias_filters and not alias_filters['isp']:
-            del alias_filters['isp']
-            alias_filters['isp__isnull'] = True
+        # guard against empty name
+        if not name:
+            raise ValueError('Empty name')
+
+        isp, _ = ISP.objects.match_or_create(ip_address)
+
+        # attempt to match an existing alias by name+isp pair
+        match_kwargs = {
+            'name': name,
+        }
+        # because isp is optional, the only remaining search param is player name
+        # therefore if isp is not provided, we need to search against aliases with no isp as well
+        if isp:
+            match_kwargs['isp'] = isp
+        else:
+            match_kwargs['isp__isnull'] = True
+
+        match_qs = self.filter(name=name, isp=isp)
+
         try:
-            return self.get_queryset().filter(**alias_filters)[:1].get(), False
-        # create a new entry
+            return match_qs[:1].get(), False
         except ObjectDoesNotExist:
-            with transaction.atomic():
-                # get a profile by name and optionally by ip and isp
-                # ISP could as well be empty
-                if not kwargs.get('profile'):
-                    profile_filters = {
-                        'name': kwargs['name'],
-                        'isp': kwargs.get('isp')
-                    }
-                    # ip must not be empty
-                    if ip:
-                        profile_filters['ip'] = ip
-                    kwargs['profile'] = Profile.objects.match_smart_or_create(**profile_filters)[0]
-                return self.get_queryset().create(**kwargs), True
+            new_alias = self.create_alias(
+                name=name,
+                ip_address=ip_address,
+                isp=isp,
+            )
+            return new_alias, True
+
+    @transaction.atomic
+    def create_alias(
+        self,
+        *,
+        name: str,
+        ip_address: str | IPv4Address,
+        isp: ISP | None,
+    ) -> 'Alias':
+        from apps.tracker.models import Profile
+
+        # get a profile by name and optionally by ip and isp.
+        # ISP could as well be empty
+        profile, _ = Profile.objects.match_smart_or_create(
+            name=name,
+            ip_address=ip_address,
+            isp=isp,
+        )
+
+        return self.create(
+            name=name,
+            profile=profile,
+            profile_name=profile.name,
+            isp=isp,
+            isp_name=isp.name if isp else None,
+            isp_country=isp.country if isp else None,
+        )
