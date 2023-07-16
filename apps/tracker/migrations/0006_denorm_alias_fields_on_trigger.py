@@ -20,6 +20,7 @@ class Migration(migrations.Migration):
             END;
             $$ LANGUAGE plpgsql;
 
+            DROP TRIGGER IF EXISTS insert_alias_set_profile_name ON tracker_alias;
             CREATE TRIGGER insert_alias_set_profile_name
             BEFORE INSERT ON tracker_alias
             FOR EACH ROW
@@ -47,12 +48,6 @@ class Migration(migrations.Migration):
             -- Trigger to update tracker_alias.profile_name after an update of tracker_alias.profile_id FK
             CREATE OR REPLACE FUNCTION update_alias_profile_fk_set_new_profile_name()
             RETURNS TRIGGER AS $$
-            -- BEGIN
-            --    UPDATE tracker_alias
-            --    SET profile_name = (SELECT name FROM tracker_profile WHERE id = NEW.profile_id)
-            --    WHERE id = NEW.id;
-            --    RETURN NEW;
-            -- END;
             BEGIN
                 NEW.profile_name = (SELECT name FROM tracker_profile WHERE id = NEW.profile_id);
                 RETURN NEW;
@@ -62,7 +57,6 @@ class Migration(migrations.Migration):
             DROP TRIGGER IF EXISTS update_alias_profile_fk_set_new_profile_name ON tracker_alias;
             CREATE TRIGGER update_alias_profile_fk_set_new_profile_name
             BEFORE UPDATE OF profile_id ON tracker_alias
-            -- AFTER UPDATE OF profile_id ON tracker_alias
             FOR EACH ROW
             EXECUTE FUNCTION update_alias_profile_fk_set_new_profile_name();
         """),
@@ -111,19 +105,11 @@ class Migration(migrations.Migration):
                 NEW.isp_country = (SELECT country FROM tracker_isp WHERE id = NEW.isp_id);
                 RETURN NEW;
             END;
-            -- BEGIN
-            --    UPDATE tracker_alias
-            --    SET isp_name = (SELECT name FROM tracker_isp WHERE id = NEW.isp_id),
-            --        isp_country = (SELECT country FROM tracker_isp WHERE id = NEW.isp_id)
-            --    WHERE id = NEW.id;
-            --    RETURN NEW;
-            -- END;
             $$ LANGUAGE plpgsql;
 
             DROP TRIGGER IF EXISTS update_alias_isp_fk_set_new_isp_name_country ON tracker_alias;
             CREATE TRIGGER update_alias_isp_fk_set_new_isp_name_country
             BEFORE UPDATE OF isp_id ON tracker_alias
-            -- AFTER UPDATE OF isp_id ON tracker_alias
             FOR EACH ROW
             EXECUTE FUNCTION update_alias_isp_fk_set_new_isp_name_country();
         """)
