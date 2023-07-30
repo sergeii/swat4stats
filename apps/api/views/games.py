@@ -9,8 +9,8 @@ from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.api.filters import GameFilter
-from apps.api.pagination import paginator_factory
+from apps.api.filters import GameFilterSet
+from apps.api.pagination import cursor_paginator_factory
 from apps.api.serializers import (
     ServerBaseSerializer, MapSerializer,
     GameBaseSerializer, GameSerializer,
@@ -21,9 +21,9 @@ from apps.tracker.models import Server, Map, Game, Player, Objective, Procedure
 
 class GameViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
     queryset = Game.objects.select_related('map', 'server').order_by('-pk')
-    pagination_class = paginator_factory(page_size=50)
+    pagination_class = cursor_paginator_factory(page_size=50)
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = GameFilter
+    filterset_class = GameFilterSet
 
     def get_serializer_class(self) -> type[GameBaseSerializer]:
         match self.action:

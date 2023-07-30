@@ -45,14 +45,14 @@ def is_name_popular(name: str) -> bool:
 
 class ProfileQuerySet(models.QuerySet):
 
-    def for_display_card(self) -> models.QuerySet:
+    def for_display_card(self) -> models.QuerySet['Profile']:
         return (self.select_related('loadout')
                 .only('loadout', 'name', 'team', 'country'))
 
-    def played(self) -> models.QuerySet:
+    def played(self) -> models.QuerySet['Profile']:
         return self.filter(first_seen_at__isnull=False, last_seen_at__isnull=False)
 
-    def require_preference_update(self) -> models.QuerySet:
+    def require_preference_update(self) -> models.QuerySet['Profile']:
         """
         Fetch the profiles that require updating preferences.
         Those are profiles of the players that played past the last update.
@@ -60,7 +60,7 @@ class ProfileQuerySet(models.QuerySet):
         return self.played().filter(Q(preferences_updated_at__isnull=True) |
                                     Q(last_seen_at__gt=F('preferences_updated_at')))
 
-    def require_stats_update(self) -> models.QuerySet:
+    def require_stats_update(self) -> models.QuerySet['Profile']:
         """
         Fetch profiles of the players for periodic stats update.
         """

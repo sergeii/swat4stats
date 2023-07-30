@@ -1,5 +1,7 @@
 import logging
 
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.search import SearchVectorField
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Q, F, When, Case, Count, Func, Expression, Subquery
@@ -18,6 +20,7 @@ from apps.tracker.managers import (
     PlayerManager, PlayerQuerySet, ProfileManager,
     ProfileQuerySet, StatsManager, ServerStatsManager,
 )
+from apps.tracker.managers.alias import AliasQuerySet
 from apps.tracker.schema import teams_reversed
 from apps.tracker.utils.game import map_background_picture
 from apps.tracker.utils import (force_clean_name, ratio)
@@ -57,16 +60,16 @@ class Server(models.Model):
         ]
 
     @cached_property
-    def address(self):
+    def address(self) -> str:
         return f'{self.ip}:{self.port}'
 
     @cached_property
-    def name(self):
+    def name(self) -> str:
         if self.hostname:
             return force_clean_name(self.hostname)
         return self.address
 
-    def clean(self):
+    def clean(self) -> None:
         """
         Ensure port is in valid range.
 
@@ -85,7 +88,7 @@ class Server(models.Model):
                     self.ip, self.port, self.pk)
         redis.hset(settings.TRACKER_STATUS_REDIS_KEY, self.address, dumps(status).encode())
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         self.clean()
         # set default status port
         if not self.status_port:
@@ -232,21 +235,18 @@ class Weapon(models.Model):
 
 class Alias(models.Model):
     name = models.CharField(max_length=64)
-
     profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
-    profile_name = models.TextField(null=True,
-                                    help_text=_('Denormalized profile name for faster search'))
-
     isp = models.ForeignKey('geoip.ISP', related_name='+', null=True, on_delete=models.PROTECT)
-    isp_name = models.TextField(null=True,
-                                help_text=_('Denormalized ISP name for faster search'))
-    isp_country = models.CharField(max_length=2, null=True,
-                                   help_text=_('Denormalized ISP country for faster search'))
+
+    search = SearchVectorField(
+        null=True,
+        help_text=_('TSV field for full text search. Updated by triggers.')
+    )
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
-    objects = AliasManager()
+    objects = AliasManager.from_queryset(AliasQuerySet)()
 
     class Meta:
         index_together = (('name', 'isp'),)
@@ -438,6 +438,16 @@ class Profile(models.Model):
     last_seen_at = models.DateTimeField(null=True)
     stats_updated_at = models.DateTimeField(null=True)
     preferences_updated_at = models.DateTimeField(null=True)
+
+    names = ArrayField(
+        models.TextField(),
+        null=True,
+        help_text=_('Denormalized list of alias names for search vector. Updated by triggers.'),
+    )
+    search = SearchVectorField(
+        null=True,
+        help_text=_('TSV field for full text search. Updated by triggers.')
+    )
 
     objects = ProfileManager.from_queryset(ProfileQuerySet)()
 

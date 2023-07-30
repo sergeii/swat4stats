@@ -1,11 +1,12 @@
-from django.db.models import QuerySet
+from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.db.models import QuerySet, F
 from django_filters.rest_framework import DjangoFilterBackend
 import django_filters
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
 from apps.api.serializers import ServerFilterSerializer
-from apps.tracker.models import Game, Server
+from apps.tracker.models import Game, Server, Profile
 
 
 class ServerFilterBackend(DjangoFilterBackend):
@@ -64,7 +65,7 @@ class ServerFilterBackend(DjangoFilterBackend):
         return None
 
 
-class GameFilter(django_filters.FilterSet):
+class GameFilterSet(django_filters.FilterSet):
     day = django_filters.NumberFilter(field_name='date_finished', lookup_expr='day')
     month = django_filters.NumberFilter(field_name='date_finished', lookup_expr='month')
     year = django_filters.NumberFilter(field_name='date_finished', lookup_expr='year')
@@ -72,3 +73,25 @@ class GameFilter(django_filters.FilterSet):
     class Meta:
         model = Game
         fields = ['server', 'map', 'gametype', 'day', 'month', 'year']
+
+
+class SearchFilterBackend(django_filters.rest_framework.DjangoFilterBackend):
+
+    def filter_queryset(self, request: Request, queryset: QuerySet[Profile], view: GenericViewSet) -> QuerySet[Profile]:
+        queryset = super().filter_queryset(request, queryset, view)
+        ordering = ('-last_seen_at', 'pk')
+
+        if query := request.query_params.get('q'):
+            sq = SearchQuery(query, search_type='phrase', config='simple')
+            return (
+                queryset
+                .filter(search=sq)
+                .annotate(rank=SearchRank(F('search'), sq))
+                .order_by('-rank', *ordering)
+            )
+
+        return queryset.order_by(*ordering)
+
+
+class SearchFilterSet(django_filters.FilterSet):
+    country = django_filters.CharFilter(field_name='country', lookup_expr='iexact')

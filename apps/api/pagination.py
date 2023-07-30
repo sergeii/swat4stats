@@ -16,5 +16,9 @@ class CursorPagination(pagination.CursorPagination):
             return default_page_size
 
 
-def paginator_factory(**attrs: Any) -> type[CursorPagination]:
-    return type('CustomPaginatonClass', (CursorPagination,), attrs)
+def cursor_paginator_factory(**attrs: Any) -> type[CursorPagination]:
+    return type('CustomCursorPaginatonClass', (CursorPagination,), attrs)
+
+
+def limit_offset_pagination_factory(**attrs: Any) -> type[pagination.LimitOffsetPagination]:
+    return type('CustomLimitOffsetPaginatonClass', (pagination.LimitOffsetPagination,), attrs)

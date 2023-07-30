@@ -2,8 +2,10 @@ import logging
 from ipaddress import IPv4Address
 from typing import TYPE_CHECKING
 
+from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
+from django.db.models import F
 
 from apps.geoip.models import ISP
 
@@ -11,6 +13,24 @@ logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from apps.tracker.models import Alias
+
+
+class AliasQuerySet(models.QuerySet):
+
+    def search(self, q: str) -> models.QuerySet['Alias']:
+        from apps.tracker.models import Alias
+
+        query = SearchQuery(q, search_type='phrase', config='simple')
+
+        matching_names = (
+            Alias.objects
+            .filter(search=query)
+            .order_by('profile_id')
+            .distinct('profile_id')
+            .values('pk')
+        )
+
+        return self.filter(pk__in=matching_names).annotate(rank=SearchRank(F('search'), query))
 
 
 class AliasManager(models.Manager):

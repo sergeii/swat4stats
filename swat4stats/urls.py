@@ -14,6 +14,7 @@ from apps.api.views import (
     PopularMapnamesViewSet, PopularServersViewSet,
     GameViewSet, ServerLeaderboardViewSet,
 )
+from apps.api.views.search import SearchView
 from apps.tracker.sitemaps import ServerSitemap, ProfileSitemap
 from apps.tracker.views import APIWhoisView, DataStreamView
 from apps.tracker.views.motd import APIMotdLeaderboardView, APILegacySummaryView
@@ -30,14 +31,15 @@ sitemaps = {
 }
 
 api_router = routers.DefaultRouter()
-api_router.register(r'servers', ServerViewSet)
-api_router.register(r'games', GameViewSet)
-api_router.register(r'articles', ArticleViewSet)
-api_router.register(r'server-leaderboard', ServerLeaderboardViewSet)
-api_router.register(r'data-popular-mapnames', PopularMapnamesViewSet, basename='popular-mapnames')
-api_router.register(r'data-popular-servers', PopularServersViewSet, basename='popular-servers')
+api_router.register('servers', ServerViewSet)
+api_router.register('games', GameViewSet)
+api_router.register('articles', ArticleViewSet)
+api_router.register('server-leaderboard', ServerLeaderboardViewSet)
+api_router.register('data-popular-mapnames', PopularMapnamesViewSet, basename='popular-mapnames')
+api_router.register('data-popular-servers', PopularServersViewSet, basename='popular-servers')
 
 api_urls = [
+    path('search/', SearchView.as_view()),
     path(r'', include(api_router.urls)),
 ]
 

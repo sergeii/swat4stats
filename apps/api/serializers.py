@@ -14,7 +14,18 @@ from rest_framework.exceptions import ValidationError
 
 from apps.news.models import Article
 from apps.tracker.entities import GameType, CoopStatus
-from apps.tracker.models import Server, Map, Game, Player, Objective, Procedure, Weapon, PlayerStats, Profile, Loadout
+from apps.tracker.models import (
+    Server,
+    Map,
+    Game,
+    Player,
+    Objective,
+    Procedure,
+    Weapon,
+    PlayerStats,
+    Profile,
+    Loadout,
+)
 from apps.tracker.schema import coop_status_encoded, serverquery_schema
 from apps.tracker.utils import force_clean_name, format_name, html
 from apps.tracker.utils.game import (
@@ -520,12 +531,16 @@ class LoadoutSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     loadout = LoadoutSerializer()
+    country_human = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = ('id', 'name', 'team', 'loadout',
                   'country', 'country_human', 'first_seen_at', 'last_seen_at')
         read_only_fields = fields
+
+    def get_country_human(self, obj: Profile) -> str:
+        return country(obj.country)
 
 
 class PlayerStatSerializer(serializers.ModelSerializer):
@@ -534,4 +549,12 @@ class PlayerStatSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerStats
         fields = ('id', 'category', 'year', 'profile', 'points', 'position')
+        read_only_fields = fields
+
+
+class SearchItemSerializer(serializers.Serializer):
+    profile = ProfileSerializer()
+
+    class Meta:
+        fields = ('profile',)
         read_only_fields = fields

@@ -3,7 +3,7 @@ from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, ListMode
 from rest_framework.viewsets import GenericViewSet
 
 from apps.api.filters import ServerFilterBackend
-from apps.api.pagination import paginator_factory
+from apps.api.pagination import cursor_paginator_factory
 from apps.api.serializers import (
     ServerBaseSerializer, ServerCreateSerializer, ServerFullSerializer,
     PlayerStatSerializer,
@@ -74,7 +74,7 @@ class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, Generi
 class ServerLeaderboardViewSet(ListModelMixin, GenericViewSet):
     queryset = ServerStats.objects.all()
     serializer_class = PlayerStatSerializer
-    pagination_class = paginator_factory(page_size=20, ordering=('position', 'id'))
+    pagination_class = cursor_paginator_factory(page_size=20, ordering=('position', 'id'))
 
     def get_queryset(self) -> ServerQuerySet:
         return (ServerStats.objects
