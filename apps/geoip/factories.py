@@ -25,7 +25,7 @@ class ISPFactory(factory.django.DjangoModelFactory):
         if not extracted:
             return
 
-        if not isinstance(extracted, (tuple, list)):
+        if not isinstance(extracted, tuple | list):
             extracted = [extracted]
 
         for item in extracted:

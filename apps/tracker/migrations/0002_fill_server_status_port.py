@@ -1,5 +1,3 @@
-from typing import Type
-
 from django.db import migrations
 from django.db.models import Model
 
