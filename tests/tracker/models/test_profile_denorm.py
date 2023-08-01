@@ -42,6 +42,7 @@ def test_denorm_profile_alias_names_on_create(db):
     # add more aliases, names are updated
     AliasFactory(profile=other_profile, name='Jack')
     AliasFactory(profile=other_profile, name='Morrison')
+    AliasFactory(profile=other_profile, name='Morrison')
     other_profile.refresh_from_db()
     assert other_profile.names == ['Jack', 'Morrison']
 

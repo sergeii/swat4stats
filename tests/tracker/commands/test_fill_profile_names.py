@@ -11,6 +11,7 @@ def test_fill_profile_names(db, django_assert_num_queries):
     other_profile = ProfileFactory(name='Solider76')
     AliasFactory(profile=other_profile, name='Solider76')
     AliasFactory(profile=other_profile, name='JackMorrison')
+    AliasFactory(profile=other_profile, name='JackMorrison')
 
     single_name_profile = ProfileFactory(name='Roadhog')
     AliasFactory(profile=single_name_profile, name='Roadhog')

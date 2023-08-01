@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             BEGIN
                 UPDATE tracker_profile AS tp
                 SET names = ARRAY(
-                    SELECT name
+                    SELECT DISTINCT name
                     FROM tracker_alias AS ta
                     WHERE profile_id = NEW.profile_id AND (tp.name IS NULL OR tp.name != ta.name)
                 )
@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
             END;
             $$ LANGUAGE plpgsql;
 
+            DROP TRIGGER IF EXISTS insert_update_alias_update_profile_names ON tracker_alias;
             CREATE TRIGGER insert_update_alias_update_profile_names
             AFTER INSERT OR UPDATE OF "profile_id", "name" ON tracker_alias
             FOR EACH ROW EXECUTE FUNCTION insert_update_alias_update_profile_names();
@@ -35,7 +36,7 @@ class Migration(migrations.Migration):
             BEGIN
                 UPDATE tracker_profile AS tp
                 SET names = ARRAY(
-                    SELECT name
+                    SELECT DISTINCT name
                     FROM tracker_alias AS ta
                     WHERE profile_id = OLD.profile_id AND (tp.name IS NULL OR tp.name != ta.name)
                 )
@@ -44,6 +45,7 @@ class Migration(migrations.Migration):
             END;
             $$ LANGUAGE plpgsql;
 
+            DROP TRIGGER IF EXISTS delete_alias_update_profile_names ON tracker_alias;
             CREATE TRIGGER delete_alias_update_profile_names
             AFTER DELETE ON tracker_alias
             FOR EACH ROW EXECUTE FUNCTION delete_alias_update_profile_names();

@@ -451,6 +451,13 @@ class Profile(models.Model):
 
     objects = ProfileManager.from_queryset(ProfileQuerySet)()
 
+    class Meta:
+        indexes = [
+            models.Index(Upper('country'), F('last_seen_at').desc(), F('id'),
+                         condition=Q(last_seen_at__isnull=False),
+                         name='tracker_profile_search_by_country_idx'),
+        ]
+
     def __str__(self) -> str:
         return f'{self.name}, {self.country}'
 

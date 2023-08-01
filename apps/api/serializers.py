@@ -552,9 +552,11 @@ class PlayerStatSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class SearchItemSerializer(serializers.Serializer):
-    profile = ProfileSerializer()
+class SearchResultItemSerializer(serializers.Serializer):
+    item = ProfileSerializer(source='*')
+    headline = serializers.CharField()
+    excerpt = serializers.CharField()
 
     class Meta:
-        fields = ('profile',)
+        fields = ('item', 'headline', 'excerpt')
         read_only_fields = fields

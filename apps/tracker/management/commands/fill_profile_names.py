@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 def fill_profile_names(profile_model: type[Model]):
     sub = (
         Alias.objects
+        .distinct('name')
         .filter(profile_id=OuterRef("pk"))
         .values_list("name")
     )

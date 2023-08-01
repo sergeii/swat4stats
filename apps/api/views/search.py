@@ -3,12 +3,12 @@ from rest_framework.generics import ListAPIView
 
 from apps.api.filters import SearchFilterSet, SearchFilterBackend
 from apps.api.pagination import limit_offset_pagination_factory
-from apps.api.serializers import ProfileSerializer
+from apps.api.serializers import SearchResultItemSerializer
 from apps.tracker.models import Profile
 
 
 class SearchView(ListAPIView):
-    serializer_class = ProfileSerializer
+    serializer_class = SearchResultItemSerializer
     pagination_class = limit_offset_pagination_factory(default_limit=20, max_limit=100)
     filter_backends = (SearchFilterBackend,)
     filterset_class = SearchFilterSet

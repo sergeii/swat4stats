@@ -22,6 +22,9 @@ def _setup_profiles(db, now):
     tracer = ProfileFactory(name='OW|Tracer', country='GB', last_seen_at=four_days_ago)
     AliasFactory(profile=tracer, name='OW|Tracer', isp__country='GB')
     AliasFactory(profile=tracer, name='Tracer', isp__country='GB')
+    # duplicate on purpose
+    AliasFactory(profile=tracer, name='Tracer', isp__country='GB')
+    AliasFactory(profile=tracer, name='<OW>Tracer', isp__country='GB')
 
     hanzo = ProfileFactory(name='OW|Hanzo', country='JP', last_seen_at=today)
     AliasFactory(profile=hanzo, name='OW|Hanzo', isp__country='JP')
@@ -32,6 +35,7 @@ def _setup_profiles(db, now):
 
     winston = ProfileFactory(name='OW|Winston', country='GB', last_seen_at=two_days_ago)
     AliasFactory(profile=winston, name='OW|Winston', isp__country='GB')
+    AliasFactory(profile=winston, name='WinstonTheScientist', isp__country='GB')
 
     widowmaker = ProfileFactory(name='Widowmaker', country='FR', last_seen_at=three_days_ago)
     AliasFactory(profile=widowmaker, name='Widowmaker', isp__country='FR')
@@ -59,15 +63,16 @@ def _setup_profiles(db, now):
     AliasFactory(profile=thrall, name='|WOW|Thrall', isp__country='US')
 
 
-def test_search_no_filters(db, api_client):
-    resp = api_client.get('/api/search/')
+def test_search_no_filters(db, api_client, django_assert_max_num_queries):
+    with django_assert_max_num_queries(3):
+        resp = api_client.get('/api/search/')
 
     assert resp.status_code == 200
 
     assert resp.data['previous'] is None
     assert resp.data['next'] is None
 
-    names = [obj['name'] for obj in resp.data['results']]
+    names = [obj['item']['name'] for obj in resp.data['results']]
     assert names == [
         'OW|Hanzo',
         'Genji', 'T-racer',
@@ -82,7 +87,7 @@ def test_search_pagination_no_filters(db, api_client):
     assert resp.status_code == 200
 
     assert resp.data['previous'] is None
-    assert [obj['name'] for obj in resp.data['results']] == [
+    assert [obj['item']['name'] for obj in resp.data['results']] == [
         'OW|Hanzo', 'Genji', 'T-racer',
         'OW|Winston', 'Widowmaker',
         'OW|Tracer', 'OW|Mercy',
@@ -93,7 +98,7 @@ def test_search_pagination_no_filters(db, api_client):
     assert next_url.query == 'limit=7&offset=7'
 
     resp = api_client.get(resp.data['next'])
-    assert [obj['name'] for obj in resp.data['results']] == [
+    assert [obj['item']['name'] for obj in resp.data['results']] == [
         'WinstonChurchill', 'Winston123', 'Winstoned', '|WOW|Thrall',
     ]
     assert resp.data['next'] is None
@@ -103,14 +108,14 @@ def test_search_pagination_no_filters(db, api_client):
     assert prev_url.query == 'limit=7'
 
     resp = api_client.get(resp.data['previous'])
-    assert [obj['name'] for obj in resp.data['results']] == [
+    assert [obj['item']['name'] for obj in resp.data['results']] == [
         'OW|Hanzo', 'Genji', 'T-racer', 'OW|Winston',
         'Widowmaker', 'OW|Tracer', 'OW|Mercy',
     ]
     assert resp.data['previous'] is None
 
     resp = api_client.get(resp.data['next'])
-    assert [obj['name'] for obj in resp.data['results']] == [
+    assert [obj['item']['name'] for obj in resp.data['results']] == [
         'WinstonChurchill', 'Winston123', 'Winstoned', '|WOW|Thrall',
     ]
 
@@ -131,7 +136,7 @@ def test_search_pagination_no_filters(db, api_client):
 def test_search_by_country(db, api_client, country, names):
     resp = api_client.get(f'/api/search/?country={country}')
     assert resp.status_code == 200
-    assert [obj['name'] for obj in resp.data['results']] == names
+    assert [obj['item']['name'] for obj in resp.data['results']] == names
 
 
 @pytest.mark.parametrize('search_q, names', [
@@ -148,10 +153,11 @@ def test_search_by_country(db, api_client, country, names):
     ('Mercy', ['OW|Mercy', 'Genji']),
     ('Mercy Heal Me', ['Genji']),
 ])
-def test_search_by_name(db, api_client, search_q, names):
-    resp = api_client.get(f'/api/search/?q={search_q}')
+def test_search_by_name(db, api_client, django_assert_max_num_queries, search_q, names):
+    with django_assert_max_num_queries(3):
+        resp = api_client.get(f'/api/search/?q={search_q}')
     assert resp.status_code == 200
-    assert [obj['name'] for obj in resp.data['results']] == names
+    assert [obj['item']['name'] for obj in resp.data['results']] == names
 
 
 @pytest.mark.parametrize('search_q, country, names', [
@@ -164,10 +170,11 @@ def test_search_by_name(db, api_client, search_q, names):
     ('ow', 'us', []),
     ('wow', 'us', ['|WOW|Thrall']),
 ])
-def test_search_by_name_and_country(transactional_db, api_client, search_q, country, names):
-    resp = api_client.get(f'/api/search/?q={search_q}&country={country}')
+def test_search_by_name_and_country(db, api_client, django_assert_max_num_queries, search_q, country, names):
+    with django_assert_max_num_queries(3):
+        resp = api_client.get(f'/api/search/?q={search_q}&country={country}')
     assert resp.status_code == 200
-    assert [obj['name'] for obj in resp.data['results']] == names
+    assert [obj['item']['name'] for obj in resp.data['results']] == names
 
 
 @pytest.mark.parametrize('search_q, names', [
@@ -177,4 +184,24 @@ def test_search_by_name_and_country(transactional_db, api_client, search_q, coun
 def test_search_relevance(db, api_client, search_q, names):
     resp = api_client.get(f'/api/search/?q={search_q}')
     assert resp.status_code == 200
-    assert [obj['name'] for obj in resp.data['results']] == names
+    assert [obj['item']['name'] for obj in resp.data['results']] == names
+
+
+@pytest.mark.parametrize('search_q, headline, excerpt', [
+    ('tracer', 'OW|<b>Tracer</b>', '<b>Tracer</b>'),
+    ('OW|Tracer', '<b>OW</b>|<b>Tracer</b>', None),
+    ('Tracer ow', '<b>OW</b>|<b>Tracer</b>', None),
+    ('|OW|Tracer', '<b>OW</b>|<b>Tracer</b>', None),
+    ('ow tracer', '<b>OW</b>|<b>Tracer</b>', None),
+    ('t racer', 'T-<b>racer</b>', None),
+    ('mercy', 'OW|<b>Mercy</b>', None),
+    ('winston', 'OW|<b>Winston</b>', 'WinstonTheScientist'),
+    ('scientist', 'OW|Winston', 'WinstonTheScientist'),
+    ('WinstonTheScientist', 'OW|Winston', '<b>WinstonTheScientist</b>'),
+])
+def test_search_headline(db, api_client, search_q, headline, excerpt):
+    resp = api_client.get(f'/api/search/?q={search_q}')
+    assert resp.status_code == 200
+    first_match = resp.data['results'][0]
+    assert first_match['headline'] == headline
+    assert first_match['excerpt'] == excerpt
