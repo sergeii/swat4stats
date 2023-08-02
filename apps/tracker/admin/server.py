@@ -130,7 +130,9 @@ class ServerAdmin(admin.ModelAdmin):
             super().get_queryset(request)
             .select_related('merged_into')
             .annotate(
-                is_merged=Case(When(merged_into__isnull=False, then=Value(True)), default=Value(False),
+                is_merged=Case(When(merged_into__isnull=False,
+                                    then=Value(True)),  # noqa: FBT003
+                               default=Value(False),  # noqa: FBT003
                                output_field=BooleanField())
             )
         )
@@ -187,13 +189,13 @@ class ServerAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(return_url)
 
         try:
-            ids = [int(id) for id in server_ids_comma.split(',')]
+            server_ids = [int(server_id) for server_id in server_ids_comma.split(',')]
         except ValueError as exc:
-            logger.error('unable to patse server ids %s due to %s',
-                         server_ids_comma, exc, exc_info=True)
+            logger.exception('unable to patse server ids %s due to %s',
+                             server_ids_comma, exc)
             return HttpResponseRedirect(return_url)
 
-        queryset = Server.objects.filter(pk__in=ids, merged_into__isnull=True).order_by('-pk')
+        queryset = Server.objects.filter(pk__in=server_ids, merged_into__isnull=True).order_by('-pk')
         form = ServerMergeForm(data=request.POST or None, queryset=queryset)
 
         if request.method == 'POST' and form.is_valid():

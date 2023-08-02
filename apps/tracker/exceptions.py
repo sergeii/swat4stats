@@ -1,4 +1,4 @@
-class GameDataAlreadySaved(Exception):
+class GameAlreadySavedError(Exception):
     ...
 
 
@@ -6,5 +6,5 @@ class MergeServersError(Exception):
     ...
 
 
-class NoProfileMatch(Exception):
+class NoProfileMatchError(Exception):
     ...

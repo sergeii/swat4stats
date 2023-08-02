@@ -66,7 +66,7 @@ class MotdLeaderboardForm(MotdBaseForm):
             'sg_escapes': _('Case Escapes'),
             'sg_kills': _('Case Carrier Kills'),
         }
-        all = coop | common | vip | sg | rd
+        combined = coop | common | vip | sg | rd
 
     # custom mapping schema, other categories map as is
     alias_to_category = {
@@ -79,7 +79,7 @@ class MotdLeaderboardForm(MotdBaseForm):
     }
 
     limit = forms.IntegerField(min_value=1, max_value=20, required=False)
-    category = forms.ChoiceField(choices=(Cats.all | alias_to_category).items(),
+    category = forms.ChoiceField(choices=(Cats.combined | alias_to_category).items(),
                                  required=False)
     gametype = forms.ChoiceField(choices=gametypes.items(), required=False)
 
@@ -103,7 +103,7 @@ class MotdLeaderboardForm(MotdBaseForm):
         cleaned_data.update({
             'category': category,
             'gametype': gametype,
-            'title': self.Cats.all[category],
+            'title': self.Cats.combined[category],
             'limit': cleaned_data['limit'] or self.Defaults.limit,
             'nodelay': bool(cleaned_data['nodelay']),
             'initial': self.Defaults.initial if cleaned_data['initial'] is None else cleaned_data['initial'],

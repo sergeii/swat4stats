@@ -18,9 +18,9 @@ def test_game_unknown_game_400(db, api_client):
 
 
 def test_get_game_detail_versus(db, settings, django_assert_num_queries, api_client, server):
-    map = MapFactory(name='A-Bomb Nightclub')
+    a_bomb = MapFactory(name='A-Bomb Nightclub')
 
-    game = GameFactory(gametype='VIP Escort', map=map, server=server,
+    game = GameFactory(gametype='VIP Escort', map=a_bomb, server=server,
                        date_finished=datetime(2017, 1, 1, tzinfo=UTC))
     PlayerFactory(
         dropped=False,
@@ -64,8 +64,8 @@ def test_get_game_detail_versus(db, settings, django_assert_num_queries, api_cli
 
 
 def test_get_game_detail_coop(db, django_assert_num_queries, api_client, server):
-    map = MapFactory(name='A-Bomb Nightclub')
-    coop_game = GameFactory(gametype='CO-OP', map=map, server=server,
+    game_map = MapFactory(name='A-Bomb Nightclub')
+    coop_game = GameFactory(gametype='CO-OP', map=game_map, server=server,
                             date_finished=datetime(2017, 1, 1, tzinfo=UTC),
                             coop_score=77)
     PlayerFactory.create_batch(7, dropped=False, game=coop_game)
@@ -150,8 +150,8 @@ def test_get_game_map_picture(db, api_client, settings, map_name, map_image_name
     ('Some Unknown Map', None),
 ])
 def test_get_coop_game_map_briefing(db, api_client, settings, map_name, briefing_snippet):
-    map = MapFactory(name=map_name)
-    coop_game = GameFactory(gametype='CO-OP', map=map)
+    game_map = MapFactory(name=map_name)
+    coop_game = GameFactory(gametype='CO-OP', map=game_map)
 
     resp = api_client.get(f'/api/games/{coop_game.pk}/')
 

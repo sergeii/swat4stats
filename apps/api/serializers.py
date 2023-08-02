@@ -67,7 +67,7 @@ class ServerFilterSerializer(serializers.Serializer):
 class StatusPlayerSerializer(serializers.Serializer):
     default_coop_status = coop_status_encoded[1]
 
-    id = serializers.IntegerField()
+    id = serializers.IntegerField()  # noqa: A003
     name = serializers.CharField()
     ping = serializers.IntegerField()
     score = serializers.IntegerField()
@@ -344,9 +344,9 @@ class PlayerSerializer(serializers.ModelSerializer):
     def get_portrait_picture(self, obj: Player) -> str:
         return get_player_portrait_image(
             team=obj.team,
-            is_vip=obj.vip,
             head=obj.loadout.head if obj.loadout else None,
             body=obj.loadout.body if obj.loadout else None,
+            is_vip=obj.vip,
         )
 
     def get_country(self, obj: Player) -> str | None:
@@ -425,7 +425,7 @@ class GameBaseSerializer(serializers.ModelSerializer):
     gametype = serializers.SerializerMethodField()
     gametype_short = serializers.SerializerMethodField()
     gametype_slug = serializers.SerializerMethodField()
-    map = MapSerializer()
+    map = MapSerializer()  # noqa: A003
     server = ServerBaseSerializer()
 
     gametype_to_short_mapping: dict[str, str] = {
@@ -461,7 +461,7 @@ class GameBaseSerializer(serializers.ModelSerializer):
 
 
 class GameNeighborsSerializer(serializers.Serializer):
-    next = GameBaseSerializer()
+    next = GameBaseSerializer()  # noqa: A003
     prev = GameBaseSerializer()
 
 

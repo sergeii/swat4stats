@@ -57,9 +57,36 @@ filterwarnings = [
 ]
 
 [tool.ruff]
-select = ["E", "F", "W", "C90", "N", "UP"]
+select = [
+    "F",        # pyflakes
+    "E",        # pycodestyle Error
+    "W",        # pycodestyle Warning
+    "C90",      # mccabe
+    "N",        # pep8-naming
+    "UP",       # pyupgrade
+    "YTT",      # flake8-2020
+    "ASYNC",    # flake8-async
+    "BLE",      # flake8-blind-except
+    "FBT",      # flake8-boolean-trap
+    "B",        # flake8-bugbear
+    "A",        # flake8-builtins
+    "C4",       # flake8-comprehensions
+    "DTZ",      # flake8-datetimez
+    "T10",      # flake8-debugger
+    "DJ",       # flake8-django
+    "EM",       # flake8-errmsg
+    "FA",       # flake8-future-annotations
+    "ISC",      # flake8-implicit-str-concat
+    "G",        # flake8-logging-format
+    "INP",      # flake8-no-pep420
+
+]
 ignore = [
-    "N817",
+    "N817",     # CamelCase `ElementTree` imported as acronym `ET`
+    "B904" ,    # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None`
+    "BLE001",   # Do not catch blind exception: `Exception`
+    "EM101",    # Exception must not use a string literal, assign to variable first
+    "DJ001",    # Avoid using `null=True` on string-based fields such as CharField
 ]
 fixable = ["ALL"]
 unfixable = []

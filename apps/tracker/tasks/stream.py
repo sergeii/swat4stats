@@ -6,7 +6,7 @@ import celery
 from django.db import transaction
 from pytz import utc
 
-from apps.tracker.exceptions import GameDataAlreadySaved
+from apps.tracker.exceptions import GameAlreadySavedError
 from swat4stats.celery import app, Queue
 from apps.tracker.models import Server, Game, Profile
 from apps.tracker.signals import game_data_saved
@@ -39,12 +39,11 @@ def process_game_data(
 
     try:
         game = Game.objects.create_game(server=server, data=data, date_finished=data_received_at)
-    except GameDataAlreadySaved:
+    except GameAlreadySavedError:
         pass
     except Exception as exc:
-        logger.error('failed to create game due to %s', exc,
-                     exc_info=True,
-                     extra={'data': {'data': data}})
+        logger.exception('failed to create game due to %s', exc,
+                         extra={'data': {'data': data}})
         self.retry(exc=exc)
     else:
         game_data_saved.send_robust(sender=None, data=data, server=server, game=game)

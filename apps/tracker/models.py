@@ -59,6 +59,16 @@ class Server(models.Model):
             models.Index(Func(F('ip'), function='host'), F('port'), name='tracker_server_host_ip_port'),
         ]
 
+    def __str__(self) -> str:
+        return self.name
+
+    def save(self, *args, **kwargs) -> None:
+        self.clean()
+        # set default status port
+        if not self.status_port:
+            self.status_port = self.port + 1
+        super().save(*args, **kwargs)
+
     @cached_property
     def address(self) -> str:
         return f'{self.ip}:{self.port}'
@@ -88,16 +98,6 @@ class Server(models.Model):
                     self.ip, self.port, self.pk)
         redis.hset(settings.TRACKER_STATUS_REDIS_KEY, self.address, dumps(status).encode())
 
-    def save(self, *args, **kwargs) -> None:
-        self.clean()
-        # set default status port
-        if not self.status_port:
-            self.status_port = self.port + 1
-        super().save(*args, **kwargs)
-
-    def __str__(self) -> str:
-        return self.name
-
 
 class Map(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -113,11 +113,11 @@ class Map(models.Model):
 
     @cached_property
     def preview_picture(self):
-        return map_background_picture(self.name, type='preview')
+        return map_background_picture(self.name, style='preview')
 
     @cached_property
     def background_picture(self):
-        return map_background_picture(self.name, type='background')
+        return map_background_picture(self.name, style='background')
 
 
 class Game(models.Model):
@@ -128,7 +128,7 @@ class Game(models.Model):
     outcome_legacy = models.SmallIntegerField(db_column='outcome', default=0)
     gametype = EnumField(db_column='gametype_enum', enum_type='gametype_enum')
     gametype_legacy = models.SmallIntegerField(db_column='gametype')
-    map = models.ForeignKey('Map', on_delete=models.PROTECT)
+    map = models.ForeignKey('Map', on_delete=models.PROTECT)  # noqa: A003
     player_num = models.SmallIntegerField(default=0)
     score_swat = models.SmallIntegerField(default=0)
     score_sus = models.SmallIntegerField(default=0)
@@ -206,9 +206,12 @@ class Loadout(models.Model):
                             'equip_one', 'equip_two', 'equip_three', 'equip_four', 'equip_five',
                             'head', 'body', 'breacher'),)
 
+    def __str__(self) -> str:
+        return f'{self.primary} - {self.secondary} - {self.head} - {self.body} ({self.pk})'
+
 
 class Weapon(models.Model):
-    id = models.BigAutoField('ID', primary_key=True)
+    id = models.BigAutoField('ID', primary_key=True)  # noqa: A003
     player = models.ForeignKey('Player', on_delete=models.CASCADE,
                                related_name='weapons', related_query_name='weapon')
     name = EnumField(db_column='name_enum', enum_type='equipment_enum')
@@ -222,6 +225,9 @@ class Weapon(models.Model):
     distance = models.FloatField(_('Distance, meters'), default=0)
 
     _grenade_weapons = set(Equipment.grenades())
+
+    def __str__(self) -> str:
+        return f'{self.name} of player {self.player_id} ({self.pk})'
 
     @cached_property
     def is_grenade_weapon(self):
@@ -319,6 +325,10 @@ class Player(models.Model):
             ('alias', 'arrest_streak'),
         )
 
+    def __str__(self) -> str:
+        return f'{self.name}, {self.ip}'
+
+
     @cached_property
     def profile(self):
         return self.alias.profile
@@ -392,12 +402,9 @@ class Player(models.Model):
             shots += weapon.shots
         return int(ratio(hits, shots, min_divisor=min_shots) * 100)
 
-    def __str__(self) -> str:
-        return f'{self.name}, {self.ip}'
-
 
 class Objective(models.Model):
-    id = models.BigAutoField('ID', primary_key=True)
+    id = models.BigAutoField('ID', primary_key=True)  # noqa: A003
     game = models.ForeignKey('Game', on_delete=models.CASCADE)
     name = EnumField(db_column='name_enum', enum_type='objective_enum')
     name_legacy = models.SmallIntegerField(db_column='name')
@@ -412,7 +419,7 @@ class Objective(models.Model):
 
 
 class Procedure(models.Model):
-    id = models.BigAutoField('ID', primary_key=True)
+    id = models.BigAutoField('ID', primary_key=True)  # noqa: A003
     game = models.ForeignKey('Game', on_delete=models.CASCADE)
     name = EnumField(db_column='name_enum', enum_type='procedure_enum')
     name_legacy = models.SmallIntegerField(db_column='name')
@@ -568,10 +575,10 @@ class Stats(models.Model):
     points = models.FloatField(default=0)
     position = models.PositiveIntegerField(null=True, db_index=True)
 
+    objects = StatsManager()
+
     class Meta:
         abstract = True
-
-    objects = StatsManager()
 
 
 class PlayerStats(Stats):
@@ -593,7 +600,7 @@ class PlayerStats(Stats):
 
 
 class MapStats(Stats):
-    map = models.ForeignKey('Map', on_delete=models.CASCADE)
+    map = models.ForeignKey('Map', on_delete=models.CASCADE)  # noqa: A003
 
     class Meta:
         unique_together = ('year', 'category', 'profile', 'map',)

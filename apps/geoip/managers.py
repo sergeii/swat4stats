@@ -31,8 +31,9 @@ class IPManager(models.Manager):
                 .annotate(length=Case(When(Q(range_to__gt=1), then=F('range_to') - F('range_from')),
                                       default=0,
                                       output_field=models.IntegerField()),
-                          is_fresh=Case(When(Q(date_created__gte=min_freshness_date), then=Value(True)),
-                                        default=Value(False),
+                          is_fresh=Case(When(Q(date_created__gte=min_freshness_date),
+                                             then=Value(True)),  # noqa: FBT003
+                                        default=Value(False),  # noqa: FBT003
                                         output_field=models.BooleanField())))
 
     def expired(self) -> QuerySet:

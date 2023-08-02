@@ -28,8 +28,10 @@ class PlayerQueryResponse(dict):
         items = []
         player_id = self.pop('id')
         for key, value in self.items():
-            items.append('%s_%s' % (key, player_id))
-            items.append(value)
+            items.extend([
+                f'{key}_{player_id}',
+                value,
+            ])
         return items
 
 
@@ -51,7 +53,7 @@ class ServerQueryResponse(dict):
 
 
 class PlayerQueryFactory(factory.Factory):
-    id = factory.Sequence(lambda n: str(n))
+    id = factory.Sequence(lambda n: str(n))  # noqa: A003
     player = factory.Faker('first_name')
     ping = factory.fuzzy.FuzzyInteger(25, 9999)
     score = factory.fuzzy.FuzzyInteger(10, 30)
@@ -72,7 +74,7 @@ class ServerQueryFactory(factory.Factory):
     mapname = 'A-Bomb Nightclub'
     numplayers = 0
     maxplayers = 16
-    round = 4
+    round = 4  # noqa: A003
     numrounds = 5
     swatscore = 100
     suspectsscore = 0
@@ -89,7 +91,7 @@ class ServerQueryFactory(factory.Factory):
 
 
 class PlayerStatusFactory(factory.DictFactory):
-    id = factory.Sequence(lambda n: str(n))
+    id = factory.Sequence(lambda n: str(n))  # noqa: A003
     name = factory.Faker('first_name')
     ping = factory.fuzzy.FuzzyInteger(25, 9999)
     score = factory.fuzzy.FuzzyInteger(5, 50)
@@ -109,7 +111,7 @@ class ServerStatusFactory(factory.DictFactory):
     mapname = 'A-Bomb Nightclub'
     numplayers = 0
     maxplayers = 16
-    round = 4
+    round = 4  # noqa: A003
     numrounds = 5
     timeleft = 100
     timespecial = 0
@@ -213,7 +215,7 @@ class GameFactory(factory.django.DjangoModelFactory):
     gametype = 'VIP Escort'
     gametype_legacy = 1
     outcome = 'swat_vip_escape'
-    map = factory.SubFactory(MapFactory)
+    map = factory.SubFactory(MapFactory)  # noqa: A003
     server = factory.SubFactory(ServerFactory)
     player_num = 16
 
@@ -375,7 +377,7 @@ class ServerStatsFactory(AbstractStatsFactory):
 
 
 class MapStatsFactory(AbstractStatsFactory):
-    map = factory.SubFactory(MapFactory)
+    map = factory.SubFactory(MapFactory)  # noqa: A003
 
     class Meta:
         model = MapStats
@@ -594,7 +596,7 @@ class WeaponGameDataFactory(factory.Factory):
 
 
 class SimplePlayerGameDataFactory(factory.Factory):
-    id = factory.Sequence(lambda n: str(n))
+    id = factory.Sequence(lambda n: str(n))  # noqa: A003
     name = factory.Faker('first_name')
     dropped = 0
     vip = 0
@@ -649,8 +651,7 @@ class ObjectiveGameDataFactory(factory.Factory):
 
 class ProcedureGameDataFactory(factory.Factory):
     name = factory.fuzzy.FuzzyChoice(procedures_encoded)
-    status = factory.LazyAttribute(lambda obj: '%s/%s' % (random.randint(1, 10),
-                                                          random.randint(10, 15)))
+    status = factory.LazyAttribute(lambda obj: f'{random.randint(1, 10)}/{random.randint(10, 15)}')
     score = factory.fuzzy.FuzzyInteger(-5, 25)
 
     class Meta:
@@ -679,11 +680,12 @@ class ServerGameDataFactory(factory.Factory):
     outcome = 0
 
     @factory.post_generation
-    def hash(obj, create, extracted, **kwargs):
-        if create:
-            key = kwargs.get('hash__key') or 'key'
-            hash = md5(b''.join(map(force_bytes, [key, obj['port'], obj['timestamp']])))
-            obj['hash'] = hash.hexdigest()[-8:]
+    def hash(obj, create, extracted, **kwargs):  # noqa: A003
+        if not create:
+            return
+        key = kwargs.get('hash__key') or 'key'
+        value = md5(b''.join(map(force_bytes, [key, obj['port'], obj['timestamp']])))
+        obj['hash'] = value.hexdigest()[-8:]
 
     @factory.post_generation
     def with_players_count(obj, create, extracted, **kwargs):

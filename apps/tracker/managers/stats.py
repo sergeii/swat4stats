@@ -7,9 +7,10 @@ from django.db import models, transaction
 from django.db.models import Q, F, Exists, OuterRef
 from django.db.models.functions import window
 from django.utils import timezone
+from pytz import UTC
 
 from apps.tracker.entities import LegacyStatCategory
-from apps.utils.misc import iterate_list, concat_it, force_datetime
+from apps.utils.misc import iterate_list, concat_it
 
 if TYPE_CHECKING:
     from apps.tracker.models import Profile  # noqa
@@ -19,8 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_stats_period_for_year(year: int) -> tuple[datetime, datetime]:
-    return (force_datetime(datetime(year=year, month=1, day=1)),
-            force_datetime(datetime(year=year, month=12, day=31), time.max))
+    jan_1st = datetime(year=year, month=1, day=1, tzinfo=UTC)
+    moment_before_new_year = datetime.combine(
+        datetime(year=year, month=12, day=31),  # noqa: DTZ001
+        time.max,
+    ).replace(tzinfo=UTC)
+    return jan_1st, moment_before_new_year
 
 
 class StatsManager(models.Manager):

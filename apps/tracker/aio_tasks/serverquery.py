@@ -18,11 +18,11 @@ class ServerInfo(TypedDict, total=False):
     objectives: list[dict[str, str]]
 
 
-class ResponseMalformed(Exception):
+class ResponseMalformedError(Exception):
     pass
 
 
-class ResponseIncomplete(Exception):
+class ResponseIncompleteError(Exception):
     pass
 
 
@@ -43,7 +43,7 @@ class ServerStatusTask(aio.Task):
         loop = asyncio.get_running_loop()
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.setblocking(False)
+        sock.setblocking(False)  # noqa: FBT003
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         packets = []
@@ -61,7 +61,7 @@ class ServerStatusTask(aio.Task):
                 packets.append(buf)
                 try:
                     payload = self._collect_status_payload(packets)
-                except ResponseIncomplete:
+                except ResponseIncompleteError:
                     continue
                 else:
                     return self._expand_status_payload(payload)
@@ -169,12 +169,13 @@ class ServerStatusTask(aio.Task):
                 count = order
 
             if order is None:
-                raise ResponseMalformed('no order specified')
+                raise ResponseMalformedError('no order specified')
 
             ordered[order] = packet
 
         if not count or count != len(ordered):
-            raise ResponseIncomplete(f'received {len(ordered)} of {count}')
+            err_msg = f'received {len(ordered)} of {count}'
+            raise ResponseIncompleteError(err_msg)
 
         # sort packets by their order
         packets = (self._normalize_status_packet(value) for _, value in sorted(ordered.items()))

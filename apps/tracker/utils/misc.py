@@ -1,7 +1,6 @@
 import re
 import hashlib
 import logging
-from datetime import timedelta
 from ipaddress import IPv4Address
 
 from dateutil.relativedelta import relativedelta
@@ -72,32 +71,6 @@ def format_name(name: str) -> str:
     # remove [b], [\b], [u], [\u], [\c] tags
     name = re.sub(r'\[(?:\\)?[buc]\]', '', name, flags=re.I)
     return html.mark_safe(name)
-
-
-def iterate_weeks(start_date, end_date):
-    """
-    Yield monday dates between given period range.
-    """
-    end_date = force_date(end_date)
-    week_day = force_date(start_date) - timedelta(start_date.weekday())
-    while True:
-        if week_day > end_date:
-            break
-        yield week_day
-        week_day += timedelta(days=7)
-
-
-def iterate_months(start_date, end_date):
-    """
-    Yield the first days dates for the months included between given period range.
-    """
-    end_date = force_date(end_date)
-    month_day = force_date(start_date).replace(day=1)
-    while True:
-        if month_day > end_date:
-            break
-        yield month_day
-        month_day += relativedelta(months=1)
 
 
 def iterate_years(start_date, end_date):

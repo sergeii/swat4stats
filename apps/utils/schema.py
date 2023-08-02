@@ -10,7 +10,8 @@ class Mapping:
         try:
             return self.mapping[value]
         except KeyError:
-            raise Invalid('"%s" is not expected among %s' % (value, list(self.mapping)))
+            exc_msg = f'"{value}" is not expected among {list(self.mapping)}'
+            raise Invalid(exc_msg)
 
 
 class OptionalMapping(Optional):
@@ -24,7 +25,8 @@ class OptionalMapping(Optional):
         try:
             return self.mapping[value]
         except KeyError:
-            raise Invalid('"%s" is not expected among %s' % (value, list(self.mapping)))
+            exc_msg = f'"{value}" is not expected among {list(self.mapping)}'
+            raise Invalid(exc_msg)
 
 
 class FallbackMapping(Mapping):

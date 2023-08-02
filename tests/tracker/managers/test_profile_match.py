@@ -1,3 +1,4 @@
+# ruff: noqa: C408
 from datetime import timedelta
 
 import pytest
@@ -5,7 +6,7 @@ from django.utils import timezone
 
 from apps.geoip.factories import ISPFactory
 from apps.geoip.models import ISP
-from apps.tracker.exceptions import NoProfileMatch
+from apps.tracker.exceptions import NoProfileMatchError
 from apps.tracker.factories import (ServerFactory, GameFactory,
                                     PlayerFactory, ProfileFactory,
                                     AliasFactory)
@@ -37,10 +38,10 @@ def test_match_smart_null_isp_does_not_match_against_existing_null_isp(db):
     profile = ProfileFactory()
     PlayerFactory(alias__profile=profile, alias__name='Serge', alias__isp=None, ip='127.0.0.1')
 
-    with pytest.raises(NoProfileMatch):
+    with pytest.raises(NoProfileMatchError):
         Profile.objects.match_smart(name='Serge', ip_address='192.168.1.10', isp=None)
 
-    with pytest.raises(NoProfileMatch):
+    with pytest.raises(NoProfileMatchError):
         Profile.objects.match_smart(name='Serge', isp=None, ip_address='127.0.0.2')
 
     assert Profile.objects.match_smart(name='Serge', isp=None, ip_address='127.0.0.1') == profile
@@ -50,7 +51,7 @@ def test_match_smart_empty_isp_does_not_match_against_existing_non_null_isp(db):
     profile = ProfileFactory()
     PlayerFactory(alias__profile=profile, alias__name='Serge', alias__isp=ISPFactory(), ip='127.0.0.1')
 
-    with pytest.raises(NoProfileMatch):
+    with pytest.raises(NoProfileMatchError):
         Profile.objects.match_smart(name='Serge', isp=None, ip_address='127.0.0.2')
 
     assert Profile.objects.match_smart(name='Serge', isp=None, ip_address='127.0.0.1') == profile
@@ -63,7 +64,7 @@ def test_match_smart_will_not_match_other_profiles_with_null_isp(db):
 
     assert Alias.objects.filter(name='Serge', isp__isnull=True).count() == 2
 
-    with pytest.raises(NoProfileMatch):
+    with pytest.raises(NoProfileMatchError):
         Profile.objects.match_smart(name='Serge', ip_address='192.168.1.10', isp=None)
 
     assert Profile.objects.match_smart(name='Serge', isp=None, ip_address='127.0.0.1') == profile1
@@ -97,14 +98,14 @@ def test_match_smart_does_not_match_against_popular_names(db):
 
     assert Profile.objects.match_smart(name='Serge', ip_address='127.0.0.3', isp=isp) == profile
 
-    with pytest.raises(NoProfileMatch):
+    with pytest.raises(NoProfileMatchError):
         Profile.objects.match_smart(name='Player', ip_address='127.0.0.3', isp=isp)
     assert Profile.objects.match_smart(name='Player', ip_address='127.0.0.1', isp=isp) == profile
 
-    with pytest.raises(NoProfileMatch):
+    with pytest.raises(NoProfileMatchError):
         Profile.objects.match_smart(name='TODOsetname2', ip_address='127.0.0.3', isp=isp)
 
-    with pytest.raises(NoProfileMatch):
+    with pytest.raises(NoProfileMatchError):
         Profile.objects.match_smart(name='newname', ip_address='127.0.0.3', isp=isp)
 
 
@@ -162,17 +163,17 @@ class TestProfileMatch:
         assert obj3.pk == self.profile3.pk
 
         # old game
-        with pytest.raises(NoProfileMatch):
+        with pytest.raises(NoProfileMatchError):
             Profile.objects.match(recent=True, player__ip='11.11.11.11')
-        with pytest.raises(NoProfileMatch):
+        with pytest.raises(NoProfileMatchError):
             Profile.objects.match(recent=True, name='Serge', player__ip='11.11.11.11')
-        with pytest.raises(NoProfileMatch):
+        with pytest.raises(NoProfileMatchError):
             Profile.objects.match(recent=True, name='Serge', isp=self.isp1)
 
         # did not participate
-        with pytest.raises(NoProfileMatch):
+        with pytest.raises(NoProfileMatchError):
             Profile.objects.match(recent=True, name='eggs', player__ip='5.6.7.8')
-        with pytest.raises(NoProfileMatch):
+        with pytest.raises(NoProfileMatchError):
             Profile.objects.match(recent=True, name='eggs', isp=self.isp3)
 
     @pytest.mark.parametrize('match_kwargs, is_matched', [
@@ -215,7 +216,7 @@ class TestProfileMatch:
         assert Profile.objects.match_smart(name='baz', ip_address='192.168.1.25', isp=isp1).pk == self.profile3.pk
 
         # game is recent but country doesn't match
-        with pytest.raises(NoProfileMatch):
+        with pytest.raises(NoProfileMatchError):
             Profile.objects.match_smart(name='baz', ip_address='192.168.1.25', isp=isp2)
 
 

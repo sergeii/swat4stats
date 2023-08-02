@@ -42,7 +42,7 @@ def test_env(name, default, expected):
 ])
 def test_env_bool(value, default, expected):
     with mock.patch.dict(os.environ, {'SETTINGS_ENABLE_DEBUG': value}):
-        assert env_bool('SETTINGS_ENABLE_DEBUG', default) == expected
+        assert env_bool('SETTINGS_ENABLE_DEBUG', default=default) == expected
 
 
 @pytest.mark.parametrize('value, expected', [

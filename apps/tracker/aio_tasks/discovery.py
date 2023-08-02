@@ -11,7 +11,7 @@ from apps.tracker.utils import aio
 logger = logging.getLogger(__name__)
 
 
-class ServerDiscoveryException(Exception):
+class ServerDiscoveryError(Exception):
     ...
 
 
@@ -37,7 +37,7 @@ class ServerDiscoveryTask(aio.Task):
                 logger.debug('connected to %s: %s', self.url, response.status)
 
                 if not 200 <= response.status <= 299:
-                    raise ServerDiscoveryException('invalid response status %s' % response.status)
+                    raise ServerDiscoveryError('invalid response status %s' % response.status)
 
                 response_body = await response.read()
                 logger.debug('received %s bytes from %s', len(response_body), self.url)

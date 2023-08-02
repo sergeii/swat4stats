@@ -1,10 +1,11 @@
 from datetime import date, datetime
 
 import pytest
+from pytz import UTC
 
-from apps.tracker.entities import Team, Equipment as EQ
-from apps.tracker.utils import (force_name, force_clean_name,
-                                iterate_weeks, iterate_years, iterate_months)
+from apps.tracker.entities import Team
+from apps.tracker.entities import Equipment as EQ  # noqa: N814
+from apps.tracker.utils import force_name, force_clean_name, iterate_years
 from apps.tracker.utils.game import get_player_portrait_image
 
 
@@ -44,51 +45,15 @@ def test_force_clean_name():
         assert force_clean_name(name) == expected
 
 
-def test_iterate_weeks():
-    test_data = [
-        ((date(2016, 5, 1), date(2016, 5, 1)), [date(2016, 4, 25)]),
-        ((date(2016, 5, 2), date(2016, 5, 2)), [date(2016, 5, 2)]),
-        ((datetime(2016, 4, 29), date(2016, 5, 2)), [date(2016, 4, 25), date(2016, 5, 2)]),
-        ((date(2016, 4, 29), date(2016, 5, 14)), [date(2016, 4, 25), date(2016, 5, 2), date(2016, 5, 9)]),
-        ((date(2015, 12, 31), date(2016, 1, 4)), [date(2015, 12, 28), date(2016, 1, 4)]),
-        ((date(2016, 12, 31), date(2016, 1, 4)), []),
-    ]
-    for (period_from, period_till), expected in test_data:
-        assert list(iterate_weeks(period_from, period_till)) == expected
-
-
 def test_iterate_years():
     test_data = [
-        ((datetime(2016, 5, 1), datetime(2016, 5, 1)), [date(2016, 1, 1)]),
+        ((datetime(2016, 5, 1, tzinfo=UTC), datetime(2016, 5, 1, tzinfo=UTC)), [date(2016, 1, 1)]),
         ((date(2015, 12, 31), date(2016, 1, 1)), [date(2015, 1, 1), date(2016, 1, 1)]),
         ((date(2014, 4, 29), date(2016, 5, 2)), [date(2014, 1, 1), date(2015, 1, 1), date(2016, 1, 1)]),
         ((date(2016, 5, 1), date(2015, 5, 2)), []),
     ]
     for (period_from, period_till), expected in test_data:
         assert list(iterate_years(period_from, period_till)) == expected
-
-
-def test_iterate_months():
-    test_data = [
-        ((date(2016, 1, 31), date(2016, 1, 2)), [date(2016, 1, 1)]),
-        ((date(2015, 12, 31), date(2016, 1, 20)), [date(2015, 12, 1), date(2016, 1, 1)]),
-        ((datetime(2015, 1, 31), datetime(2016, 1, 2)), [date(2015, 1, 1),
-                                                         date(2015, 2, 1),
-                                                         date(2015, 3, 1),
-                                                         date(2015, 4, 1),
-                                                         date(2015, 5, 1),
-                                                         date(2015, 6, 1),
-                                                         date(2015, 7, 1),
-                                                         date(2015, 8, 1),
-                                                         date(2015, 9, 1),
-                                                         date(2015, 10, 1),
-                                                         date(2015, 11, 1),
-                                                         date(2015, 12, 1),
-                                                         date(2016, 1, 1)]),
-        ((date(2016, 1, 31), date(2015, 1, 2)), []),
-    ]
-    for (period_from, period_till), expected in test_data:
-        assert list(iterate_months(period_from, period_till)) == expected
 
 
 @pytest.mark.parametrize('team, is_vip, head, body, image', [
@@ -119,4 +84,5 @@ def test_iterate_months():
     (None, True, EQ.none, EQ.none, 'vip'),
 ])
 def test_get_player_portrait_image(settings, team, is_vip, head, body, image):
-    assert get_player_portrait_image(team, head, body, is_vip) == f'{settings.STATIC_URL}images/portraits/{image}.jpg'
+    portrait = get_player_portrait_image(team, head, body, is_vip=is_vip)
+    assert portrait == f'{settings.STATIC_URL}images/portraits/{image}.jpg'

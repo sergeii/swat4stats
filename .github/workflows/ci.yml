@@ -69,5 +69,5 @@ jobs:
       - name: Install dev dependencies
         run: poetry install --only dev
 
-      - name: Run flake8
-        run: poetry run flake8 -v
+      - name: Run ruff
+        run: poetry run ruff check .

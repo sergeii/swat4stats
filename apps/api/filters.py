@@ -30,39 +30,39 @@ class ServerFilterBackend(DjangoFilterBackend):
 
         return objects
 
-    def filter_full(self, object: Server, value: bool) -> Server | None:
-        if (object.status['numplayers'] == object.status['maxplayers']) == value:
-            return object
+    def filter_full(self, obj: Server, value: bool) -> Server | None:  # noqa: FBT001
+        if (obj.status['numplayers'] == obj.status['maxplayers']) == value:
+            return obj
         return None
 
-    def filter_empty(self, object: Server, value: bool) -> Server | None:
-        if (object.status['numplayers'] == 0) == value:
-            return object
+    def filter_empty(self, obj: Server, value: bool) -> Server | None:  # noqa: FBT001
+        if (obj.status['numplayers'] == 0) == value:
+            return obj
         return None
 
-    def filter_passworded(self, object: Server, value: bool) -> Server | None:
-        if object.status['password'] == value:
-            return object
+    def filter_passworded(self, obj: Server, value: bool) -> Server | None:  # noqa: FBT001
+        if obj.status['password'] == value:
+            return obj
         return None
 
-    def filter_gamename(self, object: Server, value: str) -> Server | None:
-        if object.status['gamevariant'] == value:
-            return object
+    def filter_gamename(self, obj: Server, value: str) -> Server | None:
+        if obj.status['gamevariant'] == value:
+            return obj
         return None
 
-    def filter_gamever(self, object: Server, value: str) -> Server | None:
-        if object.status['gamever'] == value:
-            return object
+    def filter_gamever(self, obj: Server, value: str) -> Server | None:
+        if obj.status['gamever'] == value:
+            return obj
         return None
 
-    def filter_gametype(self, object: Server, value: str) -> Server | None:
-        if object.status['gametype'] == value:
-            return object
+    def filter_gametype(self, obj: Server, value: str) -> Server | None:
+        if obj.status['gametype'] == value:
+            return obj
         return None
 
-    def filter_mapname(self, object: Server, value: str) -> Server | None:
-        if object.status['mapname'] == value:
-            return object
+    def filter_mapname(self, obj: Server, value: str) -> Server | None:
+        if obj.status['mapname'] == value:
+            return obj
         return None
 
 

@@ -44,7 +44,7 @@ class HealthcheckView(View):
         try:
             is_master = self._check_connected_to_master()
         except Exception as e:
-            logger.error('failed to check database due to %s', e, exc_info=True)
+            logger.exception('failed to check database due to %s', e)
             return HealthcheckStatus.failure
 
         match is_master:
@@ -63,11 +63,11 @@ class HealthcheckView(View):
         try:
             self._check_redis_rw()
         except Exception as e:
-            logger.error('failed to check redis due to %s', e, exc_info=True)
+            logger.exception('failed to check redis due to %s', e)
             return HealthcheckStatus.failure
         return HealthcheckStatus.ok
 
-    def _check_redis_rw(self):
+    def _check_redis_rw(self) -> None:
         redis = cache.client.get_client()
         redis.set('_healthcheck', 1)
         redis.get('_healthcheck')

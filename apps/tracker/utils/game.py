@@ -22,6 +22,7 @@ def get_player_portrait_image(
     team: Team | None,
     head: Equipment | None,
     body: Equipment | None,
+    *,
     is_vip: bool = False,
 ) -> str:
     path_format = 'images/portraits/{name}.jpg'
@@ -64,21 +65,21 @@ def _map_briefing_text(mapname: str) -> str | None:
         return None
 
 
-def map_background_picture(mapname, type='background'):
-    return _map_background_picture(mapname, type=type)
+def map_background_picture(mapname: str, *, style: str = 'background') -> str:
+    return _map_background_picture(mapname, style=style)
 
 
 @lru_cache
-def _map_background_picture(mapname, *, type):
-    path_fmt = 'images/maps/%s/{map_slug}.jpg' % type
-    map_path = path_fmt.format(map_slug=slugify(mapname))
+def _map_background_picture(mapname: str, *, style: str) -> str:
+    path_tpl = f'images/maps/{style}/{{map_slug}}.jpg'
+    map_path = path_tpl.format(map_slug=slugify(mapname))
     # default map is intro
     if not find_static_file(map_path):
-        return _intro_background_picture(type)
+        return _intro_background_picture(style)
     return static(map_path)
 
 
 @lru_cache
-def _intro_background_picture(type: str) -> str:
-    path = f'images/maps/{type}/intro.jpg'
+def _intro_background_picture(style: str) -> str:
+    path = f'images/maps/{style}/intro.jpg'
     return static(path)

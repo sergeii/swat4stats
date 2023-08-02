@@ -1,31 +1,35 @@
 from datetime import datetime, date
 from decimal import Decimal
+from functools import partial
 from uuid import uuid4, UUID
 
-from django.utils import timezone
 from pytz import UTC
 
 from apps.utils import xjson
 
 
+utc_datetime = partial(datetime, tzinfo=UTC)
+utc_now = partial(datetime.now, tz=UTC)
+
+
 def test_datetime_encoder():
     xjson_utc_string = '{"__type__": "__datetime__", "isoformat": "2016-05-02T09:22:11+00:00"}'
-    assert xjson.loads(xjson_utc_string) == datetime(2016, 5, 2, 9, 22, 11, tzinfo=UTC)
+    assert xjson.loads(xjson_utc_string) == utc_datetime(2016, 5, 2, 9, 22, 11)
 
     xjson_naive_string = '{"__type__": "__datetime__", "isoformat": "2016-05-02T09:22:11"}'
-    assert xjson.dumps(datetime(2016, 5, 2, 9, 22, 11)) == xjson_naive_string
-    assert xjson.loads(xjson_naive_string) == datetime(2016, 5, 2, 9, 22, 11)
+    assert xjson.dumps(datetime(2016, 5, 2, 9, 22, 11)) == xjson_naive_string  # noqa: DTZ001
+    assert xjson.loads(xjson_naive_string) == datetime(2016, 5, 2, 9, 22, 11)  # noqa: DTZ001
 
-    now = timezone.now()
+    now = utc_now()
     assert xjson.loads(xjson.dumps({'dates': [now]})) == {'dates': [now]}
 
     xjson_micro_string = '{"__type__": "__datetime__", "isoformat": "2016-05-02T09:22:11.012221"}'
-    assert xjson.dumps(datetime(2016, 5, 2, 9, 22, 11, 12221)) == xjson_micro_string
-    assert xjson.loads(xjson_micro_string) == datetime(2016, 5, 2, 9, 22, 11, 12221)
+    assert xjson.dumps(datetime(2016, 5, 2, 9, 22, 11, 12221)) == xjson_micro_string  # noqa: DTZ001
+    assert xjson.loads(xjson_micro_string) == datetime(2016, 5, 2, 9, 22, 11, 12221)  # noqa: DTZ001
 
 
 def test_date_encoder():
-    today = date.today()
+    today = utc_now().date()
 
     assert xjson.loads(xjson.dumps(today)) == today
     assert xjson.loads(xjson.dumps([today])) == [today]

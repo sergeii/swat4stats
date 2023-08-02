@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 class ServerQuerySet(models.QuerySet):
 
-    def with_status(self, with_empty=False):
+    def with_status(self, *, with_empty: bool = False) -> list['Server']:
         """
         Obtain cached status for all eligible servers in the queryset.
 
@@ -81,7 +81,7 @@ class ServerQuerySet(models.QuerySet):
             try:
                 status = serverquery_schema(data_or_exc)
             except voluptuous.Invalid as exc:
-                logger.error('failed to validate %s: %s (%s)', server, exc, data_or_exc, exc_info=True)
+                logger.exception('failed to validate %s: %s (%s)', server, exc, data_or_exc)
                 # status is no longer valid, override with the exception
                 with_errors.append((server, exc))
                 continue
@@ -118,7 +118,7 @@ class ServerQuerySet(models.QuerySet):
             tasks.append(
                 ServerStatusTask(
                     callback=lambda server, status: op.setitem(result, server, status),
-                    id=server,
+                    result_id=server,
                     ip=server.ip,
                     status_port=server.status_port,
                 )
@@ -292,13 +292,13 @@ class ServerManager(models.Manager):
             try:
                 parser = import_string(parser_import_path)
             except ImportError as exc:
-                logger.error('failed to import parser %s: %s', parser_import_path, exc, exc_info=True)
+                logger.exception('failed to import parser %s: %s', parser_import_path, exc)
                 continue
 
             tasks.append(
                 ServerDiscoveryTask(
-                    callback=lambda _url, res: result.append((_url, res)),
-                    id=url,
+                    callback=lambda source_url, res: result.append((source_url, res)),
+                    result_id=url,
                     url=url,
                     parser=parser,
                 )
@@ -338,7 +338,7 @@ class ServerManager(models.Manager):
             server_ip, server_port = addr
             tasks.append(
                 ServerStatusTask(callback=lambda addr_port, status: op.setitem(result, addr_port, status),
-                                 id=addr,
+                                 result_id=addr,
                                  ip=server_ip,
                                  status_port=server_port + 1)
             )
@@ -407,7 +407,7 @@ class ServerManager(models.Manager):
                 tasks.append(
                     ServerStatusTask(
                         callback=lambda addr, status: op.setitem(results, addr, status),
-                        id=server_tri_addr,
+                        result_id=server_tri_addr,
                         ip=server.ip,
                         status_port=query_port
                     )

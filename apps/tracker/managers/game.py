@@ -6,7 +6,7 @@ from django.db import models, transaction, IntegrityError
 from django.utils.translation import gettext_lazy as _
 
 from apps.tracker.entities import GamePlayerHighlight, GameTopFieldPlayer, GameNeighbors
-from apps.tracker.exceptions import GameDataAlreadySaved
+from apps.tracker.exceptions import GameAlreadySavedError
 from apps.tracker.schema import (
     gametypes_reversed,
     mapnames_reversed, outcome_reversed,
@@ -87,7 +87,7 @@ class GameManager(models.Manager):
                 )
         except IntegrityError as exc:
             logger.info('game with tag %s is already saved (%s)', data['tag'], exc)
-            raise GameDataAlreadySaved
+            raise GameAlreadySavedError
 
         # now save rest of the data
         if coop_procedures:
@@ -240,10 +240,10 @@ class GameManager(models.Manager):
                 GamePlayerHighlight(
                     player=top_user,
                     title=_('%(name)s Expert') % {'name': _(weapon_name)},
-                    description=_('%(kills)s kills with average accuracy of %(accuracy)s%%' % {
+                    description=_('%(kills)s kills with average accuracy of %(accuracy)s%%') % {
                         'kills': top_user_weapon.kills,
                         'accuracy': top_user_weapon.accuracy,
-                    }),
+                    },
                 )
             )
 

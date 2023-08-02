@@ -11,7 +11,7 @@ from django.db.models import Q, F
 from django.utils import timezone
 
 from apps.geoip.models import ISP
-from apps.tracker.exceptions import NoProfileMatch
+from apps.tracker.exceptions import NoProfileMatchError
 from apps.tracker.managers.stats import get_stats_period_for_year
 
 if TYPE_CHECKING:
@@ -90,7 +90,7 @@ class ProfileManager(models.Manager):
             # limit query in case of a lookup different from name+ip pair
             alias = alias_qs[0:1].get()
         except ObjectDoesNotExist as exc:
-            raise NoProfileMatch from exc
+            raise NoProfileMatchError from exc
 
         return alias.profile
 
@@ -153,7 +153,7 @@ class ProfileManager(models.Manager):
         for match_attrs in steps:
             try:
                 profile = cls.match(**match_attrs)
-            except NoProfileMatch:
+            except NoProfileMatchError:
                 logger.debug('no profile match with %s', match_attrs)
                 continue
             else:
@@ -162,7 +162,7 @@ class ProfileManager(models.Manager):
 
         logger.debug('unable to match any profile by name=%s ip_address=%s isp=%s', name, ip_address, isp)
 
-        raise NoProfileMatch
+        raise NoProfileMatchError
 
     def match_smart_or_create(
         self,
@@ -173,7 +173,7 @@ class ProfileManager(models.Manager):
     ) -> tuple['Profile', bool]:
         try:
             return self.match_smart(name=name, ip_address=ip_address, isp=isp), False
-        except NoProfileMatch:
+        except NoProfileMatchError:
             return self.create(name=name), True
 
     @classmethod

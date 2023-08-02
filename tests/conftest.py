@@ -167,7 +167,7 @@ class UDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
     ) -> None:
         self.responses = responses or []
         server_address = server_address or ('127.0.0.1', 0)
-        super().__init__(server_address, None, True)
+        super().__init__(server_address, None, bind_and_activate=True)
 
     def finish_request(self, request, client_address):
         responses = self.responses or [b'']

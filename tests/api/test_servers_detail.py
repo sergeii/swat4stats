@@ -20,7 +20,7 @@ def test_get_server_detail_not_found_404(db, api_client, address):
     assert response.data == {'detail': 'Not found.'}
 
 
-@pytest.mark.parametrize('address', ['foo', 'None', '1bar', '' ' '])
+@pytest.mark.parametrize('address', ['foo', 'None', '1bar', ' '])
 def test_get_server_detail_bad_address_404(db, api_client, address):
     response = api_client.get(f'/api/servers/{address}/')
     assert response.status_code == 404

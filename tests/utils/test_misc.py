@@ -9,9 +9,9 @@ from apps.utils.misc import timestamp
 
 
 @pytest.mark.parametrize('current_date, expected', [
-    (datetime(1970, 1, 1), 0),
-    (datetime(2015, 12, 31, 12, 55, 45), 1451566545),
+    (datetime(1970, 1, 1, tzinfo=UTC), 0),
+    (datetime(2015, 12, 31, 12, 55, 45, tzinfo=UTC), 1451566545),
 ])
 def test_timestamp(current_date, expected):
-    with mock.patch.object(timezone, 'now', return_value=current_date.replace(tzinfo=UTC)):
+    with mock.patch.object(timezone, 'now', return_value=current_date):
         assert timestamp() == expected

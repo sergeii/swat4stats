@@ -12,7 +12,7 @@ class Command(BaseCommand):
         parser.add_argument('ip:port', help='Server status address')
 
     def handle(self, *args, **options):
-        def callback(id, result):
+        def callback(_, result):
             self.stdout.write(pformat(result))
 
         ip, port = options['ip:port'].split(':')

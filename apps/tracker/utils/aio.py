@@ -50,13 +50,13 @@ class Task(ABC):
     def __init__(self,
                  *,
                  callback: Callable | None = None,
-                 id: Any | None = None):
+                 result_id: Any | None = None):
         """
         Register a task with callback and optional id.
         If id is not specified, assign a random id to the task.
         """
         self._callback = callback
-        self._id = id or uuid4()
+        self._result_id = result_id or uuid4()
 
     async def execute(self) -> None:
         try:
@@ -75,9 +75,9 @@ class Task(ABC):
     async def complete(self, result: Any) -> None:
         if not self._callback:
             return
-        self._callback(self._id, result)
+        self._callback(self._result_id, result)
 
     async def fail(self, exc: Exception) -> None:
         if not self._callback:
             return
-        self._callback(self._id, exc)
+        self._callback(self._result_id, exc)

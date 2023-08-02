@@ -35,7 +35,7 @@ BASE_DIR = Path(os.path.dirname(__file__)).resolve().parent
 
 ALLOWED_HOSTS = env_list('SETTINGS_ALLOWED_HOSTS')
 
-DEBUG = env_bool('SETTINGS_DEBUG', False)
+DEBUG = env_bool('SETTINGS_DEBUG', default=False)
 
 if DEBUG:
     INTERNAL_IPS = ('127.0.0.1',)
@@ -143,8 +143,6 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
-                'apps.utils.context_processors.settings',
-                'apps.utils.context_processors.current_view',
             ],
         },
     },
@@ -206,7 +204,7 @@ EMAIL_HOST = env('SETTINGS_EMAIL_HOST', 'localhost')
 EMAIL_PORT = int(env('SETTINGS_EMAIL_PORT', 25))
 EMAIL_HOST_USER = env('SETTINGS_EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = env('SETTINGS_EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = env_bool('SETTINGS_EMAIL_USE_TLS', False)
+EMAIL_USE_TLS = env_bool('SETTINGS_EMAIL_USE_TLS', default=False)
 
 SERVER_EMAIL = env('SETTINGS_SERVER_EMAIL', 'django@swat4stats.com')
 DEFAULT_FROM_EMAIL = env('SETTINGS_DEFAULT_FROM_EMAIL', 'noreply@swat4stats.com')
@@ -279,7 +277,7 @@ CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
-if env_bool('SETTINGS_CELERY_TASK_ALWAYS_EAGER', False) and DEBUG:
+if env_bool('SETTINGS_CELERY_TASK_ALWAYS_EAGER', default=False) and DEBUG:
     CELERY_TASK_ALWAYS_EAGER = True
 
 CELERY_TASK_ROUTES = {

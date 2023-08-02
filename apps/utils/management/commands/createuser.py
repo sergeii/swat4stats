@@ -3,7 +3,7 @@ from django.core.management import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Create a user'
+    help = 'Create a user'  # noqa: A003
 
     def add_arguments(self, parser):
         parser.add_argument('--username', required=True)

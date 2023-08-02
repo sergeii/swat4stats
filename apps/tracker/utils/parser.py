@@ -84,9 +84,7 @@ class JuliaQueryString(dict):
                 if matched.group('dictkeys'):
                     key_components.extend(matched.group('dictkeys')[1:-1].split(']['))
                 # convert a non list value to a list element
-                try:
-                    dict_value.append
-                except AttributeError:
+                if not hasattr(dict_value, 'append'):
                     dict_value = [dict_value]
                 # append each value from the list to the deepest item
                 for value in dict_value:
@@ -117,14 +115,14 @@ class JuliaQueryString(dict):
         # e.g. field=foo&field=bar turns into a dict item mapping the
         # occupied key to a list of the conflicting values:
         # {'field': ['foo', 'bar']}
-        try:
-            # if the value is a mutable sequence itself, attempt to extend the existing list
-            value.append
-        except AttributeError:
+
+        # if the value is a mutable sequence itself, attempt to extend the existing list
+        if not hasattr(value, 'append'):
             # if it is not, then append the value
             method = 'append'
         else:
             method = 'extend'
+
         # attempt to set the value..
         try:
             # ..to an existing list
