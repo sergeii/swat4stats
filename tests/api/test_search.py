@@ -88,6 +88,88 @@ def test_search_no_filters(db, api_client, django_assert_max_num_queries):
     ]
 
 
+@pytest.mark.parametrize(
+    "query_params, expected_names",
+    [
+        # default ordering
+        (
+            {},
+            [
+                "OW|Hanzo",
+                "Genji",
+                "T-racer",
+                "OW|Winston",
+                "Widowmaker",
+                "OW|Tracer",
+                "OW|Mercy",
+                "WinstonChurchill",
+                "Winston123",
+                "Winstoned",
+                "|WOW|Thrall",
+            ],
+        ),
+        # ordering by last seen desc
+        (
+            {"ordering": "-last_seen_at"},
+            [
+                "OW|Hanzo",
+                "Genji",
+                "T-racer",
+                "OW|Winston",
+                "Widowmaker",
+                "OW|Tracer",
+                "OW|Mercy",
+                "WinstonChurchill",
+                "Winston123",
+                "Winstoned",
+                "|WOW|Thrall",
+            ],
+        ),
+        # ordering by last seen asc
+        (
+            {"ordering": "last_seen_at"},
+            [
+                "OW|Tracer",
+                "OW|Mercy",
+                "WinstonChurchill",
+                "Winston123",
+                "Winstoned",
+                "|WOW|Thrall",
+                "Widowmaker",
+                "OW|Winston",
+                "Genji",
+                "T-racer",
+                "OW|Hanzo",
+            ],
+        ),
+        # ordering by last seen asc, limit applied
+        ({"ordering": "last_seen_at", "limit": 3}, ["OW|Tracer", "OW|Mercy", "WinstonChurchill"]),
+        # ordering by last seen desc, limit applied
+        ({"ordering": "-last_seen_at", "limit": 3}, ["OW|Hanzo", "Genji", "T-racer"]),
+        # order by last seen, filter by country
+        (
+            {"ordering": "last_seen_at", "country": "GB"},
+            ["OW|Tracer", "WinstonChurchill", "Winstoned", "OW|Winston", "T-racer"],
+        ),
+        # search by name, order by last seen desc
+        (
+            {"ordering": "-last_seen_at", "q": "winston"},
+            ["OW|Winston", "WinstonChurchill", "Winston123"],
+        ),
+        # search by name, order by last seen asc
+        (
+            {"ordering": "last_seen_at", "q": "winston"},
+            ["OW|Winston", "WinstonChurchill", "Winston123"],
+        ),
+    ],
+)
+def test_search_ordering(db, api_client, query_params, expected_names):
+    resp = api_client.get("/api/search/", query_params)
+    assert resp.status_code == 200
+    names = [obj["item"]["name"] for obj in resp.data["results"]]
+    assert names == expected_names
+
+
 def test_search_pagination_no_filters(db, api_client):
     resp = api_client.get("/api/search/?limit=7")
 
