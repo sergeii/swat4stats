@@ -2,17 +2,17 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Sum, Max, Count, Case, When, Q, Min, Value
+from django.db.models import Sum, Max, Count, Case, When, Q, Min, Value, Expression, QuerySet
 from django.db.models.functions import NullIf, Cast, Round
 
 from apps.tracker.entities import Team, GameType, GameOutcome, Equipment
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Profile, Server  # noqa
+    from apps.tracker.models import Player, Profile, Server
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ class PlayerQuerySet(models.QuerySet):
     _agg_player_grenade_teamhits = Sum(Case(When(q_qualified_grenades, then="weapon__teamhits")))
 
     # main player stats - no grouping
-    player_aggregates = [
+    player_aggregates: ClassVar[list[dict[str, Expression]]] = [
         {
             "score": _agg_player_score,
             "top_score": Max(Case(When(q_versus_modes, then="score"))),
@@ -134,7 +134,7 @@ class PlayerQuerySet(models.QuerySet):
     ]
 
     # player stats per gametype
-    gametype_aggregates = [
+    gametype_aggregates: ClassVar[list[dict[str, Expression]]] = [
         {
             "score": _agg_player_score,
             "top_score": Max(Case(When(q_versus_modes, then="score"))),
@@ -193,7 +193,7 @@ class PlayerQuerySet(models.QuerySet):
     _agg_weapon_teamhits = Sum("weapon__teamhits")
     _agg_weapon_kills = Sum("weapon__kills")
     # player stats per weapon
-    weapon_aggregates = [
+    weapon_aggregates: ClassVar[list[dict[str, Expression]]] = [
         {
             "shots": _agg_weapon_shots,
             "time": Sum("weapon__time"),
@@ -211,7 +211,7 @@ class PlayerQuerySet(models.QuerySet):
         }
     ]
 
-    server_aggregates = [
+    server_aggregates: ClassVar[list[dict[str, Expression]]] = [
         {
             "score": _agg_player_score,
             "time": _agg_player_time,
@@ -236,7 +236,8 @@ class PlayerQuerySet(models.QuerySet):
         }
     ]
 
-    map_aggregates = server_aggregates + [
+    map_aggregates: ClassVar[list[dict[str, Expression]]] = [
+        *server_aggregates,
         {
             "top_score": Max(Case(When(q_versus_modes, then="score"))),
             "wins": Count(
@@ -252,16 +253,16 @@ class PlayerQuerySet(models.QuerySet):
             "vip_escape_time": Min(
                 Case(When(Q(vip=True, vip_escapes=1, game__player_num__gte=14), then="time"))
             ),
-        }
+        },
     ]
 
-    def with_qualified_games(self) -> "PlayerQuerySet":
+    def with_qualified_games(self) -> QuerySet["Player"]:
         """
         Include game rounds that have enough players to be qualified (except for CO-OP games)
         """
         return self.filter(Q(game__player_num__gte=settings.TRACKER_MIN_PLAYERS) | Q(q_coop_modes))
 
-    def for_period(self, start_date: datetime, end_date: datetime) -> "PlayerQuerySet":
+    def for_period(self, start_date: datetime, end_date: datetime) -> QuerySet["Player"]:
         """
         Filter games by period tuple.
         """
@@ -269,10 +270,10 @@ class PlayerQuerySet(models.QuerySet):
             Q(game__date_finished__gte=start_date, game__date_finished__lte=end_date)
         )
 
-    def for_server(self, server: "Server") -> "PlayerQuerySet":
+    def for_server(self, server: "Server") -> QuerySet["Player"]:
         return self.filter(game__server=server)
 
-    def for_profile(self, profile: "Profile") -> "PlayerQuerySet":
+    def for_profile(self, profile: "Profile") -> QuerySet["Player"]:
         return self.filter(alias__profile=profile)
 
     def aggregate_player_stats(self) -> dict[str, int | float]:
@@ -353,7 +354,7 @@ class PlayerQuerySet(models.QuerySet):
 
 
 class PlayerManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet["Player"]:
         return (
             super()
             .get_queryset()

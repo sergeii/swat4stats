@@ -32,8 +32,5 @@ def csv_two_columns(content: bytes) -> list[tuple[str, str]]:
 
 
 def master_server_api(content: bytes) -> list[tuple[str, str]]:
-    addresses = []
     servers = json.loads(content)
-    for server in servers:
-        addresses.append((server["ip"], server["port"]))
-    return addresses
+    return [(server["ip"], server["port"]) for server in servers]

@@ -2,6 +2,7 @@ import contextlib
 import socketserver
 import threading
 from functools import cached_property
+from collections.abc import Iterator
 from unittest import mock
 
 from django.db import transaction
@@ -135,10 +136,8 @@ def create_udpservers():
     """
 
     @contextlib.contextmanager
-    def create(num_servers):
-        servers = []
-        for _ in range(num_servers):
-            servers.append(UDPServer())
+    def create(num_servers: int) -> Iterator[list[UDPServer]]:
+        servers = [UDPServer() for _ in range(num_servers)]
         for server in servers:
             server.start()
         yield servers

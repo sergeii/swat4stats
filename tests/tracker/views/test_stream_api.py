@@ -313,7 +313,7 @@ def test_post_game_data_with_players(db, whois_mock, post_game_data):
     )
 
     empty_isp_alias = AliasFactory(name="Bagwell", isp=None)
-    nonempty_isp_alias = AliasFactory(name="Bagwell", isp=ISPFactory())  # noqa
+    nonempty_isp_alias = AliasFactory(name="Bagwell", isp=ISPFactory())  # noqa: F841
 
     sco_isp_alias = AliasFactory(name="Scofield", isp__name="ScoISP", isp__ip="100.100.100.0/24")
     sco_another_alias = AliasFactory(  # noqa: F841

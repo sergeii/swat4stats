@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, ClassVar
 
 from django.contrib import admin
 from django.db.models import Count
@@ -34,7 +34,7 @@ class ProfileAdmin(admin.ModelAdmin):
         "game_last",
     )
     list_per_page = 20
-    inlines = [AliasInline]
+    inlines: ClassVar[list[admin.TabularInline]] = [AliasInline]
 
     def earliest_name(self, obj):
         return obj.alias_set.first().name

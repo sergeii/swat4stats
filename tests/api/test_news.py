@@ -9,7 +9,7 @@ from apps.news.factories import ArticleFactory
 def test_get_articles(db, api_client):
     now = timezone.now()
 
-    future_article = ArticleFactory(date_published=now + timedelta(hours=1))  # noqa
+    future_article = ArticleFactory(date_published=now + timedelta(hours=1))  # noqa: F841
     plain_article = ArticleFactory(
         title="New master server patch is out",
         text='Download it <a href="http://example.com/">here</a>',

@@ -72,13 +72,13 @@ def test_get_game_detail_versus(db, settings, django_assert_num_queries, api_cli
     assert (
         player_obj["portrait_picture"]
         == f"{settings.STATIC_URL}images/portraits/suspects-heavy-armor-gas-mask.jpg"
-    )  # noqa: E501
+    )
     assert player_obj["profile"]["country"] == "US"
     assert player_obj["profile"]["country_human"] == "United States of America"
     assert (
         player_obj["profile"]["portrait_picture"]
         == f"{settings.STATIC_URL}images/portraits/swat-heavy-armor-helmet.jpg"
-    )  # noqa: E501
+    )
 
 
 def test_get_game_detail_coop(db, django_assert_num_queries, api_client, server):

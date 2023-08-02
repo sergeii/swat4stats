@@ -1,4 +1,4 @@
-# ruff: noqa: E501
+# ruff: noqa: E501, RUF001
 from voluptuous import Schema, Optional, All, In, Coerce, Range, Boolean, REMOVE_EXTRA, Maybe
 
 from apps.tracker.entities import (

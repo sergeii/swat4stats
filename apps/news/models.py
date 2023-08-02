@@ -1,4 +1,5 @@
 import logging
+from typing import ClassVar
 
 from django.db import models
 from django.utils import timezone
@@ -20,7 +21,7 @@ class PublishedArticleQuerySet(models.QuerySet):
 
 
 class Article(models.Model):
-    renderers: dict[RendererType, type[BaseRenderer]] = {
+    renderers: ClassVar[dict[RendererType, type[BaseRenderer]]] = {
         RendererType.PLAINTEXT: PlainRenderer,
         RendererType.MARKDOWN: MarkdownRenderer,
         RendererType.HTML: HtmlRenderer,

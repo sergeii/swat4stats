@@ -13,7 +13,7 @@ from apps.tracker.entities import LegacyStatCategory
 from apps.utils.misc import iterate_list, concat_it
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Profile  # noqa
+    from apps.tracker.models import Profile
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class StatsManager(models.Manager):
         year: int,
         **save_kwargs: Any,
     ) -> None:
-        from apps.tracker.models import PlayerStats  # noqa
+        from apps.tracker.models import PlayerStats
 
         batch = []
 
@@ -81,10 +81,10 @@ class StatsManager(models.Manager):
         self,
         *,
         year: int,
-        cats: list[str] = None,
-        exclude_cats: list[str] = None,
-        qualify: dict[str, int | float] = None,
-        filters: dict[str, Any] = None,
+        cats: list[str] | None = None,
+        exclude_cats: list[str] | None = None,
+        qualify: dict[str, int | float] | None = None,
+        filters: dict[str, Any] | None = None,
     ) -> None:
         filters = Q(**filters) if filters else Q()
 

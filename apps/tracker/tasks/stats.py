@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @app.task(name="update_player_stats", queue=Queue.default.value)
-def update_player_stats():
+def update_player_stats() -> None:
     """
     Queue stats update tasks for players that have played past the latest stats update time.
     """
@@ -41,7 +41,7 @@ def update_player_stats_for_profile(profile_id: int) -> None:
 
 
 @app.task(name="update_player_positions", queue=Queue.default.value)
-def update_player_positions():
+def update_player_positions() -> None:
     """
     Update leaderboards' positions for a period of the current year
     """
@@ -50,7 +50,7 @@ def update_player_positions():
 
 
 @app.task(name="settle_annual_player_positions", queue=Queue.default.value)
-def settle_annual_player_positions():
+def settle_annual_player_positions() -> None:
     """
     Update leaderboards' positions for completed year
     """

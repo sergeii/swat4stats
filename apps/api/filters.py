@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchHeadline
 from django.db import models
 from django.db.models import QuerySet, F, Value, OuterRef, Subquery
@@ -75,7 +77,7 @@ class GameFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Game
-        fields = ["server", "map", "gametype", "day", "month", "year"]
+        fields: ClassVar[list[str]] = ["server", "map", "gametype", "day", "month", "year"]
 
 
 class SearchFilterBackend(django_filters.rest_framework.DjangoFilterBackend):

@@ -106,7 +106,10 @@ INSTALLED_APPS: tuple[str, ...] = (
 )
 
 if DEBUG:
-    INSTALLED_APPS = INSTALLED_APPS + ("debug_toolbar",)
+    INSTALLED_APPS = (
+        *INSTALLED_APPS,
+        "debug_toolbar",
+    )
 
 MIDDLEWARE: tuple[str, ...] = (
     "apps.utils.middleware.RealRemoteAddrMiddleware",
@@ -123,7 +126,8 @@ if DEBUG:
     MIDDLEWARE = (
         "debug_toolbar.middleware.DebugToolbarMiddleware",
         "apps.utils.middleware.ProfileMiddleware",
-    ) + MIDDLEWARE
+        *MIDDLEWARE,
+    )
 
 TEMPLATES = [
     {

@@ -7,15 +7,12 @@ from pytz import UTC
 
 from apps.tracker.factories import PlayerStatsFactory, GametypeStatsFactory
 from apps.tracker.views import motd as motd_views
-from apps.tracker.utils import force_clean_name
+from apps.tracker.utils.misc import force_clean_name
 from apps.utils.test import freeze_timezone_now
 
 
 def parse_content(content: bytes) -> list[str]:
-    parsed = []
-    for line in content.decode().split("\n"):
-        parsed.append(force_clean_name(line))
-    return parsed
+    return [force_clean_name(line) for line in content.decode().split("\n")]
 
 
 @pytest.fixture

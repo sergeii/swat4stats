@@ -1,4 +1,5 @@
 import logging
+from typing import ClassVar
 
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchVectorField
@@ -31,7 +32,7 @@ from apps.tracker.managers import (
 from apps.tracker.managers.alias import AliasQuerySet
 from apps.tracker.schema import teams_reversed
 from apps.tracker.utils.game import map_background_picture
-from apps.tracker.utils import force_clean_name, ratio
+from apps.tracker.utils.misc import force_clean_name, ratio
 from apps.utils.db.fields import EnumField
 from apps.utils.misc import dumps
 
@@ -63,7 +64,7 @@ class Server(models.Model):
 
     class Meta:
         unique_together = (("ip", "port"),)
-        indexes = [
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(
                 Func(F("ip"), function="host"), F("port"), name="tracker_server_host_ip_port"
             ),
@@ -154,7 +155,7 @@ class Game(models.Model):
     objects = GameManager()
 
     class Meta:
-        indexes = [
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(
                 (F("score_swat") + F("score_sus")).desc(), name="tracker_game_score_swat_score_sus"
             ),
@@ -248,7 +249,7 @@ class Weapon(models.Model):
     teamkills = models.SmallIntegerField(default=0)
     distance = models.FloatField(_("Distance, meters"), default=0)
 
-    _grenade_weapons = set(Equipment.grenades())
+    _grenade_weapons: ClassVar[set[str]] = set(Equipment.grenades())
 
     def __str__(self) -> str:
         return f"{self.name} of player {self.player_id} ({self.pk})"
@@ -283,7 +284,7 @@ class Alias(models.Model):
 
     class Meta:
         index_together = (("name", "isp"),)
-        indexes = [
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(Upper("name"), F("isp_id"), name="tracker_alias_upper_name_isp_id"),
         ]
 
@@ -337,11 +338,13 @@ class Player(models.Model):
 
     objects = PlayerManager.from_queryset(PlayerQuerySet)()
 
-    _gun_weapon_names = set(Equipment.primary_weapons()) | set(Equipment.secondary_weapons())
-    _grenade_weapon_names = set(Equipment.grenades())
+    _gun_weapon_names: ClassVar[set[str]] = set(
+        Equipment.primary_weapons() + Equipment.secondary_weapons()
+    )
+    _grenade_weapon_names: ClassVar[set[str]] = set(Equipment.grenades())
 
     class Meta:
-        indexes = [
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(
                 Func(F("ip"), function="host"),
                 F("id").desc(),
@@ -487,7 +490,7 @@ class Profile(models.Model):
     objects = ProfileManager.from_queryset(ProfileQuerySet)()
 
     class Meta:
-        indexes = [
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(
                 Upper("country"),
                 F("last_seen_at").desc(),
@@ -655,7 +658,7 @@ class PlayerStats(Stats):
             "category_legacy",
             "profile",
         )
-        indexes = [
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(
                 "year",
                 "category_legacy",
@@ -664,8 +667,8 @@ class PlayerStats(Stats):
             ),
         ]
 
-    grouping_fields = ["category_legacy"]
-    unique_db_fields = ["year", "category_legacy", "profile_id"]
+    grouping_fields: ClassVar[list[str]] = ["category_legacy"]
+    unique_db_fields: ClassVar[list[str]] = ["year", "category_legacy", "profile_id"]
 
 
 class MapStats(Stats):
@@ -679,8 +682,8 @@ class MapStats(Stats):
             "map",
         )
 
-    grouping_fields = ["category", "map_id"]
-    unique_db_fields = ["year", "category", "profile_id", "map_id"]
+    grouping_fields: ClassVar[list[str]] = ["category", "map_id"]
+    unique_db_fields: ClassVar[list[str]] = ["year", "category", "profile_id", "map_id"]
 
 
 class GametypeStats(Stats):
@@ -694,8 +697,8 @@ class GametypeStats(Stats):
             "gametype",
         )
 
-    grouping_fields = ["category", "gametype"]
-    unique_db_fields = ["year", "category", "profile_id", "gametype"]
+    grouping_fields: ClassVar[list[str]] = ["category", "gametype"]
+    unique_db_fields: ClassVar[list[str]] = ["year", "category", "profile_id", "gametype"]
 
 
 class ServerStats(Stats):
@@ -711,8 +714,8 @@ class ServerStats(Stats):
 
     objects = ServerStatsManager()
 
-    grouping_fields = ["category", "server_id"]
-    unique_db_fields = ["year", "category", "profile_id", "server_id"]
+    grouping_fields: ClassVar[list[str]] = ["category", "server_id"]
+    unique_db_fields: ClassVar[list[str]] = ["year", "category", "profile_id", "server_id"]
 
 
 class WeaponStats(Stats):
@@ -726,5 +729,5 @@ class WeaponStats(Stats):
             "weapon",
         )
 
-    grouping_fields = ["category", "weapon"]
-    unique_db_fields = ["year", "category", "profile_id", "weapon"]
+    grouping_fields: ClassVar[list[str]] = ["category", "weapon"]
+    unique_db_fields: ClassVar[list[str]] = ["year", "category", "profile_id", "weapon"]

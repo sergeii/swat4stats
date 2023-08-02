@@ -68,8 +68,8 @@ class ServerQueryResponse(dict):
                 items.extend((key, value))
         return items
 
-    def as_gamespy(self):
-        items = self.to_items() + ["queryid", "1", "final"]
+    def as_gamespy(self) -> bytes:
+        items = [*self.to_items(), "queryid", "1", "final"]
         return b"\\" + b"\\".join(map(force_bytes, items)) + b"\\"
 
 
@@ -447,10 +447,17 @@ class BaseGameData(dict):
         def add_items(result_dict, keys, value):
             if isinstance(value, dict):
                 for dict_key, dict_value in value.items():
-                    add_items(result_dict, keys + (dict_key,), dict_value)
+                    add_items(
+                        result_dict,
+                        (
+                            *keys,
+                            dict_key,
+                        ),
+                        dict_value,
+                    )
             elif isinstance(value, list):
                 for list_idx, list_item in enumerate(value):
-                    add_items(result_dict, keys + (list_idx,), list_item)
+                    add_items(result_dict, (*keys, list_idx), list_item)
             else:
                 result_dict[keys] = value
 

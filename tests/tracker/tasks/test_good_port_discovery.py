@@ -15,7 +15,7 @@ def test_discover_good_query_ports(db, create_udpservers):
             ip=qs2.address.ip, port=qs2.address.port, listed=True, status_port=1234
         )
         offline_server = ServerFactory(ip=qs2.address.ip, port=1000, status_port=1001, listed=True)
-        unlisted_server = ServerFactory(listed=False)  # noqa
+        unlisted_server = ServerFactory(listed=False)  # noqa: F841
         qs1.responses.append(ServerQueryFactory(hostport=qs1.address.port, swatwon=0).as_gamespy())
         qs2.responses.append(ServerQueryFactory(hostport=qs2.address.port).as_gamespy())
         discover_good_query_ports()

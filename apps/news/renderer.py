@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import bleach
 import markdown
 from django.utils.html import escape
@@ -17,7 +19,7 @@ class PlainRenderer(BaseRenderer):
 
 
 class HtmlRenderer(BaseRenderer):
-    ALLOWED_TAGS = [
+    ALLOWED_TAGS: ClassVar[list[str]] = [
         "a",
         "abbr",
         "acronym",
@@ -37,7 +39,7 @@ class HtmlRenderer(BaseRenderer):
         "pre",
     ]
 
-    ALLOWED_ATTRIBUTES = {
+    ALLOWED_ATTRIBUTES: ClassVar[dict[str, list[str]]] = {
         "a": ["href", "title"],
         "abbr": ["title"],
         "acronym": ["title"],

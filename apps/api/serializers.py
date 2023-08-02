@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, ClassVar
 from collections.abc import Callable
 from urllib.parse import quote as urlquote
 
@@ -27,7 +27,7 @@ from apps.tracker.models import (
     Loadout,
 )
 from apps.tracker.schema import coop_status_encoded, serverquery_schema
-from apps.tracker.utils import force_clean_name, format_name, html
+from apps.tracker.utils.misc import force_clean_name, format_name, html
 from apps.tracker.utils.game import (
     get_player_portrait_image,
     gametype_rules_text,
@@ -215,11 +215,12 @@ class ServerBaseSerializer(serializers.ModelSerializer):
             "name_clean",
             "status",
         )
-        fields: tuple[str, ...] = read_only_fields + (
+        fields: tuple[str, ...] = (
+            *read_only_fields,
             "ip",
             "port",
         )
-        validators: list[Callable] = []
+        validators: ClassVar[list[Callable]] = []
 
     def get_country_human(self, obj: Server) -> str | None:
         if obj.country:
@@ -235,8 +236,14 @@ class ServerFullSerializer(ServerBaseSerializer):
     merged_into = ServerBaseSerializer(read_only=True)
 
     class Meta(ServerBaseSerializer.Meta):
-        read_only_fields = ServerBaseSerializer.Meta.read_only_fields + ("merged_into",)
-        fields = ServerBaseSerializer.Meta.fields + ("merged_into",)
+        read_only_fields = (
+            *ServerBaseSerializer.Meta.read_only_fields,
+            "merged_into",
+        )
+        fields = (
+            *ServerBaseSerializer.Meta.fields,
+            "merged_into",
+        )
 
 
 class ServerCreateSerializer(ServerFullSerializer):
@@ -303,7 +310,7 @@ class ServerCreateSerializer(ServerFullSerializer):
         instance = validated_data.pop("instance")
         status = validated_data.pop("status")
 
-        if instance is None:  # noqa: SIM108
+        if instance is None:
             instance = super().create(validated_data)
         else:
             instance = self.update(instance, validated_data)
@@ -483,7 +490,7 @@ class GameBaseSerializer(serializers.ModelSerializer):
     map = MapSerializer()  # noqa: A003
     server = ServerBaseSerializer()
 
-    gametype_to_short_mapping: dict[str, str] = {
+    gametype_to_short_mapping: ClassVar[dict[str, str]] = {
         GameType.barricaded_suspects.value: _("BS"),
         GameType.vip_escort.value: _("VIP"),
         GameType.rapid_deployment.value: _("RD"),
@@ -537,7 +544,8 @@ class GameSerializer(GameBaseSerializer):
     coop_rank = serializers.SerializerMethodField()
 
     class Meta(GameBaseSerializer.Meta):
-        fields = GameBaseSerializer.Meta.fields + (
+        fields = (
+            *GameBaseSerializer.Meta.fields,
             "neighbors",
             "players",
             "objectives",
@@ -555,7 +563,7 @@ class GameSerializer(GameBaseSerializer):
         )
         read_only_fields: tuple[str, ...] = fields
 
-    coop_ranks = {
+    coop_ranks: ClassVar[dict[int, str]] = {
         100: _("Chief Inspector"),
         95: _("Inspector"),
         90: _("Captain"),

@@ -1,6 +1,6 @@
 import re
 from typing import Any
-from urllib.parse import unquote_to_bytes, unquote_plus
+from urllib.parse import unquote_plus
 
 
 class JuliaQueryString(dict):
@@ -111,8 +111,7 @@ class JuliaQueryString(dict):
         # when encountered an existing item with the key in question,
         # treat it like a list
         # e.g. field=foo&field=bar turns into a dict item mapping the
-        # occupied key to a list of the conflicting values:
-        # {'field': ['foo', 'bar']}
+        # occupied key to a list of the conflicting values: {'field': ['foo', 'bar']}
 
         # if the value is a mutable sequence itself, attempt to extend the existing list
         method = "extend" if hasattr(value, "extend") else "append"
@@ -150,11 +149,8 @@ class JuliaQueryString(dict):
         # the same rule applies to query parameters split by a =
         # ie filter out &field&, =field, field=, =field=value, etc
         for param in query_string.strip("&").split("&"):
-            param_split = param.strip("=").split("=", 1)  # max_splits=1
-            result.append(
-                tuple(
-                    unquote_plus(unquote_to_bytes(x.encode("utf-8")).decode("utf-8"))  # 2/3 hack
-                    for x in (param_split + [""])[:2]  # make sure the param value is present
-                )
-            )
+            param_split = param.strip("=").split("=", maxsplit=1)
+            param_name = unquote_plus(param_split[0])
+            param_value = unquote_plus(param_split[1]) if len(param_split) > 1 else ""
+            result.append((param_name, param_value))
         return result

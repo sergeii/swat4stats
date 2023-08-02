@@ -1,5 +1,5 @@
 from random import choice
-from typing import Any
+from typing import Any, ClassVar
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
@@ -7,7 +7,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
 from django.views.generic import TemplateView
 
 from apps.tracker.models import PlayerStats, GametypeStats
-from apps.tracker.utils import get_current_stat_year
+from apps.tracker.utils.misc import get_current_stat_year
 
 
 class MotdBaseForm(forms.Form):
@@ -22,7 +22,7 @@ class MotdLeaderboardForm(MotdBaseForm):
         repeat = 0  # display once
         limit = 5
 
-    gametypes = {
+    gametypes: ClassVar[dict[str, str]] = {
         "coop": "CO-OP",
         "vip": "VIP Escort",
         "rd": "Rapid Deployment",
@@ -30,7 +30,7 @@ class MotdLeaderboardForm(MotdBaseForm):
     }
 
     class Cats:
-        coop = {
+        coop: ClassVar[dict[str, str]] = {
             "coop_score": _("CO-OP Score"),
             "coop_time": _("Time Played"),
             "coop_games": _("Missions Played"),
@@ -39,7 +39,7 @@ class MotdLeaderboardForm(MotdBaseForm):
             "coop_enemy_kills": _("Suspects Neutralized"),
             "coop_toc_reports": _("TOC Reports"),
         }
-        common = {
+        common: ClassVar[dict[str, str]] = {
             "score": _("Score"),
             "top_score": _("Best Score"),
             "time": _("Time Played"),
@@ -53,23 +53,23 @@ class MotdLeaderboardForm(MotdBaseForm):
             "kd_ratio": _("K/D Ratio"),
             "weapon_hit_ratio": _("Accuracy"),
         }
-        vip = {
+        vip: ClassVar[dict[str, str]] = {
             "vip_escapes": _("VIP Escapes"),
             "vip_captures": _("VIP Captures"),
             "vip_rescues": _("VIP Rescues"),
             "vip_kills_valid": _("VIP Kills"),
         }
-        rd = {
+        rd: ClassVar[dict[str, str]] = {
             "rd_bombs_defused": _("Bombs Disarmed"),
         }
-        sg = {
+        sg: ClassVar[dict[str, str]] = {
             "sg_escapes": _("Case Escapes"),
             "sg_kills": _("Case Carrier Kills"),
         }
         combined = coop | common | vip | sg | rd
 
     # custom mapping schema, other categories map as is
-    alias_to_category = {
+    alias_to_category: ClassVar[dict[str, str]] = {
         "spm": "spm_ratio",
         "kdr": "kd_ratio",
         "kill_streak": "top_kill_streak",

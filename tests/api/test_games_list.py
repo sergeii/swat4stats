@@ -16,7 +16,7 @@ def test_get_popular_servers(db, api_client):
     myt_vip = ServerFactory(hostname="-==MYT Team Svr==-")
     esa = ServerFactory(hostname=None, ip="62.21.98.150", port=9485)
     soh = ServerFactory(hostname="[C=F00000] |SoH| [C=FDFDFD] Shadow [C=FF0000] OF Heroes")
-    default = ServerFactory(hostname="Swat4 Server")  # noqa
+    default = ServerFactory(hostname="Swat4 Server")
 
     resp = api_client.get("/api/data-popular-servers/")
     # no games
@@ -46,10 +46,10 @@ def test_get_popular_map_names(db, api_client):
 
     abomb = MapFactory(name="A-Bomb Nightclub")
     brewer = MapFactory(name="Brewer County Courthouse")
-    northside = MapFactory(name="Northside Vending")  # noqa
+    northside = MapFactory(name="Northside Vending")  # noqa: F841
     warehouse = MapFactory(name="-EXP- Stetchkov Warehouse")
     new_library = MapFactory(name="New Library")
-    dead_end = MapFactory(name="DEAD_END")  # noqa
+    dead_end = MapFactory(name="DEAD_END")
 
     resp = api_client.get("/api/data-popular-mapnames/")
     # no games

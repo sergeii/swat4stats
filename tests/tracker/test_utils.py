@@ -5,7 +5,7 @@ from pytz import UTC
 
 from apps.tracker.entities import Team
 from apps.tracker.entities import Equipment as EQ  # noqa: N814
-from apps.tracker.utils import force_name, force_clean_name, iterate_years
+from apps.tracker.utils.misc import force_name, force_clean_name, iterate_years
 from apps.tracker.utils.game import get_player_portrait_image
 
 

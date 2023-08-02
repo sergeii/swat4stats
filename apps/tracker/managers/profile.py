@@ -15,8 +15,8 @@ from apps.tracker.exceptions import NoProfileMatchError
 from apps.tracker.managers.stats import get_stats_period_for_year
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Profile, Server  # noqa
-    from apps.tracker.managers import PlayerQuerySet  # noqa
+    from apps.tracker.models import Profile, Server
+    from apps.tracker.managers import PlayerQuerySet
 
 
 logger = logging.getLogger(__name__)
@@ -365,7 +365,7 @@ class ProfileManager(models.Manager):
     def update_per_server_positions_for_year(
         cls,
         year: int,
-        filters: dict[str, Any] = None,
+        filters: dict[str, Any] | None = None,
     ) -> None:
         from apps.tracker.models import ServerStats
 

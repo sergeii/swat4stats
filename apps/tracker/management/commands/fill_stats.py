@@ -1,16 +1,19 @@
 import logging
 
 from datetime import date
+from typing import Any
+
 from django.core.management.base import BaseCommand
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from apps.tracker.models import Profile, PlayerStats, GametypeStats, ServerStats
-from apps.tracker.utils import iterate_years
+from apps.tracker.utils.misc import iterate_years
 
 logger = logging.getLogger(__name__)
 
 
-def fill_profile_stats(queryset):
+def fill_profile_stats(queryset: QuerySet[Profile]) -> None:
     logger.info("updating stats for %s profiles", queryset.count())
 
     for year_date in iterate_years(date(2007, 1, 1), timezone.now().date()):
@@ -21,7 +24,7 @@ def fill_profile_stats(queryset):
     queryset.update(stats_updated_at=timezone.now())
 
 
-def calculate_positions():
+def calculate_positions() -> None:
     for year_date in iterate_years(date(2007, 1, 1), timezone.now().date()):
         year = year_date.year
         for model in [PlayerStats, GametypeStats, ServerStats]:
@@ -30,7 +33,7 @@ def calculate_positions():
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         console = logging.StreamHandler()
         logger.addHandler(console)
 

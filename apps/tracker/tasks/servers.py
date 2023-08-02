@@ -79,7 +79,7 @@ def merge_servers(main_server_id: int, merged_server_ids: list[int]) -> None:
         "about to start merging servers %s into %s", concat_it(merged_server_ids), main_server_id
     )
 
-    server_ids = merged_server_ids + [main_server_id]
+    server_ids = [*merged_server_ids, main_server_id]
     servers = (
         Server.objects.select_for_update(no_key=True).order_by("pk").in_bulk(id_list=server_ids)
     )

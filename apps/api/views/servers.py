@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from django.http import Http404
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, ListModelMixin
 from rest_framework.viewsets import GenericViewSet
@@ -12,7 +14,7 @@ from apps.api.serializers import (
 )
 from apps.tracker.managers import ServerQuerySet
 from apps.tracker.models import Server, ServerStats
-from apps.tracker.utils import get_current_stat_year
+from apps.tracker.utils.misc import get_current_stat_year
 
 
 class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, GenericViewSet):
@@ -21,7 +23,7 @@ class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, Generi
     filter_backends = (ServerFilterBackend,)
     lookup_value_regex = r"[^/]+"
     throttle_scope = "servers"
-    throttle_scope_methods = ["POST"]
+    throttle_scope_methods: ClassVar[list[str]] = ["POST"]
 
     def get_serializer_class(self) -> type[ServerBaseSerializer]:
         match self.action:

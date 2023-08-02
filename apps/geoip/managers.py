@@ -14,7 +14,7 @@ from ipwhois.utils import ipv4_is_defined
 from apps.geoip.entities import WhoisQueryResult
 
 if TYPE_CHECKING:
-    from apps.geoip.models import ISP  # noqa
+    from apps.geoip.models import ISP
 
 logger = logging.getLogger(__name__)
 

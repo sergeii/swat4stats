@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, ClassVar
 
 from django import forms
 from django.conf import settings
@@ -131,7 +131,7 @@ class ServerAdmin(admin.ModelAdmin):
         "merged_stats_at",
     )
     list_per_page = 50
-    actions = ["merge_servers"]
+    actions: ClassVar[list[str]] = ["merge_servers"]
 
     @admin.display(description=_("Merged"), boolean=True, ordering="is_merged")
     def admin_is_merged(self, obj: Server) -> bool:

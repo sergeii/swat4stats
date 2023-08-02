@@ -1,4 +1,6 @@
+from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 from cacheback.jobs import FunctionJob
 from cacheback.decorators import cacheback as cacheback_decorator
@@ -20,13 +22,13 @@ class UniversalDecoratorFunctionJob(FunctionJob):
             value = [value]
         return ":".join(str(val) for val in value)
 
-    def prepare_args(self, fn, *args):
-        return (fn,) + args
+    def prepare_args(self, fn: Callable, *args: Any) -> tuple[Any, ...]:
+        return fn, *args
 
-    def fetch(self, func, *args, **kwargs):
+    def fetch(self, func: Callable, *args: Any, **kwargs: Any) -> Any:
         return func(*args, **kwargs)
 
-    def should_stale_item_be_fetched_synchronously(self, *args, **kwargs):
+    def should_stale_item_be_fetched_synchronously(self, *args: Any, **kwargs: Any) -> bool:
         return True
 
 

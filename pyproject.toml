@@ -92,6 +92,10 @@ select = [
     "TCH",      # flake8-type-checking
     "INT",      # flake8-gettext
     "PTH",      # flake8-use-pathlib
+    "ERA",      # eradicate
+    "PGH",      # pygrep-hooks
+    "PERF",     # perflint
+    "RUF",      # ruff
 ]
 ignore = [
     "N817",     # CamelCase `ElementTree` imported as acronym `ET`
@@ -115,8 +119,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 target-version = "py311"
 
 [tool.ruff.per-file-ignores]
-"apps/*/migrations/*.py" = ["E501"]
-"factories.py" = ["N805"]
+"apps/*/migrations/*.py" = ["E501", "RUF012"]
+"factories.py" = ["N805", "RUF012"]
 
 [tool.ruff.flake8-pytest-style]
 parametrize-names-type = "csv"
@@ -130,6 +134,7 @@ line-length = 100
 target-version = ["py311"]
 
 [tool.mypy]
+disable_error_code = "misc"
 python_version = "3.11"
 check_untyped_defs = true
 disallow_untyped_defs = true
@@ -139,7 +144,7 @@ strict_equality = true
 
 [[tool.mypy.overrides]]
 module = "apps.*.migrations.*"
-disable_error_code = "var-annotated, has-type, arg-type, misc"
+disable_error_code = "var-annotated, has-type, arg-type"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 check_untyped_defs = false

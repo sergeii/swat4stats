@@ -1,4 +1,5 @@
 from ipaddress import IPv4Address
+from typing import ClassVar
 
 from django.contrib import admin
 from django.db import models
@@ -20,7 +21,7 @@ class IP(models.Model):
     class Meta:
         db_table = "tracker_ip"
         unique_together = (("range_from", "range_to"),)
-        indexes = [
+        indexes: ClassVar[list[models.Index]] = [
             models.Index(F("range_to") - F("range_from"), name="tracker_ip_length"),
         ]
 

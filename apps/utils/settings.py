@@ -20,7 +20,7 @@ def env_list(name: str) -> list[str]:
     if values_str := os.environ.get(name):
         for value in values_str.split(","):
             if value_clean := value.strip():
-                values.append(value_clean)
+                values.append(value_clean)  # noqa: PERF401
     return values
 
 

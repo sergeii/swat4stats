@@ -24,7 +24,7 @@ from apps.tracker.utils import aio
 from apps.utils.misc import dumps, concat_it
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Server  # noqa
+    from apps.tracker.models import Server
 
 
 logger = logging.getLogger(__name__)
@@ -124,19 +124,18 @@ class ServerQuerySet(models.QuerySet):
         :return: Ordered dict mapping a server instance to its query result
         :rtype: collections.OrderedDict
         """
-        tasks = []
         # ensure result is ordered
         result = OrderedDict((server, None) for server in self.all())
 
-        for server in result:
-            tasks.append(
-                ServerStatusTask(
-                    callback=lambda server, status: op.setitem(result, server, status),
-                    result_id=server,
-                    ip=server.ip,
-                    status_port=server.status_port,
-                )
+        tasks = [
+            ServerStatusTask(
+                callback=lambda server, status: op.setitem(result, server, status),
+                result_id=server,
+                ip=server.ip,
+                status_port=server.status_port,
             )
+            for server in result
+        ]
 
         aio.run_many(tasks, concurrency=settings.TRACKER_STATUS_QUERY_CONCURRENCY)
 

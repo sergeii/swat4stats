@@ -390,7 +390,7 @@ def test_too_large_ip_range_leads_to_whois_call(whois_mock):
 
 def test_extra_whois_query_returns_existing_range(whois_mock):
     # too large ip range, extra whois call is required
-    isp1 = ISPFactory(name="foo", ip__from="1.0.0.0", ip__to="1.255.255.255")  # noqa
+    isp1 = ISPFactory(name="foo", ip__from="1.0.0.0", ip__to="1.255.255.255")  # noqa: F841
     isp2 = ISPFactory(name="bar", ip__from="1.0.0.0", ip__to="1.127.255.255")
     isp3 = ISPFactory(name="baz", ip__from="1.2.3.0", ip__to="1.2.3.255")
 

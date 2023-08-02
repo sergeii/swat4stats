@@ -5,5 +5,5 @@ class AppConfig(apps.AppConfig):
     name = "apps.tracker"
 
     def ready(self):
-        from swat4stats import celery  # noqa
-        from . import signals  # noqa
+        from swat4stats import celery  # noqa: F401
+        from . import signals  # noqa: F401

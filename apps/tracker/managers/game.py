@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.db import models, transaction, IntegrityError
 from django.utils.translation import gettext_lazy as _
@@ -18,17 +18,17 @@ from apps.tracker.schema import (
     coop_status_reversed,
     weapon_reversed,
 )
-from apps.tracker.utils import force_name
+from apps.tracker.utils.misc import force_name
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Server, Player, Game  # noqa
+    from apps.tracker.models import Server, Player, Game  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
 
 
 class GameManager(models.Manager):
-    highlights = [
+    highlights: ClassVar[list[str, str]] = [
         (_("Hostage Crisis"), _("%(points)s VIP rescues"), "vip_rescues", 2),
         (_("No Exit"), _("%(points)s VIP captures"), "vip_captures", 2),
         (_("Quick Cut"), _("%(points)s bombs defused"), "rd_bombs_defused", 2),
