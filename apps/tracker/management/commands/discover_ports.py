@@ -4,6 +4,5 @@ from apps.tracker.models import Server
 
 
 class Command(BaseCommand):
-
     def handle(self, *args, **options):
         Server.objects.discover_good_query_ports()

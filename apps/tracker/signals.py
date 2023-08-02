@@ -23,6 +23,7 @@ offline_servers_detected = Signal()  # providing_args=['servers']
 @transaction.atomic(savepoint=False)
 def queue_update_server_country(sender: Any, instance: Server, **kwargs: Any) -> None:
     from apps.tracker.tasks import update_server_country
+
     transaction.on_commit(lambda: update_server_country.delay(instance.pk))
 
 
@@ -35,15 +36,19 @@ def update_live_servers_hostnames(sender: Any, servers: dict[Server, dict], **kw
     servers_to_update = []
 
     for server, status in servers.items():
-        if server.hostname != status['hostname']:
-            logger.info('updating %s hostname from "%s" to "%s"',
-                        server.pk, server.hostname, status['hostname'])
-            server.hostname = status['hostname']
+        if server.hostname != status["hostname"]:
+            logger.info(
+                'updating %s hostname from "%s" to "%s"',
+                server.pk,
+                server.hostname,
+                status["hostname"],
+            )
+            server.hostname = status["hostname"]
             servers_to_update.append(server)
 
     if servers_to_update:
-        logger.info('updating hostname for %s servers', len(servers_to_update))
-        Server.objects.bulk_update(servers_to_update, ['hostname'])
+        logger.info("updating hostname for %s servers", len(servers_to_update))
+        Server.objects.bulk_update(servers_to_update, ["hostname"])
 
 
 @receiver(live_servers_detected)
@@ -51,11 +56,10 @@ def reset_server_failure_count(sender: Any, servers: list[Server], **kwargs: Any
     """
     Ensure the failure count is reset once a server is back online.
     """
-    queryset = (Server.objects
-                .filter(pk__in=(obj.pk for obj in servers)))
+    queryset = Server.objects.filter(pk__in=(obj.pk for obj in servers))
 
     if updated := queryset.reset_failures():
-        logger.debug('reset failures for %d of %d live servers', updated, len(servers))
+        logger.debug("reset failures for %d of %d live servers", updated, len(servers))
 
 
 @receiver(failed_servers_detected)
@@ -65,12 +69,13 @@ def detect_offline_servers(sender: Any, servers: list[Server], **kwargs: Any) ->
     If the failure count value exceeds the max number of failures, unlist the server.
     """
     pks = [server.pk for server in servers]
-    Server.objects.filter(pk__in=pks).update(failures=F('failures') + 1)
+    Server.objects.filter(pk__in=pks).update(failures=F("failures") + 1)
 
-    offline_servers_qs = (Server.objects
-                          .filter(pk__in=pks, failures__gte=settings.TRACKER_STATUS_TOLERATED_FAILURES))
+    offline_servers_qs = Server.objects.filter(
+        pk__in=pks, failures__gte=settings.TRACKER_STATUS_TOLERATED_FAILURES
+    )
     if offline_servers := offline_servers_qs:
-        logger.debug('%d of %d failed servers are offline', len(offline_servers), len(servers))
+        logger.debug("%d of %d failed servers are offline", len(offline_servers), len(servers))
         offline_servers_detected.send(sender=None, servers=offline_servers)
 
 
@@ -82,24 +87,30 @@ def unlist_offline_servers(sender: Any, servers: list[Server], **kwargs: Any) ->
 
     queryset = Server.objects.filter(pk__in=(obj.pk for obj in servers), listed=True)
     if updated := queryset.update(listed=False):
-        logger.info('unlisted %d of %d offline servers', updated, len(servers))
+        logger.info("unlisted %d of %d offline servers", updated, len(servers))
 
 
 @receiver(game_data_saved)
-def update_streaming_server(sender, data, server, game, **kwargs):
+def update_streaming_server(
+    sender, data: dict[str, Any], server: Server, game: Game, **kwargs: Any
+) -> None:
     update_fields = []
 
     if not server.listed:
         server.listed = True
         server.failures = 0
-        update_fields.extend(['listed', 'failures'])
-        logger.info('relisting a streaming server %s (%s)', server, server.pk)
+        update_fields.extend(["listed", "failures"])
+        logger.info("relisting a streaming server %s (%s)", server, server.pk)
 
-    if data['hostname'] and data['hostname'] != server.hostname:
-        logger.info('updating server %s hostname from %s to data hostname %s',
-                    server.pk, server.hostname, data['hostname'])
-        server.hostname = data['hostname']
-        update_fields.append('hostname')
+    if data["hostname"] and data["hostname"] != server.hostname:
+        logger.info(
+            "updating server %s hostname from %s to data hostname %s",
+            server.pk,
+            server.hostname,
+            data["hostname"],
+        )
+        server.hostname = data["hostname"]
+        update_fields.append("hostname")
 
     if update_fields:
         server.save(update_fields=update_fields)
@@ -109,4 +120,5 @@ def update_streaming_server(sender, data, server, game, **kwargs):
 @transaction.atomic(savepoint=False)
 def queue_update_profile_games(sender: Any, game: Game, **kwargs: Any) -> None:
     from apps.tracker.tasks import update_profile_games
+
     transaction.on_commit(lambda: update_profile_games.delay(game.pk))

@@ -42,19 +42,19 @@ def test_ips_are_deleted_whois_returns_fresh_data(db, whois_mock):
     now = timezone.now()
 
     with freeze_timezone_now(now - timedelta(days=360)):
-        isp1 = ISPFactory(name='foo', ip='1.2.0.0/16')
+        isp1 = ISPFactory(name="foo", ip="1.2.0.0/16")
         expired_ip = isp1.ip_set.get()
 
     with freeze_timezone_now(now):
-        isp2 = ISPFactory(name='bar', ip='4.3.0.0/16')
+        isp2 = ISPFactory(name="bar", ip="4.3.0.0/16")
         fresh_ip = isp2.ip_set.get()
 
     assert IP.objects.expired().get() == expired_ip
 
-    obj, created = ISP.objects.match_or_create('1.2.3.4')
+    obj, created = ISP.objects.match_or_create("1.2.3.4")
     assert obj == isp1
 
-    obj, created = ISP.objects.match_or_create('4.3.2.1')
+    obj, created = ISP.objects.match_or_create("4.3.2.1")
     assert obj == isp2
 
     assert len(whois_mock.mock_calls) == 0
@@ -66,8 +66,8 @@ def test_ips_are_deleted_whois_returns_fresh_data(db, whois_mock):
         IP.objects.get(pk=expired_ip.pk)
     assert IP.objects.get(pk=fresh_ip.pk)
 
-    whois_mock.return_value = {'nets': [{'description': 'bar', 'cidr': '1.2.0.0/16'}]}
+    whois_mock.return_value = {"nets": [{"description": "bar", "cidr": "1.2.0.0/16"}]}
 
-    obj, created = ISP.objects.match_or_create('1.2.3.4')
+    obj, created = ISP.objects.match_or_create("1.2.3.4")
     assert obj == isp2
     assert not created

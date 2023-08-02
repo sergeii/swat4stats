@@ -2,7 +2,6 @@ from voluptuous import Invalid, Optional
 
 
 class Mapping:
-
     def __init__(self, mapping):
         self.mapping = mapping
 
@@ -15,7 +14,6 @@ class Mapping:
 
 
 class OptionalMapping(Optional):
-
     def __init__(self, mapping, *args, **kwargs):
         default_key, _ = mapping.copy().popitem()
         self.mapping = mapping
@@ -30,7 +28,6 @@ class OptionalMapping(Optional):
 
 
 class FallbackMapping(Mapping):
-
     def __call__(self, value):
         try:
             return self.mapping[value]
@@ -39,9 +36,8 @@ class FallbackMapping(Mapping):
 
 
 class DefaultMapping(Mapping):
-
     def __init__(self, *args, **kwargs):
-        self.default = kwargs.pop('default')
+        self.default = kwargs.pop("default")
         super().__init__(*args, **kwargs)
 
     def __call__(self, value):

@@ -7,15 +7,14 @@ from apps.tracker.aio_tasks.serverquery import ServerStatusTask
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
-        parser.add_argument('ip:port', help='Server status address')
+        parser.add_argument("ip:port", help="Server status address")
 
     def handle(self, *args, **options):
         def callback(_, result):
             self.stdout.write(pformat(result))
 
-        ip, port = options['ip:port'].split(':')
+        ip, port = options["ip:port"].split(":")
         task = ServerStatusTask(callback=callback, ip=ip, status_port=int(port))
 
         loop = asyncio.get_event_loop()

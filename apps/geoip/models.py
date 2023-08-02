@@ -10,7 +10,7 @@ from apps.geoip.managers import ISPManager, IPManager
 
 
 class IP(models.Model):
-    isp = models.ForeignKey('ISP', null=True, on_delete=models.CASCADE)
+    isp = models.ForeignKey("ISP", null=True, on_delete=models.CASCADE)
     range_from = models.BigIntegerField()
     range_to = models.BigIntegerField()
     date_created = models.DateTimeField(auto_now_add=True)
@@ -18,32 +18,32 @@ class IP(models.Model):
     objects = IPManager()
 
     class Meta:
-        db_table = 'tracker_ip'
-        unique_together = (('range_from', 'range_to'),)
+        db_table = "tracker_ip"
+        unique_together = (("range_from", "range_to"),)
         indexes = [
-            models.Index(F('range_to') - F('range_from'), name='tracker_ip_length'),
+            models.Index(F("range_to") - F("range_from"), name="tracker_ip_length"),
         ]
 
     def __str__(self) -> str:
-        return f'{self.range_from_normal}-{self.range_to_normal}'
+        return f"{self.range_from_normal}-{self.range_to_normal}"
 
-    @admin.display(description=_('Start'), ordering='range_from')
+    @admin.display(description=_("Start"), ordering="range_from")
     @cached_property
     def range_from_normal(self) -> str:
         """Return the range start address in dotted form."""
         return str(IPv4Address(self.range_from))
 
-    @admin.display(description=_('End'), ordering='range_to')
+    @admin.display(description=_("End"), ordering="range_to")
     @cached_property
     def range_to_normal(self):
         """Return the range end address in dotted form."""
         return str(IPv4Address(self.range_to))
 
-    @admin.display(description=_('Length'), ordering='length')
+    @admin.display(description=_("Length"), ordering="length")
     def admin_length(self):
         return self.length
 
-    @admin.display(description=_('Freshness'), boolean=True, ordering='-date_created')
+    @admin.display(description=_("Freshness"), boolean=True, ordering="-date_created")
     def admin_is_fresh(self) -> bool:
         return self.is_fresh
 
@@ -54,7 +54,7 @@ class ISP(models.Model):
     objects = ISPManager()
 
     class Meta:
-        db_table = 'tracker_isp'
+        db_table = "tracker_isp"
 
     def __str__(self) -> str:
-        return f'{self.name}, {self.country}'
+        return f"{self.name}, {self.country}"

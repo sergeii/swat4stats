@@ -5,25 +5,29 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tracker', '0003_fill_profile_first_seen_last_seen'),
+        ("tracker", "0003_fill_profile_first_seen_last_seen"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='server',
-            name='merged_into',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='tracker.server'),
+            model_name="server",
+            name="merged_into",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="tracker.server",
+            ),
         ),
         migrations.AddField(
-            model_name='server',
-            name='merged_into_at',
+            model_name="server",
+            name="merged_into_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='server',
-            name='merged_stats_at',
+            model_name="server",
+            name="merged_stats_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

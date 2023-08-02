@@ -39,6 +39,7 @@ pytest-cov = "4.0.0"
 pytest-repeat = "0.9.1"
 mypy = "^1.2.0"
 ruff = "^0.0.282"
+black = "^23.7.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -79,7 +80,18 @@ select = [
     "ISC",      # flake8-implicit-str-concat
     "G",        # flake8-logging-format
     "INP",      # flake8-no-pep420
-
+    "PIE",      # flake8-pie
+    "T20",      # flake8-print
+    "PT",       # flake8-pytest-style
+    "Q",        # flake8-quotes
+    "RSE",      # flake8-raise
+    "RET",      # flake8-return
+    "SLOT",     # flake8-slots
+    "SIM",      # flake8-simplify
+    "TID",      # flake8-tidy-imports
+    "TCH",      # flake8-type-checking
+    "INT",      # flake8-gettext
+    "PTH",      # flake8-use-pathlib
 ]
 ignore = [
     "N817",     # CamelCase `ElementTree` imported as acronym `ET`
@@ -98,13 +110,24 @@ exclude = [
     "static",
     "templates",
 ]
-line-length = 120
+line-length = 100
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 target-version = "py311"
 
 [tool.ruff.per-file-ignores]
 "apps/*/migrations/*.py" = ["E501"]
 "factories.py" = ["N805"]
+
+[tool.ruff.flake8-pytest-style]
+parametrize-names-type = "csv"
+fixture-parentheses = false
+
+[tool.ruff.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
 
 [tool.mypy]
 python_version = "3.11"

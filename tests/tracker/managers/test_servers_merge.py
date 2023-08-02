@@ -132,7 +132,7 @@ def test_cant_merge_no_servers(db):
         Server.objects.merge_servers(main=server, merged=[])
 
 
-@pytest.mark.parametrize('with_extra_servers', [True, False])
+@pytest.mark.parametrize("with_extra_servers", [True, False])
 def test_cant_merge_server_with_itself(db, with_extra_servers):
     server = ServerFactory()
     merged_servers = [server]
@@ -159,7 +159,7 @@ def test_cant_merge_to_server_that_is_merged(db):
         assert server.merged_into is None
 
 
-@pytest.mark.parametrize('with_extra_servers', [True, False])
+@pytest.mark.parametrize("with_extra_servers", [True, False])
 def test_cant_merge_to_servers_that_are_merged(db, with_extra_servers):
     server = ServerFactory(merged_into=ServerFactory())
     main = ServerFactory()
@@ -172,7 +172,7 @@ def test_cant_merge_to_servers_that_are_merged(db, with_extra_servers):
         Server.objects.merge_servers(main=main, merged=merged_servers)
 
 
-@pytest.mark.parametrize('to_same_server', [True, False])
+@pytest.mark.parametrize("to_same_server", [True, False])
 def test_cant_merge_all_merged_servers(db, to_same_server):
     if to_same_server:
         servers = ServerFactory.create_batch(3, merged_into=ServerFactory())

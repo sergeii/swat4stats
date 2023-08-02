@@ -13,18 +13,16 @@ def test_sitemap_xml(db, client):
     for _ in range(5):
         ServerFactory(status=ServerStatusFactory())
 
-    resp = client.get('/sitemap.xml')
+    resp = client.get("/sitemap.xml")
     assert resp.status_code == 200
-    assert resp.headers['Content-Type'] == 'application/xml'
+    assert resp.headers["Content-Type"] == "application/xml"
 
     root = ET.fromstring(resp.content)
     urls = [c[0].text for c in root]
-    sitemaps = {
-        urllib.parse.urlparse(u).path for u in urls
-    }
+    sitemaps = {urllib.parse.urlparse(u).path for u in urls}
     assert sitemaps == {
-        '/sitemap-servers.xml',
-        '/sitemap-players.xml',
+        "/sitemap-servers.xml",
+        "/sitemap-players.xml",
     }
 
 
@@ -34,17 +32,14 @@ def test_sitemap_servers_xml(db, client, site, django_assert_max_num_queries):
     ServerFactory(listed=True, enabled=False)
 
     with django_assert_max_num_queries(3):
-        resp = client.get('/sitemap-servers.xml')
+        resp = client.get("/sitemap-servers.xml")
 
     assert resp.status_code == 200
-    assert resp.headers['Content-Type'] == 'application/xml'
+    assert resp.headers["Content-Type"] == "application/xml"
 
     root = ET.fromstring(resp.content)
     urls = [c[0].text for c in root]
-    assert urls == [
-        f'http://{site.domain}/servers/{s.address}/'
-        for s in servers
-    ]
+    assert urls == [f"http://{site.domain}/servers/{s.address}/" for s in servers]
 
 
 def test_sitemap_players_xml(db, client, site, django_assert_max_num_queries):
@@ -53,18 +48,15 @@ def test_sitemap_players_xml(db, client, site, django_assert_max_num_queries):
 
     profiles = [
         ProfileFactory(name=name, first_seen_at=really_long_time_ago, last_seen_at=some_time_ago)
-        for name in ['John', 'Jane', 'Joe', 'Jill', 'Jack', 'Jenny', 'Jesse']
+        for name in ["John", "Jane", "Joe", "Jill", "Jack", "Jenny", "Jesse"]
     ]
 
     with django_assert_max_num_queries(3):
-        resp = client.get('/sitemap-players.xml')
+        resp = client.get("/sitemap-players.xml")
 
     assert resp.status_code == 200
-    assert resp.headers['Content-Type'] == 'application/xml'
+    assert resp.headers["Content-Type"] == "application/xml"
 
     root = ET.fromstring(resp.content)
     urls = [c[0].text for c in root]
-    assert urls == [
-        f'http://{site.domain}/player/{p.name}/{p.id}/'
-        for p in profiles
-    ]
+    assert urls == [f"http://{site.domain}/player/{p.name}/{p.id}/" for p in profiles]

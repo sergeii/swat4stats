@@ -8,15 +8,14 @@ logger = logging.getLogger(__name__)
 
 
 def fill_preferences(queryset):
-    logger.info('updating preferences for %s profiles', queryset.count())
+    logger.info("updating preferences for %s profiles", queryset.count())
 
     for profile in queryset:
-        logger.info('updating preferences for %s (%s)', profile, profile.pk)
+        logger.info("updating preferences for %s (%s)", profile, profile.pk)
         profile.update_preferences()
 
 
 class Command(BaseCommand):
-
     def handle(self, *args, **options):
         console = logging.StreamHandler()
         logger.addHandler(console)

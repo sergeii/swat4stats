@@ -6,13 +6,13 @@ from apps.geoip.models import IP
 logger = logging.getLogger(__name__)
 
 
-@app.task(name='delete_expired_ips')
+@app.task(name="delete_expired_ips")
 def delete_expired_ips() -> None:
     """
     Remove old expired IPs, so they can be renewed with fresh ones.
     """
     deleted, _ = IP.objects.expired().delete()
     if deleted:
-        logger.info('pruned %d expired ips', deleted)
+        logger.info("pruned %d expired ips", deleted)
     else:
-        logger.info('no expired ips to prune')
+        logger.info("no expired ips to prune")

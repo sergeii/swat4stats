@@ -14,8 +14,4 @@ class SearchView(ListAPIView):
     filterset_class = SearchFilterSet
 
     def get_queryset(self) -> QuerySet[Profile]:
-        return (
-            Profile.objects
-            .select_related('loadout')
-            .filter(last_seen_at__isnull=False)
-        )
+        return Profile.objects.select_related("loadout").filter(last_seen_at__isnull=False)

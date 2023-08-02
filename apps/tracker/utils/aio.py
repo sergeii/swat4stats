@@ -18,13 +18,15 @@ def with_timeout(timeout, callback=None):
             except asyncio.TimeoutError as exc:
                 if isinstance(callback, Exception):
                     raise callback from exc
-                elif callable(callback):
+                if callable(callback):
                     callback(args, kwargs, exc)
                 else:
                     raise
             else:
                 return result
+
         return wrapper
+
     return decorator
 
 
@@ -33,24 +35,21 @@ async def run(coro: Coroutine, semaphore: asyncio.Semaphore | None) -> None:
         await coro
     else:
         async with semaphore:
-            logger.debug('acquired semaphore %s for %s', semaphore, coro)
+            logger.debug("acquired semaphore %s for %s", semaphore, coro)
             await coro
 
 
-def run_many(tasks: list['Task'], concurrency: int | None = None) -> None:
+def run_many(tasks: list["Task"], concurrency: int | None = None) -> None:
     async def runner():
         semaphore = asyncio.Semaphore(concurrency) if concurrency else None
         runnables = (run(task.execute(), semaphore=semaphore) for task in tasks)
         await asyncio.gather(*runnables)
+
     asyncio.run(runner())
 
 
 class Task(ABC):
-
-    def __init__(self,
-                 *,
-                 callback: Callable | None = None,
-                 result_id: Any | None = None):
+    def __init__(self, *, callback: Callable | None = None, result_id: Any | None = None):
         """
         Register a task with callback and optional id.
         If id is not specified, assign a random id to the task.
@@ -62,10 +61,10 @@ class Task(ABC):
         try:
             result = await self.start()
         except Exception as exc:
-            logger.info('failed to complete task %s due to %s: %s', self, type(exc).__name__, exc)
+            logger.info("failed to complete task %s due to %s: %s", self, type(exc).__name__, exc)
             await self.fail(exc)
         else:
-            logger.debug('completed task %s', self)
+            logger.debug("completed task %s", self)
             await self.complete(result)
 
     @abstractmethod

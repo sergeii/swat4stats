@@ -12,12 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class PublishedArticleQuerySet(models.QuerySet):
-
-    def published(self) -> models.QuerySet['Article']:
+    def published(self) -> models.QuerySet["Article"]:
         return self.filter(is_published=True, date_published__lte=timezone.now())
 
-    def latest_published(self, limit: int) -> models.QuerySet['Article']:
-        return self.published().order_by('-date_published', 'pk')[:limit]
+    def latest_published(self, limit: int) -> models.QuerySet["Article"]:
+        return self.published().order_by("-date_published", "pk")[:limit]
 
 
 class Article(models.Model):
@@ -36,17 +35,17 @@ class Article(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
     renderer = models.SmallIntegerField(
         choices=(
-            (RendererType.PLAINTEXT, _('Plain text')),
-            (RendererType.HTML, _('HTML')),
-            (RendererType.MARKDOWN, _('Markdown')),
+            (RendererType.PLAINTEXT, _("Plain text")),
+            (RendererType.HTML, _("HTML")),
+            (RendererType.MARKDOWN, _("Markdown")),
         ),
-        default=RendererType.MARKDOWN
+        default=RendererType.MARKDOWN,
     )
 
     objects = PublishedArticleQuerySet.as_manager()
 
     class Meta:
-        db_table = 'tracker_article'
+        db_table = "tracker_article"
 
     def __str__(self) -> str:
         return self.title
@@ -61,7 +60,7 @@ class Article(models.Model):
         try:
             renderer = self.renderers[self.renderer]
         except KeyError:
-            logger.error('No article renderer %s', self.renderer)
-            renderer = self.renderers[self._meta.get_field('renderer').default]
+            logger.error("No article renderer %s", self.renderer)
+            renderer = self.renderers[self._meta.get_field("renderer").default]
 
         return renderer.render(self.text)

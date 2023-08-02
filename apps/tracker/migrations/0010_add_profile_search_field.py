@@ -5,18 +5,20 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tracker', '0009_denorm_profile_alias_names'),
+        ("tracker", "0009_denorm_profile_alias_names"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='profile',
-            name='search',
-            field=django.contrib.postgres.search.SearchVectorField(help_text='TSV field for full text search. Updated by triggers.', null=True),
+            model_name="profile",
+            name="search",
+            field=django.contrib.postgres.search.SearchVectorField(
+                help_text="TSV field for full text search. Updated by triggers.", null=True
+            ),
         ),
-        migrations.RunSQL(r"""
+        migrations.RunSQL(
+            r"""
             CREATE OR REPLACE FUNCTION update_or_create_profile_reindex_search()
             RETURNS TRIGGER AS $$
             BEGIN
@@ -42,5 +44,6 @@ class Migration(migrations.Migration):
             CREATE TRIGGER update_or_create_profile_reindex_search
             BEFORE INSERT OR UPDATE OF name, names
             ON tracker_profile FOR EACH ROW EXECUTE FUNCTION update_or_create_profile_reindex_search();
-        """),
+        """
+        ),
     ]

@@ -5,7 +5,7 @@ from apps.tracker.management.commands.fill_last_seen import fill_profile_last_se
 
 
 def fill_last_seen(apps, schema_editor):
-    profile_model = apps.get_model('tracker', 'Profile')
+    profile_model = apps.get_model("tracker", "Profile")
     fill_profile_last_seen(profile_model)
 
 
@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ('tracker', '0002_fill_server_status_port'),
+        ("tracker", "0002_fill_server_status_port"),
     ]
 
     operations = [

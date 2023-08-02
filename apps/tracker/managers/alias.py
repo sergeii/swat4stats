@@ -16,48 +16,44 @@ if TYPE_CHECKING:
 
 
 class AliasQuerySet(models.QuerySet):
-
-    def search(self, q: str) -> models.QuerySet['Alias']:
+    def search(self, q: str) -> models.QuerySet["Alias"]:
         from apps.tracker.models import Alias
 
-        query = SearchQuery(q, search_type='phrase', config='simple')
+        query = SearchQuery(q, search_type="phrase", config="simple")
 
         matching_names = (
-            Alias.objects
-            .filter(search=query)
-            .order_by('profile_id')
-            .distinct('profile_id')
-            .values('pk')
+            Alias.objects.filter(search=query)
+            .order_by("profile_id")
+            .distinct("profile_id")
+            .values("pk")
         )
 
-        return self.filter(pk__in=matching_names).annotate(rank=SearchRank(F('search'), query))
+        return self.filter(pk__in=matching_names).annotate(rank=SearchRank(F("search"), query))
 
 
 class AliasManager(models.Manager):
-
     def match_or_create(
         self,
         *,
         name: str,
         ip_address: str | IPv4Address,
-    ) -> tuple['Alias', bool]:
-
+    ) -> tuple["Alias", bool]:
         # guard against empty name
         if not name:
-            raise ValueError('Empty name')
+            raise ValueError("Empty name")
 
         isp, _ = ISP.objects.match_or_create(ip_address)
 
         # attempt to match an existing alias by name+isp pair
         match_kwargs = {
-            'name': name,
+            "name": name,
         }
         # because isp is optional, the only remaining search param is player name
         # therefore if isp is not provided, we need to search against aliases with no isp as well
         if isp:
-            match_kwargs['isp'] = isp
+            match_kwargs["isp"] = isp
         else:
-            match_kwargs['isp__isnull'] = True
+            match_kwargs["isp__isnull"] = True
 
         match_qs = self.filter(name=name, isp=isp)
 
@@ -78,7 +74,7 @@ class AliasManager(models.Manager):
         name: str,
         ip_address: str | IPv4Address,
         isp: ISP | None,
-    ) -> 'Alias':
+    ) -> "Alias":
         from apps.tracker.models import Profile
 
         # get a profile by name and optionally by ip and isp.

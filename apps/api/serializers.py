@@ -45,7 +45,7 @@ class NewsArticleSerializer(serializers.ModelSerializer):
     html = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'title', 'html', 'signature', 'date_published')
+        fields = ("id", "title", "html", "signature", "date_published")
         model = Article
 
     def get_html(self, obj: Article) -> str:
@@ -76,38 +76,40 @@ class StatusPlayerSerializer(serializers.Serializer):
     coop_status = serializers.SerializerMethodField()
     coop_status_slug = serializers.SerializerMethodField()
     kills = serializers.IntegerField()
-    teamkills = serializers.IntegerField(source='tkills')
+    teamkills = serializers.IntegerField(source="tkills")
     deaths = serializers.IntegerField()
     arrests = serializers.IntegerField()
     arrested = serializers.IntegerField()
-    vip_escapes = serializers.IntegerField(source='vescaped')
-    vip_captures = serializers.IntegerField(source='arrestedvip')
-    vip_rescues = serializers.IntegerField(source='unarrestedvip')
-    vip_kills_valid = serializers.IntegerField(source='validvipkills')
-    vip_kills_invalid = serializers.IntegerField(source='invalidvipkills')
-    rd_bombs_defused = serializers.IntegerField(source='bombsdiffused')
-    rd_crybaby = serializers.IntegerField(source='rdcrybaby')
-    sg_crybaby = serializers.IntegerField(source='sgcrybaby')
-    sg_escapes = serializers.IntegerField(source='escapedcase')
-    sg_kills = serializers.IntegerField(source='killedcase')
+    vip_escapes = serializers.IntegerField(source="vescaped")
+    vip_captures = serializers.IntegerField(source="arrestedvip")
+    vip_rescues = serializers.IntegerField(source="unarrestedvip")
+    vip_kills_valid = serializers.IntegerField(source="validvipkills")
+    vip_kills_invalid = serializers.IntegerField(source="invalidvipkills")
+    rd_bombs_defused = serializers.IntegerField(source="bombsdiffused")
+    rd_crybaby = serializers.IntegerField(source="rdcrybaby")
+    sg_crybaby = serializers.IntegerField(source="sgcrybaby")
+    sg_escapes = serializers.IntegerField(source="escapedcase")
+    sg_kills = serializers.IntegerField(source="killedcase")
     special = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
 
     def get_coop_status(self, obj: dict[str, Any]) -> str:
-        return _(obj.get('coop_status') or self.default_coop_status)
+        return _(obj.get("coop_status") or self.default_coop_status)
 
     def get_coop_status_slug(self, obj: dict[str, Any]) -> str:
-        return slugify(obj.get('coop_status') or self.default_coop_status)
+        return slugify(obj.get("coop_status") or self.default_coop_status)
 
     def get_special(self, obj: dict[str, Any]) -> int:
-        return (obj['vescaped'] +
-                obj['arrestedvip'] +
-                obj['unarrestedvip'] +
-                obj['bombsdiffused'] +
-                obj['escapedcase'])
+        return (
+            obj["vescaped"]
+            + obj["arrestedvip"]
+            + obj["unarrestedvip"]
+            + obj["bombsdiffused"]
+            + obj["escapedcase"]
+        )
 
     def get_url(self, obj: dict[str, Any]) -> str:
-        html_name = urlquote(obj['name'])
+        html_name = urlquote(obj["name"])
         return f"/search/?player={html_name}"
 
 
@@ -115,43 +117,43 @@ class StatusBaseSerializer(serializers.Serializer):
     hostname = serializers.CharField()
     hostname_html = serializers.SerializerMethodField()
     hostname_clean = serializers.SerializerMethodField()
-    port = serializers.IntegerField(source='hostport')
-    passworded = serializers.BooleanField(source='password')
+    port = serializers.IntegerField(source="hostport")
+    passworded = serializers.BooleanField(source="password")
     gamename = serializers.SerializerMethodField()
     gamever = serializers.CharField()
     gametype = serializers.SerializerMethodField()
     gametype_slug = serializers.SerializerMethodField()
     mapname = serializers.SerializerMethodField()
-    player_num = serializers.IntegerField(source='numplayers')
-    player_max = serializers.IntegerField(source='maxplayers')
-    round_num = serializers.IntegerField(source='round')
-    round_max = serializers.IntegerField(source='numrounds')
+    player_num = serializers.IntegerField(source="numplayers")
+    player_max = serializers.IntegerField(source="maxplayers")
+    round_num = serializers.IntegerField(source="round")
+    round_max = serializers.IntegerField(source="numrounds")
     mapname_slug = serializers.SerializerMethodField()
     mapname_background = serializers.SerializerMethodField()
 
     def get_gamename(self, obj: dict) -> str:
-        return _(obj['gamevariant'])
+        return _(obj["gamevariant"])
 
     def get_hostname_html(self, obj: dict) -> str:
-        return format_name(obj['hostname'])
+        return format_name(obj["hostname"])
 
     def get_hostname_clean(self, obj: dict) -> str:
-        return force_clean_name(obj['hostname'])
+        return force_clean_name(obj["hostname"])
 
     def get_mapname(self, obj: dict) -> str:
-        return _(obj['mapname'])
+        return _(obj["mapname"])
 
     def get_gametype(self, obj: dict) -> str:
-        return _(obj['gametype'])
+        return _(obj["gametype"])
 
     def get_gametype_slug(self, obj: dict) -> str:
-        return slugify(obj['gametype'])
+        return slugify(obj["gametype"])
 
     def get_mapname_slug(self, obj: dict) -> str:
-        return slugify(obj['mapname'])
+        return slugify(obj["mapname"])
 
     def get_mapname_background(self, obj: dict) -> str:
-        return map_background_picture(obj['mapname'])
+        return map_background_picture(obj["mapname"])
 
 
 class StatusObjectiveSerializer(serializers.Serializer):
@@ -160,37 +162,37 @@ class StatusObjectiveSerializer(serializers.Serializer):
     status_slug = serializers.SerializerMethodField()
 
     def get_name(self, obj: dict) -> str:
-        return _(obj['name'])
+        return _(obj["name"])
 
     def get_status(self, obj: dict) -> str:
-        return _(obj['status'])
+        return _(obj["status"])
 
     def get_status_slug(self, obj: dict) -> str:
-        return slugify(obj['status'])
+        return slugify(obj["status"])
 
 
 class StatusFullSerializer(StatusBaseSerializer):
-    time_round = serializers.IntegerField(source='timeleft')
-    time_special = serializers.IntegerField(source='timespecial')
-    score_swat = serializers.IntegerField(source='swatscore')
-    score_sus = serializers.IntegerField(source='suspectsscore')
-    vict_swat = serializers.IntegerField(source='swatwon')
-    vict_sus = serializers.IntegerField(source='suspectswon')
-    bombs_defused = serializers.IntegerField(source='bombsdefused')
-    bombs_total = serializers.IntegerField(source='bombstotal')
-    coop_reports = serializers.CharField(source='tocreports')
-    coop_weapons = serializers.CharField(source='weaponssecured')
+    time_round = serializers.IntegerField(source="timeleft")
+    time_special = serializers.IntegerField(source="timespecial")
+    score_swat = serializers.IntegerField(source="swatscore")
+    score_sus = serializers.IntegerField(source="suspectsscore")
+    vict_swat = serializers.IntegerField(source="swatwon")
+    vict_sus = serializers.IntegerField(source="suspectswon")
+    bombs_defused = serializers.IntegerField(source="bombsdefused")
+    bombs_total = serializers.IntegerField(source="bombstotal")
+    coop_reports = serializers.CharField(source="tocreports")
+    coop_weapons = serializers.CharField(source="weaponssecured")
     players = StatusPlayerSerializer(many=True)
     objectives = StatusObjectiveSerializer(many=True)
     rules = serializers.SerializerMethodField()
     briefing = serializers.SerializerMethodField()
 
     def get_rules(self, obj: dict) -> str | None:
-        return gametype_rules_text(obj['gametype'])
+        return gametype_rules_text(obj["gametype"])
 
     def get_briefing(self, obj: dict) -> str | None:
-        if obj['gametype'] in (GameType.co_op, GameType.co_op_qmm):
-            return map_briefing_text(obj['mapname'])
+        if obj["gametype"] in (GameType.co_op, GameType.co_op_qmm):
+            return map_briefing_text(obj["mapname"])
         return None
 
 
@@ -204,10 +206,19 @@ class ServerBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Server
         read_only_fields: tuple[str, ...] = (
-            'id', 'address', 'pinned',
-            'country', 'country_human', 'hostname', 'name_clean', 'status',
+            "id",
+            "address",
+            "pinned",
+            "country",
+            "country_human",
+            "hostname",
+            "name_clean",
+            "status",
         )
-        fields: tuple[str, ...] = read_only_fields + ('ip', 'port',)
+        fields: tuple[str, ...] = read_only_fields + (
+            "ip",
+            "port",
+        )
         validators: list[Callable] = []
 
     def get_country_human(self, obj: Server) -> str | None:
@@ -224,12 +235,11 @@ class ServerFullSerializer(ServerBaseSerializer):
     merged_into = ServerBaseSerializer(read_only=True)
 
     class Meta(ServerBaseSerializer.Meta):
-        read_only_fields = ServerBaseSerializer.Meta.read_only_fields + ('merged_into',)
-        fields = ServerBaseSerializer.Meta.fields + ('merged_into',)
+        read_only_fields = ServerBaseSerializer.Meta.read_only_fields + ("merged_into",)
+        fields = ServerBaseSerializer.Meta.fields + ("merged_into",)
 
 
 class ServerCreateSerializer(ServerFullSerializer):
-
     def _validate_instance(self, ip: str, port: int) -> Server | None:
         try:
             instance = Server.objects.get(ip=ip, port=port)
@@ -237,15 +247,17 @@ class ServerCreateSerializer(ServerFullSerializer):
             return None
 
         if instance.listed:
-            raise ValidationError(_('The specified server already exists'))
+            raise ValidationError(_("The specified server already exists"))
 
         return instance
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
-        ip = attrs['ip']
-        port = attrs['port']
+        ip = attrs["ip"]
+        port = attrs["port"]
 
-        wrong_port_error = ValidationError(_('Ensure the server is running at port %(port)s') % {'port': port})
+        wrong_port_error = ValidationError(
+            _("Ensure the server is running at port %(port)s") % {"port": port}
+        )
 
         instance = self._validate_instance(ip, port)
         probe_or_exc = Server.objects.probe_server_addr((ip, port))
@@ -256,31 +268,42 @@ class ServerCreateSerializer(ServerFullSerializer):
         try:
             validated_status = serverquery_schema(probe_or_exc)
         except voluptuous.Invalid as exc:
-            logger.warning('unable to create server %s:%s due to schema error: %s',
-                           ip, port, exc, exc_info=True)
+            logger.warning(
+                "unable to create server %s:%s due to schema error: %s",
+                ip,
+                port,
+                exc,
+                exc_info=True,
+            )
             raise wrong_port_error
 
-        if validated_status['hostport'] != port:
-            logger.warning('unable to create server %s:%s due to reported port mismatch: %s',
-                           ip, port, validated_status['hostport'])
+        if validated_status["hostport"] != port:
+            logger.warning(
+                "unable to create server %s:%s due to reported port mismatch: %s",
+                ip,
+                port,
+                validated_status["hostport"],
+            )
             raise wrong_port_error
 
-        attrs.update({
-            'instance': instance,
-            'listed': True,
-            'failures': 0,
-            'status': validated_status,
-            'hostname': validated_status['hostname'],
-        })
+        attrs.update(
+            {
+                "instance": instance,
+                "listed": True,
+                "failures": 0,
+                "status": validated_status,
+                "hostname": validated_status["hostname"],
+            }
+        )
 
         return attrs
 
     @transaction.atomic
     def create(self, validated_data: dict[str, Any]) -> Server:
-        instance = validated_data.pop('instance')
-        status = validated_data.pop('status')
+        instance = validated_data.pop("instance")
+        status = validated_data.pop("status")
 
-        if instance is None:
+        if instance is None:  # noqa: SIM108
             instance = super().create(validated_data)
         else:
             instance = self.update(instance, validated_data)
@@ -294,7 +317,7 @@ class ServerCreateSerializer(ServerFullSerializer):
 class MapSerializer(serializers.ModelSerializer):
     class Meta:
         model = Map
-        fields = ('id', 'name', 'slug', 'preview_picture', 'background_picture')
+        fields = ("id", "name", "slug", "preview_picture", "background_picture")
         read_only_fields = fields
 
 
@@ -304,7 +327,7 @@ class ProfileBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('id', 'name', 'team', 'country', 'country_human', 'portrait_picture')
+        fields = ("id", "name", "team", "country", "country_human", "portrait_picture")
         read_only_fields = fields
 
     def get_portrait_picture(self, obj: Profile) -> str:
@@ -330,16 +353,49 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ('id', 'name', 'portrait_picture', 'country', 'profile',
-                  'country_human', 'team', 'coop_status', 'coop_status_slug', 'vip', 'dropped',
-                  'score', 'time', 'kills', 'teamkills', 'deaths', 'suicides', 'arrests',
-                  'arrested', 'kill_streak', 'arrest_streak', 'death_streak',
-                  'vip_captures', 'vip_rescues', 'vip_escapes', 'vip_kills_valid', 'vip_kills_invalid',
-                  'rd_bombs_defused', 'sg_escapes', 'sg_kills',
-                  'coop_hostage_arrests', 'coop_hostage_hits', 'coop_hostage_incaps', 'coop_hostage_kills',
-                  'coop_enemy_arrests', 'coop_enemy_incaps', 'coop_enemy_kills', 'coop_enemy_incaps_invalid',
-                  'coop_enemy_kills_invalid', 'coop_toc_reports',
-                  'special')
+        fields = (
+            "id",
+            "name",
+            "portrait_picture",
+            "country",
+            "profile",
+            "country_human",
+            "team",
+            "coop_status",
+            "coop_status_slug",
+            "vip",
+            "dropped",
+            "score",
+            "time",
+            "kills",
+            "teamkills",
+            "deaths",
+            "suicides",
+            "arrests",
+            "arrested",
+            "kill_streak",
+            "arrest_streak",
+            "death_streak",
+            "vip_captures",
+            "vip_rescues",
+            "vip_escapes",
+            "vip_kills_valid",
+            "vip_kills_invalid",
+            "rd_bombs_defused",
+            "sg_escapes",
+            "sg_kills",
+            "coop_hostage_arrests",
+            "coop_hostage_hits",
+            "coop_hostage_incaps",
+            "coop_hostage_kills",
+            "coop_enemy_arrests",
+            "coop_enemy_incaps",
+            "coop_enemy_kills",
+            "coop_enemy_incaps_invalid",
+            "coop_enemy_kills_invalid",
+            "coop_toc_reports",
+            "special",
+        )
 
     def get_portrait_picture(self, obj: Player) -> str:
         return get_player_portrait_image(
@@ -367,10 +423,9 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class PlayerWeaponSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Weapon
-        fields = ('id', 'name', 'time', 'shots', 'hits', 'teamhits', 'kills', 'teamkills')
+        fields = ("id", "name", "time", "shots", "hits", "teamhits", "kills", "teamkills")
 
 
 class ObjectiveSerializer(serializers.ModelSerializer):
@@ -380,7 +435,7 @@ class ObjectiveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Objective
-        fields = ('id', 'name', 'status', 'status_slug')
+        fields = ("id", "name", "status", "status_slug")
         read_only_fields = fields
 
     def get_name(self, obj: Objective) -> str:
@@ -398,20 +453,20 @@ class ProcedureSerializer(serializers.ModelSerializer):
     is_penalty = serializers.SerializerMethodField()
 
     penalties = (
-        'Failed to report a downed officer',
-        'Incapacitated a hostage',
-        'Killed a hostage',
-        'Incapacitated a fellow officer',
-        'Injured a fellow officer',
-        'Unauthorized use of deadly force',
-        'Unauthorized use xof force',
-        'Failed to prevent destruction of evidence.',
-        'Failed to apprehend fleeing suspect.',
+        "Failed to report a downed officer",
+        "Incapacitated a hostage",
+        "Killed a hostage",
+        "Incapacitated a fellow officer",
+        "Injured a fellow officer",
+        "Unauthorized use of deadly force",
+        "Unauthorized use xof force",
+        "Failed to prevent destruction of evidence.",
+        "Failed to apprehend fleeing suspect.",
     )
 
     class Meta:
         model = Procedure
-        fields = ('id', 'name', 'status', 'score', 'is_penalty')
+        fields = ("id", "name", "status", "score", "is_penalty")
         read_only_fields = fields
 
     def get_name(self, obj: Procedure) -> str:
@@ -429,21 +484,28 @@ class GameBaseSerializer(serializers.ModelSerializer):
     server = ServerBaseSerializer()
 
     gametype_to_short_mapping: dict[str, str] = {
-        GameType.barricaded_suspects.value: _('BS'),
-        GameType.vip_escort.value: _('VIP'),
-        GameType.rapid_deployment.value: _('RD'),
-        GameType.co_op.value: _('COOP'),
-        GameType.smash_and_grab.value: _('SG'),
-        GameType.co_op_qmm.value: _('COOP'),
+        GameType.barricaded_suspects.value: _("BS"),
+        GameType.vip_escort.value: _("VIP"),
+        GameType.rapid_deployment.value: _("RD"),
+        GameType.co_op.value: _("COOP"),
+        GameType.smash_and_grab.value: _("SG"),
+        GameType.co_op_qmm.value: _("COOP"),
     }
-    gametype_short_default = 'UNK'
+    gametype_short_default = "UNK"
 
     class Meta:
         model = Game
         fields: tuple[str, ...] = (
-            'id', 'gametype', 'gametype_slug', 'gametype_short',
-            'map', 'server', 'coop_score', 'score_swat', 'score_sus',
-            'date_finished',
+            "id",
+            "gametype",
+            "gametype_slug",
+            "gametype_short",
+            "map",
+            "server",
+            "coop_score",
+            "score_swat",
+            "score_sus",
+            "date_finished",
         )
         read_only_fields: tuple[str, ...] = fields
 
@@ -466,35 +528,47 @@ class GameNeighborsSerializer(serializers.Serializer):
 
 
 class GameSerializer(GameBaseSerializer):
-    neighbors = GameNeighborsSerializer(source='get_neighboring_games', read_only=True)
-    players = PlayerSerializer(many=True, source='player_set')
-    objectives = ObjectiveSerializer(many=True, source='objective_set')
-    procedures = ProcedureSerializer(many=True, source='procedure_set')
+    neighbors = GameNeighborsSerializer(source="get_neighboring_games", read_only=True)
+    players = PlayerSerializer(many=True, source="player_set")
+    objectives = ObjectiveSerializer(many=True, source="objective_set")
+    procedures = ProcedureSerializer(many=True, source="procedure_set")
     rules = serializers.SerializerMethodField()
     briefing = serializers.SerializerMethodField()
     coop_rank = serializers.SerializerMethodField()
 
     class Meta(GameBaseSerializer.Meta):
-        fields = GameBaseSerializer.Meta.fields + ('neighbors', 'players', 'objectives', 'procedures',
-                                                   'time', 'outcome', 'player_num',
-                                                   'rules', 'briefing', 'coop_rank',
-                                                   'vict_swat', 'vict_sus', 'rd_bombs_defused', 'rd_bombs_total')
+        fields = GameBaseSerializer.Meta.fields + (
+            "neighbors",
+            "players",
+            "objectives",
+            "procedures",
+            "time",
+            "outcome",
+            "player_num",
+            "rules",
+            "briefing",
+            "coop_rank",
+            "vict_swat",
+            "vict_sus",
+            "rd_bombs_defused",
+            "rd_bombs_total",
+        )
         read_only_fields: tuple[str, ...] = fields
 
     coop_ranks = {
-        100: _('Chief Inspector'),
-        95: _('Inspector'),
-        90: _('Captain'),
-        85: _('Lieutenant'),
-        80: _('Sergeant'),
-        75: _('Patrol Officer'),
-        70: _('Reserve Officer'),
-        60: _('Non-sworn Officer'),
-        50: _('Recruit'),
-        35: _('Washout'),
-        20: _('Vigilante'),
+        100: _("Chief Inspector"),
+        95: _("Inspector"),
+        90: _("Captain"),
+        85: _("Lieutenant"),
+        80: _("Sergeant"),
+        75: _("Patrol Officer"),
+        70: _("Reserve Officer"),
+        60: _("Non-sworn Officer"),
+        50: _("Recruit"),
+        35: _("Washout"),
+        20: _("Vigilante"),
     }
-    coop_rank_default = _('Menace')
+    coop_rank_default = _("Menace")
 
     def get_rules(self, obj: Game) -> str | None:
         return gametype_rules_text(obj.gametype)
@@ -524,9 +598,18 @@ class GamePlayerHighlightSerializer(serializers.Serializer):
 class LoadoutSerializer(serializers.ModelSerializer):
     class Meta:
         model = Loadout
-        fields = ('primary', 'secondary',
-                  'equip_one', 'equip_two', 'equip_three', 'equip_four', 'equip_five',
-                  'breacher', 'head', 'body')
+        fields = (
+            "primary",
+            "secondary",
+            "equip_one",
+            "equip_two",
+            "equip_three",
+            "equip_four",
+            "equip_five",
+            "breacher",
+            "head",
+            "body",
+        )
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -535,8 +618,16 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('id', 'name', 'team', 'loadout',
-                  'country', 'country_human', 'first_seen_at', 'last_seen_at')
+        fields = (
+            "id",
+            "name",
+            "team",
+            "loadout",
+            "country",
+            "country_human",
+            "first_seen_at",
+            "last_seen_at",
+        )
         read_only_fields = fields
 
     def get_country_human(self, obj: Profile) -> str:
@@ -548,15 +639,15 @@ class PlayerStatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlayerStats
-        fields = ('id', 'category', 'year', 'profile', 'points', 'position')
+        fields = ("id", "category", "year", "profile", "points", "position")
         read_only_fields = fields
 
 
 class SearchResultItemSerializer(serializers.Serializer):
-    item = ProfileSerializer(source='*')
+    item = ProfileSerializer(source="*")
     headline = serializers.CharField()
     excerpt = serializers.CharField()
 
     class Meta:
-        fields = ('item', 'headline', 'excerpt')
+        fields = ("item", "headline", "excerpt")
         read_only_fields = fields

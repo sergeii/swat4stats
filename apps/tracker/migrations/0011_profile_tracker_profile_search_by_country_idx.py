@@ -5,14 +5,19 @@ import django.db.models.functions.text
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tracker', '0010_add_profile_search_field'),
+        ("tracker", "0010_add_profile_search_field"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='profile',
-            index=models.Index(django.db.models.functions.text.Upper('country'), models.OrderBy(models.F('last_seen_at'), descending=True), models.F('id'), condition=models.Q(('last_seen_at__isnull', False)), name='tracker_profile_search_by_country_idx'),
+            model_name="profile",
+            index=models.Index(
+                django.db.models.functions.text.Upper("country"),
+                models.OrderBy(models.F("last_seen_at"), descending=True),
+                models.F("id"),
+                condition=models.Q(("last_seen_at__isnull", False)),
+                name="tracker_profile_search_by_country_idx",
+            ),
         ),
     ]

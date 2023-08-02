@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def fill_profile_stats(queryset):
-    logger.info('updating stats for %s profiles', queryset.count())
+    logger.info("updating stats for %s profiles", queryset.count())
 
     for year_date in iterate_years(date(2007, 1, 1), timezone.now().date()):
         year = year_date.year
@@ -25,12 +25,11 @@ def calculate_positions():
     for year_date in iterate_years(date(2007, 1, 1), timezone.now().date()):
         year = year_date.year
         for model in [PlayerStats, GametypeStats, ServerStats]:
-            logger.info('updating positions for %s %s', year, model.__name__)
+            logger.info("updating positions for %s %s", year, model.__name__)
             model.objects.rank(year=year)
 
 
 class Command(BaseCommand):
-
     def handle(self, *args, **options):
         console = logging.StreamHandler()
         logger.addHandler(console)

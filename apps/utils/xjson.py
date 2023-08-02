@@ -11,51 +11,58 @@ from django_redis.serializers.base import BaseSerializer
 
 
 class XJSONEncoder(json.JSONEncoder):
-
     def default(self, obj):
-
-        if isinstance(obj, datetime):
-            return OrderedDict([
-                ('__type__', '__datetime__'),
-                ('isoformat', obj.isoformat()),
-            ])
-        elif isinstance(obj, date):
-            return OrderedDict([
-                ('__type__', '__date__'),
-                ('isoformat', obj.isoformat()),
-            ])
-        elif isinstance(obj, Decimal):
-            return OrderedDict([
-                ('__type__', '__decimal__'),
-                ('decimal', str(obj)),
-            ])
-        elif isinstance(obj, UUID):
-            return OrderedDict([
-                ('__type__', '__uuid__'),
-                ('uuid', str(obj)),
-            ])
-        elif isinstance(obj, DeserializedObject):
-            return self.default(obj.object)
-
-        return super().default(obj)
+        match obj:
+            case datetime():
+                return OrderedDict(
+                    [
+                        ("__type__", "__datetime__"),
+                        ("isoformat", obj.isoformat()),
+                    ]
+                )
+            case date():
+                return OrderedDict(
+                    [
+                        ("__type__", "__date__"),
+                        ("isoformat", obj.isoformat()),
+                    ]
+                )
+            case Decimal():
+                return OrderedDict(
+                    [
+                        ("__type__", "__decimal__"),
+                        ("decimal", str(obj)),
+                    ]
+                )
+            case UUID():
+                return OrderedDict(
+                    [
+                        ("__type__", "__uuid__"),
+                        ("uuid", str(obj)),
+                    ]
+                )
+            case DeserializedObject():
+                return self.default(obj.object)
+            case _:
+                return super().default(obj)
 
 
 def xjson_decoder(obj: dict) -> dict | datetime | date | Decimal | UUID:
-    if '__type__' in obj:
+    if "__type__" not in obj:
+        return obj
 
-        if obj['__type__'] == '__datetime__':
-            return parse_date(obj['isoformat'])
-
-        elif obj['__type__'] == '__date__':
-            return parse_date(obj['isoformat']).date()
-
-        elif obj['__type__'] == '__decimal__':
-            return Decimal(obj['decimal'])
-
-        elif obj['__type__'] == '__uuid__':
-            return UUID(obj['uuid'])
-
-    return obj
+    match obj["__type__"]:
+        case "__datetime__":
+            return parse_date(obj["isoformat"])
+        case "__date__":
+            return parse_date(obj["isoformat"]).date()
+        case "__decimal__":
+            return Decimal(obj["decimal"])
+        case "__uuid__":
+            return UUID(obj["uuid"])
+        case _:
+            err_msg = f"Unknown type: {obj['__type__']}"
+            raise ValueError(err_msg)
 
 
 def dumps(obj: Any) -> str:
@@ -67,7 +74,6 @@ def loads(obj: bytes | str) -> Any:
 
 
 class XJSONRedisSerializer(BaseSerializer):
-
     def dumps(self, value: Any) -> bytes:
         return dumps(value).encode()
 

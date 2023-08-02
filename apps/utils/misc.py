@@ -33,7 +33,9 @@ def force_datetime(maybe_datetime, time_obj=None):
     if isinstance(maybe_datetime, datetime):
         new_datetime = maybe_datetime
         if time_obj:
-            new_datetime = datetime.combine(maybe_datetime, time_obj).replace(tzinfo=maybe_datetime.tzinfo)
+            new_datetime = datetime.combine(maybe_datetime, time_obj).replace(
+                tzinfo=maybe_datetime.tzinfo
+            )
         # force tz to UTC
         if not is_aware(new_datetime):
             new_datetime = new_datetime.replace(tzinfo=UTC)
@@ -51,23 +53,23 @@ def force_date(maybe_date):
 
 
 def iterate_queryset(queryset, *, fields: list[str], chunk_size=1000):
-    queryset = queryset.order_by('pk')
+    queryset = queryset.order_by("pk")
     last_pk = 0
     while True:
         chunk = list(queryset.filter(pk__gt=last_pk).values(*fields)[:chunk_size])
         yield chunk
         if len(chunk) < chunk_size:
             break
-        last_pk = chunk[-1]['pk']
+        last_pk = chunk[-1]["pk"]
 
 
 def iterate_list(list_: list, *, size: int) -> Iterator[list]:
     for i in range(0, len(list_), size):
-        yield list_[i:i + size]
+        yield list_[i : i + size]
 
 
-def concat_it(iterable: Iterable, sep: str = ', ') -> str:
+def concat_it(iterable: Iterable, sep: str = ", ") -> str:
     return sep.join(str(item) for item in iterable)
 
 
-dumps = partial(json.dumps, separators=(',', ':'))
+dumps = partial(json.dumps, separators=(",", ":"))

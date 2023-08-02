@@ -9,22 +9,29 @@ def test_server_discovery(db, create_httpservers, create_udpservers):
     with create_httpservers(2) as http_servers, create_udpservers(5) as udp_servers:
         server1, server2, server3, server4, server5 = udp_servers
 
-        disabled_server = ServerFactory(ip=server1.address.ip, port=server1.address.port,
-                                        enabled=False, listed=True, failures=8)
-        unlisted_server = ServerFactory(ip=server2.address.ip, port=server2.address.port,
-                                        enabled=True, listed=False, failures=15)
-        listed_server = ServerFactory(ip=server3.address.ip, port=server3.address.port,
-                                      enabled=True, listed=True, failures=5)
+        disabled_server = ServerFactory(
+            ip=server1.address.ip, port=server1.address.port, enabled=False, listed=True, failures=8
+        )
+        unlisted_server = ServerFactory(
+            ip=server2.address.ip,
+            port=server2.address.port,
+            enabled=True,
+            listed=False,
+            failures=15,
+        )
+        listed_server = ServerFactory(
+            ip=server3.address.ip, port=server3.address.port, enabled=True, listed=True, failures=5
+        )
 
         html_server, plain_server = http_servers
         sources = (
             {
-                'url': html_server.url,
-                'parser': 'apps.tracker.discovery.html_ip_port',
+                "url": html_server.url,
+                "parser": "apps.tracker.discovery.html_ip_port",
             },
             {
-                'url': plain_server.url,
-                'parser': 'apps.tracker.discovery.plain_ip_port',
+                "url": plain_server.url,
+                "parser": "apps.tracker.discovery.plain_ip_port",
             },
         )
         html_content = f"""<html>
@@ -45,7 +52,9 @@ def test_server_discovery(db, create_httpservers, create_udpservers):
         server1.responses.append(ServerQueryFactory(hostport=server1.address.port).as_gamespy())
         server2.responses.append(ServerQueryFactory(hostport=server2.address.port).as_gamespy())
         server3.responses.append(ServerQueryFactory(hostport=server3.address.port).as_gamespy())
-        server4.responses.append(ServerQueryFactory(hostport=server4.address.port - 10).as_gamespy())
+        server4.responses.append(
+            ServerQueryFactory(hostport=server4.address.port - 10).as_gamespy()
+        )
         server5.responses.append(ServerQueryFactory(hostport=server5.address.port).as_gamespy())
 
         with override_settings(TRACKER_SERVER_DISCOVERY_SOURCES=sources):
@@ -79,17 +88,17 @@ def test_no_servers_discovered(db, create_httpservers):
     with create_httpservers(2) as servers:
         sources = (
             {
-                'url': servers[0].url,
-                'parser': 'apps.tracker.discovery.plain_ip_port',
+                "url": servers[0].url,
+                "parser": "apps.tracker.discovery.plain_ip_port",
             },
             {
-                'url': servers[1].url,
-                'parser': 'apps.tracker.discovery.html_ip_port',
+                "url": servers[1].url,
+                "parser": "apps.tracker.discovery.html_ip_port",
             },
         )
         with override_settings(TRACKER_SERVER_DISCOVERY_SOURCES=sources):
-            servers[0].serve_content(b'')
-            servers[0].serve_content(b'server error', code=503)
+            servers[0].serve_content(b"")
+            servers[0].serve_content(b"server error", code=503)
             discover_published_servers()
 
     assert Server.objects.count() == 0
@@ -103,19 +112,23 @@ def test_target_responds_with_error_code(db, create_httpservers, create_udpserve
         csv_content = f"{qs1.address.ip},{qs1.address.port}\n{qs2.address.ip},{qs2.address.port}"
         sources = (
             {
-                'url': http_servers[0].url,
-                'parser': 'apps.tracker.discovery.html_ip_port',
+                "url": http_servers[0].url,
+                "parser": "apps.tracker.discovery.html_ip_port",
             },
             {
-                'url': http_servers[1].url,
-                'parser': 'apps.tracker.discovery.csv_two_columns',
+                "url": http_servers[1].url,
+                "parser": "apps.tracker.discovery.csv_two_columns",
             },
         )
         with override_settings(TRACKER_SERVER_DISCOVERY_SOURCES=sources):
-            http_servers[0].serve_content('Server error', 500)
+            http_servers[0].serve_content("Server error", 500)
             http_servers[1].serve_content(csv_content)
             discover_published_servers()
 
         assert Server.objects.count() == 2
-        assert Server.objects.get(ip=qs1.address.ip, port=qs1.address.port, status_port=qs1.address.query_port)
-        assert Server.objects.get(ip=qs2.address.ip, port=qs2.address.port, status_port=qs2.address.query_port)
+        assert Server.objects.get(
+            ip=qs1.address.ip, port=qs1.address.port, status_port=qs1.address.query_port
+        )
+        assert Server.objects.get(
+            ip=qs2.address.ip, port=qs2.address.port, status_port=qs2.address.query_port
+        )

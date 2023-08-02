@@ -7,7 +7,7 @@ from celery.signals import setup_logging, celeryd_init
 
 from .sentry import configure_sentry_for_celery
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'swat4stats.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "swat4stats.settings")
 
 
 class Queue(StrEnum):
@@ -29,6 +29,6 @@ def init_sentry(**kwargs: Any) -> None:
     configure_sentry_for_celery()
 
 
-app = Celery('swat4stats')
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app = Celery("swat4stats")
+app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()

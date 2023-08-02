@@ -10,9 +10,12 @@ from django.contrib.sitemaps.views import sitemap, index as sitemap_index
 from rest_framework import routers
 
 from apps.api.views import (
-    ServerViewSet, ArticleViewSet,
-    PopularMapnamesViewSet, PopularServersViewSet,
-    GameViewSet, ServerLeaderboardViewSet,
+    ServerViewSet,
+    ArticleViewSet,
+    PopularMapnamesViewSet,
+    PopularServersViewSet,
+    GameViewSet,
+    ServerLeaderboardViewSet,
 )
 from apps.api.views.search import SearchView
 from apps.tracker.sitemaps import ServerSitemap, ProfileSitemap
@@ -22,74 +25,103 @@ from apps.utils.views import healthcheck
 
 
 def noop(*args: Any, **kwargs: Any) -> HttpResponse:
-    return HttpResponse('noop')
+    return HttpResponse("noop")
 
 
 sitemaps = {
-    'servers': ServerSitemap,
-    'players': ProfileSitemap,
+    "servers": ServerSitemap,
+    "players": ProfileSitemap,
 }
 
 api_router = routers.DefaultRouter()
-api_router.register('servers', ServerViewSet)
-api_router.register('games', GameViewSet)
-api_router.register('articles', ArticleViewSet)
-api_router.register('server-leaderboard', ServerLeaderboardViewSet)
-api_router.register('data-popular-mapnames', PopularMapnamesViewSet, basename='popular-mapnames')
-api_router.register('data-popular-servers', PopularServersViewSet, basename='popular-servers')
+api_router.register("servers", ServerViewSet)
+api_router.register("games", GameViewSet)
+api_router.register("articles", ArticleViewSet)
+api_router.register("server-leaderboard", ServerLeaderboardViewSet)
+api_router.register("data-popular-mapnames", PopularMapnamesViewSet, basename="popular-mapnames")
+api_router.register("data-popular-servers", PopularServersViewSet, basename="popular-servers")
 
 api_urls = [
-    path('search/', SearchView.as_view()),
-    path(r'', include(api_router.urls)),
+    path("search/", SearchView.as_view()),
+    path(r"", include(api_router.urls)),
 ]
 
 urlpatterns = [
-    path('sitemap.xml', cache_page(3600 * 24)(sitemap_index), {'sitemaps': sitemaps, 'sitemap_url_name': 'sitemaps'}),
-    path('sitemap-<section>.xml', cache_page(3600 * 6)(sitemap), {'sitemaps': sitemaps}, name='sitemaps'),
-    path('admin/', admin.site.urls),
-
+    path(
+        "sitemap.xml",
+        cache_page(3600 * 24)(sitemap_index),
+        {"sitemaps": sitemaps, "sitemap_url_name": "sitemaps"},
+    ),
+    path(
+        "sitemap-<section>.xml",
+        cache_page(3600 * 6)(sitemap),
+        {"sitemaps": sitemaps},
+        name="sitemaps",
+    ),
+    path("admin/", admin.site.urls),
     # swat server api
-    path('api/', include([
-        path('whois/', APIWhoisView.as_view()),
-        path('motd/summary/', APILegacySummaryView.as_view()),
-        path('motd/leaderboard/', APIMotdLeaderboardView.as_view()),
-        path('motd/leaderboard/<category>/', APIMotdLeaderboardView.as_view()),
-    ])),
+    path(
+        "api/",
+        include(
+            [
+                path("whois/", APIWhoisView.as_view()),
+                path("motd/summary/", APILegacySummaryView.as_view()),
+                path("motd/leaderboard/", APIMotdLeaderboardView.as_view()),
+                path("motd/leaderboard/<category>/", APIMotdLeaderboardView.as_view()),
+            ]
+        ),
+    ),
     # server stream api view
-    path('stream/', csrf_exempt(DataStreamView.as_view()), name='stream'),
-
+    path("stream/", csrf_exempt(DataStreamView.as_view()), name="stream"),
     # rest api
-    path('api/', include((api_urls, 'api'), namespace='api')),
-
+    path("api/", include((api_urls, "api"), namespace="api")),
     # noop views, for reverse purposes
     re_path(
-        r'^player/(?:(?P<year>\d{4})/)?(?:(?P<slug>[^/]+)/)?(?P<profile_id>\d+)/',
-        include(([
-            path('', noop, name='profile'),
-            path('overview/', noop, name='overview'),
-        ], 'profile'), namespace='profile')
+        r"^player/(?:(?P<year>\d{4})/)?(?:(?P<slug>[^/]+)/)?(?P<profile_id>\d+)/",
+        include(
+            (
+                [
+                    path("", noop, name="profile"),
+                    path("overview/", noop, name="overview"),
+                ],
+                "profile",
+            ),
+            namespace="profile",
+        ),
     ),
     re_path(
-        r'^games/(?:(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<slug>[^/]+)/)?(?P<game_id>\d+)/',
-        include(([
-            path('', noop, name='detail'),
-        ], 'games'), namespace='games')
+        r"^games/(?:(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<slug>[^/]+)/)?(?P<game_id>\d+)/",
+        include(
+            (
+                [
+                    path("", noop, name="detail"),
+                ],
+                "games",
+            ),
+            namespace="games",
+        ),
     ),
     re_path(
-        r'^servers/(?P<server_ip>[0-9.]+):(?P<server_port>\d{1,5})/',
-        include(([
-            path('', noop, name='detail'),
-        ], 'servers'), namespace='servers')
+        r"^servers/(?P<server_ip>[0-9.]+):(?P<server_port>\d{1,5})/",
+        include(
+            (
+                [
+                    path("", noop, name="detail"),
+                ],
+                "servers",
+            ),
+            namespace="servers",
+        ),
     ),
-
-    path('info/', healthcheck.status),
-    path('healthcheck/', healthcheck.HealthcheckView.as_view()),
+    path("info/", healthcheck.status),
+    path("healthcheck/", healthcheck.HealthcheckView.as_view()),
 ]
 
 if settings.DEBUG:
     import debug_toolbar
+
     urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
+        path("__debug__/", include(debug_toolbar.urls)),
     ] + urlpatterns
 
 

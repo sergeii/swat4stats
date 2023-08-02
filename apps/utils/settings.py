@@ -9,7 +9,7 @@ def env(name: str, default: Any) -> Any:
 
 def env_bool(name: str, *, default: bool) -> bool:
     if value := os.environ.get(name):
-        if value[0].lower() in ('y', 't', '1'):
+        if value[0].lower() in ("y", "t", "1"):
             return True
         return False
     return default
@@ -18,7 +18,7 @@ def env_bool(name: str, *, default: bool) -> bool:
 def env_list(name: str) -> list[str]:
     values = []
     if values_str := os.environ.get(name):
-        for value in values_str.split(','):
+        for value in values_str.split(","):
             if value_clean := value.strip():
                 values.append(value_clean)
     return values

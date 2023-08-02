@@ -3,7 +3,7 @@ from django.db.models import TextField
 
 
 class EnumField(TextField):
-    description = _('Enum')
+    description = _("Enum")
 
     def __init__(self, *, enum_type=None, **kwargs):
         self.enum_type = enum_type
@@ -14,5 +14,5 @@ class EnumField(TextField):
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
-        kwargs['enum_type'] = self.enum_type
+        kwargs["enum_type"] = self.enum_type
         return name, path, args, kwargs

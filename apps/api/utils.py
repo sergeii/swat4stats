@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 def exception_handler(exc: Exception, context: dict[str, Any]) -> Response | None:
     # Ensure detail of a ValidationError instance is a dict
-    if isinstance(exc, ValidationError):
-        if isinstance(exc.detail, list):
-            exc = ValidationError(detail=as_serializer_error(exc))
+    if isinstance(exc, ValidationError) and isinstance(exc.detail, list):
+        exc = ValidationError(detail=as_serializer_error(exc))
     return drf_exception_handler(exc, context)

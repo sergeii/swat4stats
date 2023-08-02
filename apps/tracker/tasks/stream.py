@@ -13,8 +13,8 @@ from apps.tracker.signals import game_data_saved
 
 
 __all__ = [
-    'process_game_data',
-    'update_profile_games',
+    "process_game_data",
+    "update_profile_games",
 ]
 
 logger = logging.getLogger(__name__)
@@ -42,8 +42,7 @@ def process_game_data(
     except GameAlreadySavedError:
         pass
     except Exception as exc:
-        logger.exception('failed to create game due to %s', exc,
-                         extra={'data': {'data': data}})
+        logger.exception("failed to create game due to %s", exc, extra={"data": {"data": data}})
         self.retry(exc=exc)
     else:
         game_data_saved.send_robust(sender=None, data=data, server=server, game=game)
@@ -56,9 +55,10 @@ def update_profile_games(game_id: int) -> None:
 
     # the very first game
     with transaction.atomic():
-        (queryset
-            .filter(game_first__isnull=True)
-            .update(game_first=game,
-                    first_seen_at=game.date_finished))
+        (
+            queryset.filter(game_first__isnull=True).update(
+                game_first=game, first_seen_at=game.date_finished
+            )
+        )
         # to the latest game
         queryset.update(game_last=game, last_seen_at=game.date_finished)

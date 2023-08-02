@@ -5,18 +5,20 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tracker', '0005_alias_created_at'),
+        ("tracker", "0005_alias_created_at"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='alias',
-            name='search',
-            field=SearchVectorField(help_text='TSV field for full text search. Updated by triggers.', null=True),
+            model_name="alias",
+            name="search",
+            field=SearchVectorField(
+                help_text="TSV field for full text search. Updated by triggers.", null=True
+            ),
         ),
-        migrations.RunSQL(r"""
+        migrations.RunSQL(
+            r"""
             CREATE OR REPLACE FUNCTION update_or_create_alias_reindex_search()
             RETURNS TRIGGER AS $$
             BEGIN
@@ -36,5 +38,6 @@ class Migration(migrations.Migration):
 
             CREATE TRIGGER update_or_create_alias_reindex_search BEFORE INSERT OR UPDATE OF name
             ON tracker_alias FOR EACH ROW EXECUTE FUNCTION update_or_create_alias_reindex_search();
-        """),
+        """
+        ),
     ]

@@ -1,10 +1,10 @@
 import re
+from typing import Any
 from urllib.parse import unquote_to_bytes, unquote_plus
 
 
 class JuliaQueryString(dict):
-
-    def parse(self, query_string):
+    def parse(self, query_string: str) -> "JuliaQueryString":
         """
         Parse a raw querystring and set the parsed items as members of the instance.
         Do not let duplicate keys to shadow the same keys that have been set previously.
@@ -38,7 +38,7 @@ class JuliaQueryString(dict):
                     self[param_name] = [self[param_name], param_value]
         return self
 
-    def expand_dots(self):
+    def expand_dots(self) -> "JuliaQueryString":
         """
         Turn a dot separated key into an n-dimensinal structure.
 
@@ -60,16 +60,14 @@ class JuliaQueryString(dict):
             # delete the original item
             del self[dict_key]
             # split param name with a string and filter out empty components
-            key_components = list(filter(None, [x.strip() for x in dict_key.split('.')]))
+            key_components = list(filter(None, [x.strip() for x in dict_key.split(".")]))
             # dont proceed if the key is component-less
             if key_components:
                 self.set_complex_key_item(self, key_components, dict_value)
         return self
 
-    def expand_array(self):
-        pattern = re.compile(
-            r'^(?P<key>[^\[\]]+)(?P<dictkeys>(?:\[[^\[]+\])+)?(?P<listkey>\[\])?$'
-        )
+    def expand_array(self) -> "JuliaQueryString":
+        pattern = re.compile(r"^(?P<key>[^\[\]]+)(?P<dictkeys>(?:\[[^\[]+\])+)?(?P<listkey>\[\])?$")
         # iterate a copy of the keys
         dict_keys = list(self.keys())
         for dict_key in dict_keys:
@@ -79,24 +77,24 @@ class JuliaQueryString(dict):
             # attempt to match the key name against the uri array pattern
             matched = re.match(pattern, dict_key)
             if matched:
-                key_components = [matched.group('key')]
+                key_components = [matched.group("key")]
                 # if found, concatenate the subkeys into a list along with the primary parameter key
-                if matched.group('dictkeys'):
-                    key_components.extend(matched.group('dictkeys')[1:-1].split(']['))
+                if matched.group("dictkeys"):
+                    key_components.extend(matched.group("dictkeys")[1:-1].split("]["))
                 # convert a non list value to a list element
-                if not hasattr(dict_value, 'append'):
+                if not hasattr(dict_value, "append"):
                     dict_value = [dict_value]
                 # append each value from the list to the deepest item
                 for value in dict_value:
                     # if the explicit listkey token is present ("[]"),
                     # wrap the value into a list
-                    if matched.group('listkey'):
+                    if matched.group("listkey"):
                         value = [value]
                     self.set_complex_key_item(self, key_components, value)
         return self
 
     @staticmethod
-    def set_complex_key_item(initial_dict, key_components, value):
+    def set_complex_key_item(initial_dict: dict, key_components: list[str], value: Any) -> None:
         # dont modify the original components list
         key_components = list(key_components)
         # append nested dictionaries to the initial dict
@@ -117,12 +115,7 @@ class JuliaQueryString(dict):
         # {'field': ['foo', 'bar']}
 
         # if the value is a mutable sequence itself, attempt to extend the existing list
-        if not hasattr(value, 'append'):
-            # if it is not, then append the value
-            method = 'append'
-        else:
-            method = 'extend'
-
+        method = "extend" if hasattr(value, "extend") else "append"
         # attempt to set the value..
         try:
             # ..to an existing list
@@ -137,7 +130,7 @@ class JuliaQueryString(dict):
             nested_dict[last_key_component] = value
 
     @staticmethod
-    def parse_querystring(query_string):
+    def parse_querystring(query_string: str) -> list[tuple[str, ...]]:
         """
         Parse a raw query string.
 
@@ -156,10 +149,12 @@ class JuliaQueryString(dict):
         # make sure the string neither begins nor ends with a &
         # the same rule applies to query parameters split by a =
         # ie filter out &field&, =field, field=, =field=value, etc
-        for param in query_string.strip('&').split('&'):
-            param_split = param.strip('=').split('=', 1)  # max_splits=1
-            result.append(tuple([
-                unquote_plus(unquote_to_bytes(x.encode('utf-8')).decode('utf-8'))  # 2/3 hack
-                for x in (param_split + [''])[:2]  # make sure the param value is present
-            ]))
+        for param in query_string.strip("&").split("&"):
+            param_split = param.strip("=").split("=", 1)  # max_splits=1
+            result.append(
+                tuple(
+                    unquote_plus(unquote_to_bytes(x.encode("utf-8")).decode("utf-8"))  # 2/3 hack
+                    for x in (param_split + [""])[:2]  # make sure the param value is present
+                )
+            )
         return result

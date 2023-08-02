@@ -6,7 +6,7 @@ from django.utils import timezone
 
 
 def freeze_timezone_now(datetime):
-    return mock.patch.object(timezone, 'now', return_value=datetime)
+    return mock.patch.object(timezone, "now", return_value=datetime)
 
 
 class FuzzyFloat(float):

@@ -11,10 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 def status(_: HttpRequest) -> JsonResponse:
-    return JsonResponse({
-        'version': os.environ.get('GIT_RELEASE_VER'),
-        'commit': os.environ.get('GIT_RELEASE_SHA'),
-    })
+    return JsonResponse(
+        {
+            "version": os.environ.get("GIT_RELEASE_VER"),
+            "commit": os.environ.get("GIT_RELEASE_SHA"),
+        }
+    )
 
 
 class Healthcheck(StrEnum):
@@ -28,23 +30,22 @@ class HealthcheckStatus(StrEnum):
 
 
 class HealthcheckView(View):
-
     def get(self, request: HttpRequest) -> JsonResponse:
         checks: dict[Healthcheck, HealthcheckStatus] = {
             Healthcheck.database: self._check_database(),
             Healthcheck.redis: self._check_redis(),
         }
         ok = all(s is HealthcheckStatus.ok for s in checks.values())
-        return JsonResponse({
-            check.value: status.value
-            for check, status in checks.items()
-        }, status=200 if ok else 400)
+        return JsonResponse(
+            {check.value: status.value for check, status in checks.items()},
+            status=200 if ok else 400,
+        )
 
     def _check_database(self) -> HealthcheckStatus:
         try:
             is_master = self._check_connected_to_master()
         except Exception as e:
-            logger.exception('failed to check database due to %s', e)
+            logger.exception("failed to check database due to %s", e)
             return HealthcheckStatus.failure
 
         match is_master:
@@ -63,11 +64,11 @@ class HealthcheckView(View):
         try:
             self._check_redis_rw()
         except Exception as e:
-            logger.exception('failed to check redis due to %s', e)
+            logger.exception("failed to check redis due to %s", e)
             return HealthcheckStatus.failure
         return HealthcheckStatus.ok
 
     def _check_redis_rw(self) -> None:
         redis = cache.client.get_client()
-        redis.set('_healthcheck', 1)
-        redis.get('_healthcheck')
+        redis.set("_healthcheck", 1)
+        redis.get("_healthcheck")

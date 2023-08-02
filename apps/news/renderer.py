@@ -5,14 +5,12 @@ from django.utils.safestring import mark_safe
 
 
 class BaseRenderer:
-
     @classmethod
     def render(cls, value: str) -> str:
         raise NotImplementedError
 
 
 class PlainRenderer(BaseRenderer):
-
     @classmethod
     def render(cls, value: str) -> str:
         return value
@@ -20,31 +18,40 @@ class PlainRenderer(BaseRenderer):
 
 class HtmlRenderer(BaseRenderer):
     ALLOWED_TAGS = [
-        'a', 'abbr', 'acronym',
-        'b', 'blockquote',
-        'code', 'em', 'i', 'li', 'ol',
-        'strong', 'ul', 'img', 'iframe',
-        'p', 'div', 'pre',
+        "a",
+        "abbr",
+        "acronym",
+        "b",
+        "blockquote",
+        "code",
+        "em",
+        "i",
+        "li",
+        "ol",
+        "strong",
+        "ul",
+        "img",
+        "iframe",
+        "p",
+        "div",
+        "pre",
     ]
 
     ALLOWED_ATTRIBUTES = {
-        'a': ['href', 'title'],
-        'abbr': ['title'],
-        'acronym': ['title'],
-        'img': ['src', 'title'],
-        'iframe': ['src', 'title', 'width', 'height', 'frameborder', 'allowfullscreen'],
+        "a": ["href", "title"],
+        "abbr": ["title"],
+        "acronym": ["title"],
+        "img": ["src", "title"],
+        "iframe": ["src", "title", "width", "height", "frameborder", "allowfullscreen"],
     }
 
     @classmethod
     def render(cls, value: str) -> str:
-        value = bleach.clean(value,
-                             tags=cls.ALLOWED_TAGS,
-                             attributes=cls.ALLOWED_ATTRIBUTES)
+        value = bleach.clean(value, tags=cls.ALLOWED_TAGS, attributes=cls.ALLOWED_ATTRIBUTES)
         return mark_safe(value)
 
 
 class MarkdownRenderer(HtmlRenderer):
-
     @classmethod
     def render(cls, value: str) -> str:
         md_html = markdown.markdown(escape(value))

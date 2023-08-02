@@ -4,13 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tracker', '0008_add_profile_names'),
+        ("tracker", "0008_add_profile_names"),
     ]
 
     operations = [
-        migrations.RunSQL("""
+        migrations.RunSQL(
+            """
             CREATE OR REPLACE FUNCTION insert_update_alias_update_profile_names()
             RETURNS TRIGGER AS $$
             BEGIN
@@ -29,8 +29,10 @@ class Migration(migrations.Migration):
             CREATE TRIGGER insert_update_alias_update_profile_names
             AFTER INSERT OR UPDATE OF "profile_id", "name" ON tracker_alias
             FOR EACH ROW EXECUTE FUNCTION insert_update_alias_update_profile_names();
-        """),
-        migrations.RunSQL("""
+        """
+        ),
+        migrations.RunSQL(
+            """
             CREATE OR REPLACE FUNCTION delete_alias_update_profile_names()
             RETURNS TRIGGER AS $$
             BEGIN
@@ -49,5 +51,6 @@ class Migration(migrations.Migration):
             CREATE TRIGGER delete_alias_update_profile_names
             AFTER DELETE ON tracker_alias
             FOR EACH ROW EXECUTE FUNCTION delete_alias_update_profile_names();
-        """)
+        """
+        ),
     ]

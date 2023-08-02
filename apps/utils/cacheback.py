@@ -9,6 +9,7 @@ class UniversalDecoratorFunctionJob(FunctionJob):
     Allow to wrap any function with cacheback decorator
     with the function name being the key prefix.
     """
+
     fetch_on_miss = True
 
     def key(self, fn, *args, **kwargs):
@@ -17,7 +18,7 @@ class UniversalDecoratorFunctionJob(FunctionJob):
     def hash(self, value):  # noqa: A003
         if not isinstance(value, list | tuple):
             value = [value]
-        return ':'.join(str(val) for val in value)
+        return ":".join(str(val) for val in value)
 
     def prepare_args(self, fn, *args):
         return (fn,) + args

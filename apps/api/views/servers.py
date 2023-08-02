@@ -5,7 +5,9 @@ from rest_framework.viewsets import GenericViewSet
 from apps.api.filters import ServerFilterBackend
 from apps.api.pagination import cursor_paginator_factory
 from apps.api.serializers import (
-    ServerBaseSerializer, ServerCreateSerializer, ServerFullSerializer,
+    ServerBaseSerializer,
+    ServerCreateSerializer,
+    ServerFullSerializer,
     PlayerStatSerializer,
 )
 from apps.tracker.managers import ServerQuerySet
@@ -17,15 +19,15 @@ class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, Generi
     queryset = Server.objects.all()
     pagination_class = None
     filter_backends = (ServerFilterBackend,)
-    lookup_value_regex = r'[^/]+'
-    throttle_scope = 'servers'
-    throttle_scope_methods = ['POST']
+    lookup_value_regex = r"[^/]+"
+    throttle_scope = "servers"
+    throttle_scope_methods = ["POST"]
 
     def get_serializer_class(self) -> type[ServerBaseSerializer]:
         match self.action:
-            case 'retrieve':
+            case "retrieve":
                 return ServerFullSerializer
-            case 'create':
+            case "create":
                 return ServerCreateSerializer
             case _:
                 return ServerBaseSerializer
@@ -33,10 +35,10 @@ class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, Generi
     def get_queryset(self) -> ServerQuerySet:
         queryset = super().get_queryset()
         match self.action:
-            case 'retrieve':
-                return queryset.select_related('merged_into').order_by()
-            case 'list':
-                return queryset.listed().order_by('pk').with_status()
+            case "retrieve":
+                return queryset.select_related("merged_into").order_by()
+            case "list":
+                return queryset.listed().order_by("pk").with_status()
             case _:
                 return queryset
 
@@ -44,18 +46,16 @@ class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, Generi
         pk_or_addr = self.kwargs[self.lookup_field]
 
         # obtain server by its ip:port
-        if ':' in pk_or_addr:
-            ip, port = pk_or_addr.split(':', 1)
+        if ":" in pk_or_addr:
+            ip, port = pk_or_addr.split(":", 1)
             filters = {
-                'ip': ip,
-                'port': port,
+                "ip": ip,
+                "port": port,
             }
         elif not pk_or_addr.isdigit():
-            raise Http404()
+            raise Http404
         else:
-            filters = {
-                'pk': pk_or_addr
-            }
+            filters = {"pk": pk_or_addr}
 
         queryset = self.get_queryset().filter(**filters)[:1]
         servers: list[Server] = queryset.with_status(with_empty=True)
@@ -63,10 +63,10 @@ class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, Generi
         try:
             server = servers[0]
         except IndexError:
-            raise Http404()
+            raise Http404
 
         if not (server.enabled or server.merged_into_id is not None):
-            raise Http404()
+            raise Http404
 
         return server
 
@@ -74,9 +74,9 @@ class ServerViewSet(CreateModelMixin, RetrieveModelMixin, ListModelMixin, Generi
 class ServerLeaderboardViewSet(ListModelMixin, GenericViewSet):
     queryset = ServerStats.objects.all()
     serializer_class = PlayerStatSerializer
-    pagination_class = cursor_paginator_factory(page_size=20, ordering=('position', 'id'))
+    pagination_class = cursor_paginator_factory(page_size=20, ordering=("position", "id"))
 
     def get_queryset(self) -> ServerQuerySet:
-        return (ServerStats.objects
-                .select_related('profile', 'profile__loadout')
-                .filter(year=get_current_stat_year()))
+        return ServerStats.objects.select_related("profile", "profile__loadout").filter(
+            year=get_current_stat_year()
+        )

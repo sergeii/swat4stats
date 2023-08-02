@@ -30,7 +30,7 @@ class ServerStatusTask(aio.Task):
     """Async task for making GameSpy1 status requests."""
 
     status_buf_size = 2048
-    status_query = b'\\status\\'
+    status_query = b"\\status\\"
 
     def __init__(self, *, ip: str, status_port: int, **kwargs: Any) -> None:
         self.ip = ip
@@ -49,15 +49,15 @@ class ServerStatusTask(aio.Task):
         packets = []
 
         try:
-            logger.debug('connecting %s', sock)
+            logger.debug("connecting %s", sock)
             await loop.sock_connect(sock, self.status_addr)
-            logger.debug('sending query to %s', sock)
+            logger.debug("sending query to %s", sock)
             await loop.sock_sendall(sock, self.status_query)
             # read as many packets as possible to rebuild the original payload
             while True:
-                logger.debug('reading %s from %s', self.status_buf_size, sock)
+                logger.debug("reading %s from %s", self.status_buf_size, sock)
                 buf = await loop.sock_recv(sock, self.status_buf_size)
-                logger.debug('received %s from %s', buf, sock)
+                logger.debug("received %s from %s", buf, sock)
                 packets.append(buf)
                 try:
                     payload = self._collect_status_payload(packets)
@@ -66,7 +66,7 @@ class ServerStatusTask(aio.Task):
                 else:
                     return self._expand_status_payload(payload)
         except Exception as e:
-            logger.debug('closing socket %s %s', sock, type(e))
+            logger.debug("closing socket %s %s", sock, type(e))
             sock.shutdown(socket.SHUT_RDWR)
             raise
 
@@ -78,7 +78,7 @@ class ServerStatusTask(aio.Task):
         :return: List of (key, value) pairs
         """
         params = []
-        split = data.split('\\')
+        split = data.split("\\")
         for i, key in enumerate(split):
             # skip values
             if not i % 2:
@@ -98,28 +98,30 @@ class ServerStatusTask(aio.Task):
 
         """
         result = {
-            'players': {},
-            'objectives': [],
+            "players": {},
+            "objectives": [],
         }
 
         for param, value in self._parse_status_payload(data):
             # e.g. \obj_Neutralize_All_Enemies\0\
             # -> {objectives: [{name: Neutralize_All_Enemies, status': 0}, ...]}
-            obj_match = re.match(r'^obj_(?P<name>.+)$', param)
+            obj_match = re.match(r"^obj_(?P<name>.+)$", param)
             # parse objectives into a list of objective objects
             if obj_match:
-                result['objectives'].append({
-                    'name': obj_match.group('name'),
-                    'status': value,
-                })
+                result["objectives"].append(
+                    {
+                        "name": obj_match.group("name"),
+                        "status": value,
+                    }
+                )
                 continue
             # \player_2\James_Bond_007\
             # -> {players: {2: {id: 2, player: James_Bond_007}}}
-            player_match = re.match(r'(?P<param>.+)_(?P<id>\d+)$', param)
+            player_match = re.match(r"(?P<param>.+)_(?P<id>\d+)$", param)
             # collect player params into a dict mapping player id to params
             if player_match:
-                player_id, player_param = player_match.group('id'), player_match.group('param')
-                player = result['players'].setdefault(player_id, {'id': player_id})
+                player_id, player_param = player_match.group("id"), player_match.group("param")
+                player = result["players"].setdefault(player_id, {"id": player_id})
                 player[player_param] = value
                 continue
             # map every other param
@@ -127,8 +129,7 @@ class ServerStatusTask(aio.Task):
 
         # players has to be a sorted list
         # {players: [{id: 2, player: James_Bond_007,...}},...]
-        result['players'] = sorted(result['players'].values(),
-                                   key=lambda player: int(player['id']))
+        result["players"] = sorted(result["players"].values(), key=lambda player: int(player["id"]))
 
         return result
 
@@ -151,7 +152,7 @@ class ServerStatusTask(aio.Task):
             params = self._parse_status_payload(packet)
             for param, value in params:
                 # ^\statusresponse\1 or \queryid\1$
-                if order is None and param in ('statusresponse', 'queryid'):
+                if order is None and param in ("statusresponse", "queryid"):
                     try:
                         order = int(value)
                     # \queryid\1.1$
@@ -159,29 +160,28 @@ class ServerStatusTask(aio.Task):
                         order = 1
                     else:
                         # statusresponse is zero based
-                        order += (param == 'statusresponse')
+                        order += param == "statusresponse"
                 # this is the final packet so we should expect as many packets
                 # as the number of the final packet
-                elif param == 'final':
+                elif param == "final":
                     is_final = True
 
             if is_final:
                 count = order
 
             if order is None:
-                raise ResponseMalformedError('no order specified')
+                raise ResponseMalformedError("no order specified")
 
             ordered[order] = packet
 
         if not count or count != len(ordered):
-            err_msg = f'received {len(ordered)} of {count}'
+            err_msg = f"received {len(ordered)} of {count}"
             raise ResponseIncompleteError(err_msg)
 
         # sort packets by their order
         packets = (self._normalize_status_packet(value) for _, value in sorted(ordered.items()))
-        payload = ''.join(packets)
 
-        return payload
+        return "".join(packets)
 
     def _normalize_status_packet(self, data: str) -> str:
         """
@@ -190,7 +190,7 @@ class ServerStatusTask(aio.Task):
         :param data: Packet contents
         :return: Normalized packet contents
         """
-        return re.sub(r'^\\statusresponse\\\d+(.+)\\eof\\$', r'\1', data)
+        return re.sub(r"^\\statusresponse\\\d+(.+)\\eof\\$", r"\1", data)
 
     def _decode_response(self, data: bytes) -> str:
-        return data.decode(encoding='latin-1')
+        return data.decode(encoding="latin-1")
