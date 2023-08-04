@@ -8,5 +8,6 @@ __pycache__/
 /celerybeat*
 /.pytest_cache
 /.mypy_cache
+/.ruff_cache
 /static
 .env
