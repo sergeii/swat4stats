@@ -273,9 +273,7 @@ class Alias(models.Model):
     profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
     isp = models.ForeignKey("geoip.ISP", related_name="+", null=True, on_delete=models.PROTECT)
 
-    search = SearchVectorField(
-        null=True, help_text=_("TSV field for full text search. Updated by triggers.")
-    )
+    search = SearchVectorField(null=True, help_text=_("TSV field for full text search."))
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -481,11 +479,13 @@ class Profile(models.Model):
     names = ArrayField(
         models.TextField(),
         null=True,
-        help_text=_("Denormalized list of alias names for search vector. Updated by triggers."),
+        help_text=_("Denormalized list of alias names for search vector."),
     )
-    search = SearchVectorField(
-        null=True, help_text=_("TSV field for full text search. Updated by triggers.")
-    )
+    names_updated_at = models.DateTimeField(null=True)
+    alias_updated_at = models.DateTimeField(null=True)
+
+    search = SearchVectorField(null=True, help_text=_("TSV field for full text search."))
+    search_updated_at = models.DateTimeField(null=True)
 
     objects = ProfileManager.from_queryset(ProfileQuerySet)()
 

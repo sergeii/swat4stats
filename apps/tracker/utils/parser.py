@@ -75,8 +75,7 @@ class JuliaQueryString(dict):
             # delete the original item
             del self[dict_key]
             # attempt to match the key name against the uri array pattern
-            matched = re.match(pattern, dict_key)
-            if matched:
+            if matched := re.match(pattern, dict_key):
                 key_components = [matched.group("key")]
                 # if found, concatenate the subkeys into a list along with the primary parameter key
                 if matched.group("dictkeys"):

@@ -5,17 +5,21 @@ from ipaddress import IPv4Address
 from typing import Any, TYPE_CHECKING
 
 from django.conf import settings
+from django.contrib.postgres.expressions import ArraySubquery
+from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Q, F
+from django.db.models import Q, F, OuterRef, Expression
 from django.utils import timezone
 
 from apps.geoip.models import ISP
 from apps.tracker.exceptions import NoProfileMatchError
 from apps.tracker.managers.stats import get_stats_period_for_year
+from apps.utils.misc import concat_it
+from apps.utils.db.func import ArrayToString, RegexpReplace
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Profile, Server
+    from apps.tracker.models import Profile, Server, Alias  # noqa: F401
     from apps.tracker.managers import PlayerQuerySet
 
 
@@ -48,6 +52,18 @@ class ProfileQuerySet(models.QuerySet):
     def played(self) -> models.QuerySet["Profile"]:
         return self.filter(first_seen_at__isnull=False, last_seen_at__isnull=False)
 
+    def require_denorm_names(self) -> models.QuerySet["Profile"]:
+        return self.filter(
+            Q(alias_updated_at__isnull=False),
+            Q(names_updated_at__isnull=True) | Q(alias_updated_at__gt=F("names_updated_at")),
+        )
+
+    def require_search_update(self) -> models.QuerySet["Profile"]:
+        return self.filter(
+            Q(names_updated_at__isnull=False),
+            Q(search_updated_at__isnull=True) | Q(names_updated_at__gt=F("search_updated_at")),
+        )
+
     def require_preference_update(self) -> models.QuerySet["Profile"]:
         """
         Fetch the profiles that require updating preferences.
@@ -74,7 +90,7 @@ class ProfileManager(models.Manager):
         recent: bool = False,
         **match_kwargs: dict[str, Any],
     ) -> "Profile":
-        from apps.tracker.models import Alias
+        from apps.tracker.models import Alias  # noqa: F811
 
         # filter players by recentness
         if recent:
@@ -380,3 +396,77 @@ class ProfileManager(models.Manager):
             cats=["kd_ratio"], qualify={"kills": settings.TRACKER_MIN_KILLS}, **rank_kwargs
         )
         ServerStats.objects.rank(exclude_cats=["spm_ratio", "spr_ratio", "kd_ratio"], **rank_kwargs)
+
+    @transaction.atomic
+    def denorm_alias_names(self, *profile_ids: int) -> None:
+        from apps.tracker.models import Alias  # noqa: F811
+
+        unique_alias_names_subq = (
+            Alias.objects.using("replica")
+            .distinct("name")
+            .filter(profile_id=OuterRef("pk"))
+            .values_list("name")
+        )
+        profile_names = (
+            self.using("replica")
+            .filter(pk__in=profile_ids)
+            .annotate(alias_names=ArraySubquery(unique_alias_names_subq))
+            .values("pk", "alias_names")
+        )
+        name_per_profile = {item["pk"]: item["alias_names"] for item in profile_names}
+
+        logger.info("updating %d profiles with denormalized alias names", len(name_per_profile))
+        update_qs = self.select_related(None).filter(pk__in=name_per_profile).only("pk", "name")
+
+        for profile in update_qs:
+            alias_names = name_per_profile[profile.pk]
+            uniq_alias_names = [name for name in alias_names if name != profile.name]
+
+            logger.info(
+                "updating profile %s (%d) with alias names '%s'",
+                profile.name,
+                profile.pk,
+                concat_it(uniq_alias_names),
+            )
+            profile.names = uniq_alias_names
+
+        self.bulk_update(update_qs, ["names"])
+        self.filter(pk__in=name_per_profile).update(names_updated_at=timezone.now())
+
+    @transaction.atomic
+    def update_search_vector(self, *profile_ids: int) -> None:
+        logger.info("updating search vector for %d profiles", len(profile_ids))
+
+        names_concat = ArrayToString(F("names"), " ")
+
+        vector = (
+            SearchVector("name", config="simple", weight="A")
+            + SearchVector(names_concat, config="simple", weight="B")
+            + self._normalize_names_for_tsv(F("name"))
+            + self._normalize_names_for_tsv(names_concat)
+        )
+
+        self.filter(pk__in=profile_ids).update(search=vector)
+        self.filter(pk__in=profile_ids).update(search_updated_at=timezone.now())
+
+    @classmethod
+    def _normalize_names_for_tsv(cls, expr: Expression | F) -> SearchVector:
+        return SearchVector(
+            RegexpReplace(
+                RegexpReplace(
+                    # replace camel case with spaces,
+                    # so that "JohnDoe" becomes "John Doe"
+                    expr,
+                    r"([a-z])([A-Z])",
+                    r"\1 \2",
+                    "g",
+                ),
+                # remove all digits,
+                # so that "John Doe 123" becomes "John Doe"
+                r"\d+",
+                "",
+                "g",
+            ),
+            config="simple",
+            weight="C",
+        )

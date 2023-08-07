@@ -1,9 +1,11 @@
+import pytest
 from django.core.management import call_command
 
 from apps.tracker.factories import AliasFactory, ProfileFactory
 
 
-def test_fill_profile_names(db, django_assert_num_queries):
+@pytest.mark.django_db(databases=["default", "replica"])
+def test_fill_profile_names(django_assert_num_queries):
     profile = ProfileFactory(name="McCree")
     AliasFactory(profile=profile, name="McCree")
     AliasFactory(profile=profile, name="Cassidy")
@@ -22,7 +24,7 @@ def test_fill_profile_names(db, django_assert_num_queries):
     AliasFactory(profile=no_name_profile, name="Reaper")
     AliasFactory(profile=no_name_profile, name="Reyes")
 
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(7):
         call_command("fill_profile_names")
 
     for p in [profile, other_profile, single_name_profile, no_alias_profile, no_name_profile]:

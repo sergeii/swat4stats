@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name="names",
             field=django.contrib.postgres.fields.ArrayField(
                 base_field=models.TextField(),
-                help_text="Denormalized list of alias names for search vector. Updated by triggers.",
+                help_text="Denormalized list of alias names for search vector.",
                 null=True,
                 size=None,
             ),

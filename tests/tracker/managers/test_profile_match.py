@@ -1,8 +1,9 @@
 # ruff: noqa: C408
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import pytest
 from django.utils import timezone
+from pytz import UTC
 
 from apps.geoip.factories import ISPFactory
 from apps.geoip.models import ISP
@@ -16,6 +17,7 @@ from apps.tracker.factories import (
 )
 from apps.tracker.managers.profile import is_name_popular
 from apps.tracker.models import Profile, Alias
+from apps.utils.test import freeze_timezone_now
 
 
 def test_match_will_match_against_known_pair_of_name_ip(db):
@@ -291,8 +293,58 @@ def test_player_does_not_receive_same_profile_after_long_period(db):
     assert alias3.profile.pk == alias1.profile.pk
 
 
-def test_popular_names(db):
-    popular_names = (
+@pytest.mark.parametrize(
+    "profile_alias_updated_at, new_alias_updated_at",
+    [
+        (None, datetime(2020, 1, 1, 11, 22, 55, tzinfo=UTC)),
+        (
+            datetime(2019, 12, 31, 11, 22, 55, tzinfo=timezone.utc),
+            datetime(2020, 1, 1, 11, 22, 55, tzinfo=UTC),
+        ),
+        (
+            datetime(2021, 2, 1, 11, 22, 55, tzinfo=timezone.utc),
+            datetime(2021, 2, 1, 11, 22, 55, tzinfo=UTC),
+        ),
+    ],
+)
+@freeze_timezone_now(datetime(2020, 1, 1, 11, 22, 55, tzinfo=UTC))
+def test_alias_is_created_with_existing_profile(
+    now_mock, db, profile_alias_updated_at, new_alias_updated_at
+):
+    isp, another_isp = ISPFactory.create_batch(2)
+
+    profile = ProfileFactory(alias_updated_at=profile_alias_updated_at)
+    existing_alias = AliasFactory(profile=profile, name="Player", isp=isp)
+    PlayerFactory(alias=existing_alias, ip="127.0.0.1")
+
+    new_alias = Alias.objects.create_alias(name="Player", ip_address="127.0.0.1", isp=another_isp)
+    assert new_alias.pk != existing_alias.pk
+
+    profile.refresh_from_db()
+    assert profile.alias_updated_at == new_alias_updated_at
+
+
+@freeze_timezone_now(datetime(2020, 1, 1, 11, 22, 55, tzinfo=UTC))
+def test_alias_is_created_with_new_profile(now_mock, db):
+    isp, another_isp = ISPFactory.create_batch(2)
+
+    profile = ProfileFactory(alias_updated_at=None)
+    unaffected_alias = AliasFactory(profile=profile, name="Player", isp=isp)
+
+    new_alias = Alias.objects.create_alias(name="Player", ip_address="127.0.0.1", isp=another_isp)
+    assert new_alias.pk != unaffected_alias.pk
+    assert new_alias.profile.pk != profile.pk
+
+    profile.refresh_from_db()
+    assert profile.alias_updated_at is None
+
+    created_profile = Profile.objects.get(pk=new_alias.profile.pk)
+    assert created_profile.alias_updated_at == datetime(2020, 1, 1, 11, 22, 55, tzinfo=timezone.utc)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
         "Player",
         "player",
         "Player2",
@@ -310,6 +362,7 @@ def test_popular_names(db):
         "testing",
         "test",
         "testing_mod",
-    )
-    for name in popular_names:
-        assert is_name_popular(name)
+    ],
+)
+def test_popular_names(name):
+    assert is_name_popular(name)

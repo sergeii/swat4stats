@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, time
 from functools import partial
 from collections.abc import Iterable, Iterator
 
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.timezone import is_aware
 from pytz import UTC
@@ -52,7 +53,9 @@ def force_date(maybe_date):
     return maybe_date
 
 
-def iterate_queryset(queryset, *, fields: list[str], chunk_size=1000):
+def iterate_queryset(
+    queryset: QuerySet, *, fields: list[str], chunk_size: int = 1000
+) -> Iterator[list]:
     queryset = queryset.order_by("pk")
     last_pk = 0
     while True:

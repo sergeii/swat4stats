@@ -13,9 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="alias",
             name="search",
-            field=SearchVectorField(
-                help_text="TSV field for full text search. Updated by triggers.", null=True
-            ),
+            field=SearchVectorField(help_text="TSV field for full text search.", null=True),
         ),
         migrations.RunSQL(
             r"""

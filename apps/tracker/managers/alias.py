@@ -6,6 +6,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import F
+from django.db.models.functions import Greatest
 
 from apps.geoip.models import ISP
 
@@ -85,4 +86,19 @@ class AliasManager(models.Manager):
             isp=isp,
         )
 
-        return self.create(name=name, profile=profile, isp=isp)
+        new_alias = self.create(name=name, profile=profile, isp=isp)
+        logger.info(
+            "created alias %s (%d) for profile %s (%d)",
+            new_alias,
+            new_alias.pk,
+            profile,
+            profile.pk,
+        )
+
+        # bump alias_updated_at on profile,
+        # so that we can later recalculate the list of unique alias names used by the profile
+        Profile.objects.filter(pk=profile.pk).update(
+            alias_updated_at=Greatest("alias_updated_at", new_alias.created_at)
+        )
+
+        return new_alias

@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             model_name="profile",
             name="search",
             field=django.contrib.postgres.search.SearchVectorField(
-                help_text="TSV field for full text search. Updated by triggers.", null=True
+                help_text="TSV field for full text search.", null=True
             ),
         ),
         migrations.RunSQL(
@@ -41,6 +41,7 @@ class Migration(migrations.Migration):
             END;
             $$ LANGUAGE plpgsql;
 
+            DROP TRIGGER IF EXISTS update_or_create_profile_reindex_search ON tracker_profile;
             CREATE TRIGGER update_or_create_profile_reindex_search
             BEFORE INSERT OR UPDATE OF name, names
             ON tracker_profile FOR EACH ROW EXECUTE FUNCTION update_or_create_profile_reindex_search();

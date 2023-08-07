@@ -92,7 +92,7 @@ def unlist_offline_servers(sender: Any, servers: list[Server], **kwargs: Any) ->
 
 @receiver(game_data_saved)
 def update_streaming_server(
-    sender, data: dict[str, Any], server: Server, game: Game, **kwargs: Any
+    sender: Any, data: dict[str, Any], server: Server, game: Game, **kwargs: Any
 ) -> None:
     update_fields = []
 
