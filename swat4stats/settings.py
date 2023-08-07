@@ -313,6 +313,20 @@ CELERY_BEAT_SCHEDULE = {
             "expires": 5,
         },
     },
+    "denorm_profile_names": {
+        "task": "denorm_profile_names",
+        "schedule": crontab(minute="5,35"),
+        "options": {
+            "expires": 15 * 60,
+        },
+    },
+    "update_search_vector": {
+        "task": "update_search_vector",
+        "schedule": crontab(minute="15,45"),
+        "options": {
+            "expires": 15 * 60,
+        },
+    },
     "update_player_preferences": {
         "task": "update_player_preferences",
         "schedule": crontab(minute=15),

@@ -24,16 +24,4 @@ class Migration(migrations.Migration):
             name="search_updated_at",
             field=models.DateTimeField(null=True),
         ),
-        migrations.RunSQL(
-            "DROP TRIGGER IF EXISTS insert_update_alias_update_profile_names ON tracker_alias"
-        ),
-        migrations.RunSQL("DROP FUNCTION IF EXISTS insert_update_alias_update_profile_names"),
-        migrations.RunSQL(
-            "DROP TRIGGER IF EXISTS delete_alias_update_profile_names ON tracker_alias"
-        ),
-        migrations.RunSQL("DROP FUNCTION IF EXISTS delete_alias_update_profile_names"),
-        migrations.RunSQL(
-            "DROP TRIGGER IF EXISTS update_or_create_profile_reindex_search ON tracker_profile"
-        ),
-        migrations.RunSQL("DROP FUNCTION IF EXISTS update_or_create_profile_reindex_search"),
     ]
