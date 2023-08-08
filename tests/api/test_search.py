@@ -4,7 +4,7 @@ import pytest
 from django.utils import timezone
 
 from apps.tracker.factories import ProfileFactory, AliasFactory
-from apps.tracker.models import Profile
+from apps.tracker.models import Profile, Alias
 
 
 @pytest.fixture
@@ -18,6 +18,9 @@ def update_search_vector():
         profile_ids = Profile.objects.values_list("pk", flat=True)
         Profile.objects.denorm_alias_names(*profile_ids)
         Profile.objects.update_search_vector(*profile_ids)
+
+        alias_ids = Alias.objects.values_list("pk", flat=True)
+        Alias.objects.update_search_vector(*alias_ids)
 
     return updater
 

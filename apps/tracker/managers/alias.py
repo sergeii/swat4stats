@@ -2,13 +2,15 @@ import logging
 from ipaddress import IPv4Address
 from typing import TYPE_CHECKING
 
-from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.db.models.functions import Greatest
+from django.utils import timezone
 
 from apps.geoip.models import ISP
+from apps.utils.db.func import normalized_names_search_vector
 
 logger = logging.getLogger(__name__)
 
@@ -17,19 +19,11 @@ if TYPE_CHECKING:
 
 
 class AliasQuerySet(models.QuerySet):
-    def search(self, q: str) -> models.QuerySet["Alias"]:
-        from apps.tracker.models import Alias
-
-        query = SearchQuery(q, search_type="phrase", config="simple")
-
-        matching_names = (
-            Alias.objects.filter(search=query)
-            .order_by("profile_id")
-            .distinct("profile_id")
-            .values("pk")
+    def require_search_update(self) -> models.QuerySet["Alias"]:
+        return self.filter(
+            Q(updated_at__isnull=False),
+            Q(search_updated_at__isnull=True) | Q(updated_at__gt=F("search_updated_at")),
         )
-
-        return self.filter(pk__in=matching_names).annotate(rank=SearchRank(F("search"), query))
 
 
 class AliasManager(models.Manager):
@@ -102,3 +96,14 @@ class AliasManager(models.Manager):
         )
 
         return new_alias
+
+    @transaction.atomic
+    def update_search_vector(self, *alias_ids: int) -> None:
+        logger.info("updating search vector for %d aliases", len(alias_ids))
+
+        vector = SearchVector("name", config="simple", weight="A") + normalized_names_search_vector(
+            "name", config="simple", weight="B"
+        )
+
+        self.filter(pk__in=alias_ids).update(search=vector)
+        self.filter(pk__in=alias_ids).update(search_updated_at=timezone.now())

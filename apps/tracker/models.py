@@ -274,6 +274,7 @@ class Alias(models.Model):
     isp = models.ForeignKey("geoip.ISP", related_name="+", null=True, on_delete=models.PROTECT)
 
     search = SearchVectorField(null=True, help_text=_("TSV field for full text search."))
+    search_updated_at = models.DateTimeField(null=True)
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)

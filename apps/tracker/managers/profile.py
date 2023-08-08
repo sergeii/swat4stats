@@ -9,14 +9,14 @@ from django.contrib.postgres.expressions import ArraySubquery
 from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Q, F, OuterRef, Expression
+from django.db.models import Q, F, OuterRef
 from django.utils import timezone
 
 from apps.geoip.models import ISP
 from apps.tracker.exceptions import NoProfileMatchError
 from apps.tracker.managers.stats import get_stats_period_for_year
 from apps.utils.misc import concat_it
-from apps.utils.db.func import ArrayToString, RegexpReplace
+from apps.utils.db.func import ArrayToString, normalized_names_search_vector
 
 if TYPE_CHECKING:
     from apps.tracker.models import Profile, Server, Alias  # noqa: F401
@@ -442,31 +442,9 @@ class ProfileManager(models.Manager):
         vector = (
             SearchVector("name", config="simple", weight="A")
             + SearchVector(names_concat, config="simple", weight="B")
-            + self._normalize_names_for_tsv(F("name"))
-            + self._normalize_names_for_tsv(names_concat)
+            + normalized_names_search_vector(F("name"), config="simple", weight="C")
+            + normalized_names_search_vector(names_concat, config="simple", weight="C")
         )
 
         self.filter(pk__in=profile_ids).update(search=vector)
         self.filter(pk__in=profile_ids).update(search_updated_at=timezone.now())
-
-    @classmethod
-    def _normalize_names_for_tsv(cls, expr: Expression | F) -> SearchVector:
-        return SearchVector(
-            RegexpReplace(
-                RegexpReplace(
-                    # replace camel case with spaces,
-                    # so that "JohnDoe" becomes "John Doe"
-                    expr,
-                    r"([a-z])([A-Z])",
-                    r"\1 \2",
-                    "g",
-                ),
-                # remove all digits,
-                # so that "John Doe 123" becomes "John Doe"
-                r"\d+",
-                "",
-                "g",
-            ),
-            config="simple",
-            weight="C",
-        )
