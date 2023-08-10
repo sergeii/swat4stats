@@ -487,7 +487,7 @@ class Profile(models.Model):
         help_text=_("Denormalized list of alias names for search vector."),
     )
     names_updated_at = models.DateTimeField(null=True)
-    alias_updated_at = models.DateTimeField()
+    alias_updated_at = models.DateTimeField(null=True)
 
     search = SearchVectorField(null=True, help_text=_("TSV field for full text search."))
     search_updated_at = models.DateTimeField(null=True)

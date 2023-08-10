@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="profile",
             name="alias_updated_at",
-            field=models.DateTimeField(),
+            field=models.DateTimeField(null=True),
         ),
         migrations.AddField(
             model_name="profile",

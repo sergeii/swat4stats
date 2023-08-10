@@ -6,7 +6,6 @@ from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import F, Q
-from django.db.models.functions import Greatest
 from django.utils import timezone
 
 from apps.geoip.models import ISP
@@ -81,19 +80,33 @@ class AliasManager(models.Manager):
         )
 
         new_alias = self.create(name=name, profile=profile, isp=isp)
+        # fmt: off
         logger.info(
             "created alias %s (%d) for profile %s (%d)",
-            new_alias,
-            new_alias.pk,
-            profile,
-            profile.pk,
+            new_alias, new_alias.pk, profile, profile.pk,
         )
+        # fmt: on
 
         # bump alias_updated_at on profile,
         # so that we can later recalculate the list of unique alias names used by the profile
-        Profile.objects.filter(pk=profile.pk).update(
-            alias_updated_at=Greatest("alias_updated_at", new_alias.created_at)
+        updated_at_qs = Profile.objects.filter(
+            Q(pk=profile.pk),
+            Q(alias_updated_at__isnull=True) | Q(alias_updated_at__lt=new_alias.created_at),
         )
+        if updated_at_qs.update(alias_updated_at=new_alias.created_at):
+            # fmt: off
+            logger.info(
+                "bumped alias_updated_at on profile %s (%d) to %s",
+                profile, profile.pk, new_alias.created_at,
+            )
+            # fmt: on
+        else:
+            # fmt: off
+            logger.debug(
+                "did not bump alias_updated_at on profile %s (%d) to %s",
+                profile, profile.pk, new_alias.created_at,
+            )
+            # fmt: on
 
         return new_alias
 

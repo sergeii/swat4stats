@@ -559,7 +559,6 @@ class ProfileManager(models.Manager):
         )
         ServerStats.objects.rank(exclude_cats=["spm_ratio", "spr_ratio", "kd_ratio"], **rank_kwargs)
 
-    @transaction.atomic
     def denorm_alias_names(self, *profile_ids: int) -> None:
         from apps.tracker.models import Alias  # noqa: F811
 
@@ -578,9 +577,14 @@ class ProfileManager(models.Manager):
         name_per_profile = {item["pk"]: item["alias_names"] for item in profile_names}
 
         logger.info("updating %d profiles with denormalized alias names", len(name_per_profile))
-        update_qs = self.select_related(None).filter(pk__in=name_per_profile).only("pk", "name")
+        profiles_to_update = list(
+            self.select_related(None).filter(pk__in=name_per_profile).only("pk", "name")
+        )
 
-        for profile in update_qs:
+        if not profiles_to_update:
+            return
+
+        for profile in profiles_to_update:
             alias_names = name_per_profile[profile.pk]
             uniq_alias_names = [name for name in alias_names if name != profile.name]
 
@@ -592,8 +596,9 @@ class ProfileManager(models.Manager):
             )
             profile.names = uniq_alias_names
 
-        self.bulk_update(update_qs, ["names"])
-        self.filter(pk__in=name_per_profile).update(names_updated_at=timezone.now())
+        with transaction.atomic():
+            self.bulk_update(profiles_to_update, ["names"])
+            self.filter(pk__in=name_per_profile).update(names_updated_at=timezone.now())
 
     @transaction.atomic
     def update_search_vector(self, *profile_ids: int) -> None:
