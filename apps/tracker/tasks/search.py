@@ -11,6 +11,7 @@ from swat4stats.celery import app, Queue
 __all__ = [
     "update_search_vector",
     "update_search_vector_for_model",
+    "SearchVectorModel",
 ]
 
 logger = logging.getLogger(__name__)
@@ -35,16 +36,17 @@ class SearchVectorModel(StrEnum):
 
     @classmethod
     def from_model(cls, model: type[DjangoModel]) -> "SearchVectorModel":
-        match model:
-            case Profile():
-                return cls.profile
-            case Alias():
-                return cls.alias
-            case Server():
-                return cls.server
-            case _:
-                err_msg = f"Unknown model {model}"
-                raise ValueError(err_msg)
+        mapping: dict[type[DjangoModel] : "SearchVectorModel"] = {
+            Profile: cls.profile,
+            Alias: cls.alias,
+            Server: cls.server,
+        }
+
+        if svm := mapping.get(model):
+            return svm
+
+        err_msg = f"Unknown model {model}"
+        raise ValueError(err_msg)
 
 
 @app.task(name="update_search_vector", queue=Queue.default.value)

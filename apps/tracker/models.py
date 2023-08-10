@@ -280,8 +280,8 @@ class Alias(models.Model):
     search = SearchVectorField(null=True, help_text=_("TSV field for full text search."))
     search_updated_at = models.DateTimeField(null=True)
 
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     objects = AliasManager.from_queryset(AliasQuerySet)()
 
@@ -487,7 +487,7 @@ class Profile(models.Model):
         help_text=_("Denormalized list of alias names for search vector."),
     )
     names_updated_at = models.DateTimeField(null=True)
-    alias_updated_at = models.DateTimeField(null=True)
+    alias_updated_at = models.DateTimeField()
 
     search = SearchVectorField(null=True, help_text=_("TSV field for full text search."))
     search_updated_at = models.DateTimeField(null=True)

@@ -260,6 +260,8 @@ class GameFactory(factory.django.DjangoModelFactory):
 
 
 class ProfileFactory(factory.django.DjangoModelFactory):
+    alias_updated_at = factory.Faker("date_time_this_year")
+
     class Meta:
         model = Profile
 
@@ -293,6 +295,9 @@ class ProfileFactory(factory.django.DjangoModelFactory):
 
 
 class AliasFactory(factory.django.DjangoModelFactory):
+    created_at = factory.Faker("date_time_this_year")
+    updated_at = factory.Faker("date_time_this_year")
+
     class Meta:
         model = Alias
 

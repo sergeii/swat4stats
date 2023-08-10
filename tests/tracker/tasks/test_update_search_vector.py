@@ -6,9 +6,36 @@ from pytz import UTC
 
 from apps.tracker.factories import ProfileFactory, AliasFactory, ServerFactory
 from apps.tracker.models import Alias
-from apps.tracker.tasks import update_search_vector_for_model
+from apps.tracker.tasks import update_search_vector, update_search_vector_for_model
 from apps.tracker.tasks.search import SearchVectorModel
 from apps.utils.test import freeze_timezone_now
+
+
+@pytest.mark.django_db(databases=["default", "replica"])
+@freeze_timezone_now(datetime(2020, 1, 1, 11, 22, 55, tzinfo=UTC))
+def test_update_search_vector_smoke(now_mock):
+    now = timezone.now()
+    yesterday = now - timedelta(days=1)
+    week_ago = now - timedelta(days=7)
+
+    soldier = ProfileFactory(
+        name="Solider76", names_updated_at=yesterday, search_updated_at=None, names=["JackMorrison"]
+    )
+    mccree = AliasFactory(name="McCree", updated_at=yesterday, search_updated_at=week_ago)
+    myt = ServerFactory(
+        hostname_clean="-==MYT Team Svr==-",
+        hostname_updated_at=yesterday,
+        search_updated_at=week_ago,
+    )
+
+    update_search_vector.delay()
+
+    for obj in [soldier, mccree, myt]:
+        obj.refresh_from_db()
+
+    assert soldier.search_updated_at == now
+    assert mccree.search_updated_at == now
+    assert myt.search_updated_at == now
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
@@ -114,13 +141,10 @@ def test_update_search_vector_for_aliases(
     already_updated_alias = AliasFactory(name="Reaper", search_updated_at=yesterday)
     Alias.objects.filter(pk=already_updated_alias.pk).update(updated_at=week_ago)
 
-    never_updated_alias = AliasFactory(name="Widowmaker", search_updated_at=None)
-    Alias.objects.filter(pk=never_updated_alias.pk).update(updated_at=None)
-
     with django_assert_num_queries(expected_queries):
         update_search_vector_for_model.delay(SearchVectorModel.alias, chunk_size=chunk_size)
 
-    for alias in [mccree, soldier, roadhog, already_updated_alias, never_updated_alias]:
+    for alias in [mccree, soldier, roadhog, already_updated_alias]:
         alias.refresh_from_db()
 
     assert mccree.search == "'cree':3B 'mc':2B 'mccree':1A"
@@ -134,9 +158,6 @@ def test_update_search_vector_for_aliases(
 
     assert already_updated_alias.search is None
     assert already_updated_alias.search_updated_at == yesterday
-
-    assert never_updated_alias.search is None
-    assert never_updated_alias.search_updated_at is None
 
     # because all aliases were updated, the task should not update any more aliases
     now_mock.return_value = now + timedelta(days=1)
