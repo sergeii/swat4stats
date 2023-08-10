@@ -132,6 +132,7 @@ class ServerAdmin(admin.ModelAdmin):
     )
     list_per_page = 50
     actions: ClassVar[list[str]] = ["merge_servers"]
+    ordering: ClassVar[list[str]] = ["pk"]
 
     @admin.display(description=_("Merged"), boolean=True, ordering="is_merged")
     def admin_is_merged(self, obj: Server) -> bool:

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import pytz
 from django.test import Client
 from django.utils.timezone import now
 from pytz import UTC
@@ -73,10 +74,20 @@ def test_stream_endpoint_method_bypasses_csrf_check(db, test_game_data, post_gam
     assert response.status_code == 200
 
 
-def test_post_game_data(db, post_game_data):
+@freeze_timezone_now(datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC))
+@pytest.mark.parametrize("server_exists", [True, False])
+def test_post_game_data(now_mock, db, post_game_data, server_exists):
+    if server_exists:
+        ServerFactory(
+            ip="127.0.0.1",
+            port=10580,
+            hostname="Swat4 Server",
+            hostname_updated_at=datetime(2022, 1, 19, 18, 44, 11, tzinfo=pytz.UTC),
+        )
+
     game_data = ServerGameDataFactory(
         tag="foobar",
-        hostname="VIP Server",
+        hostname="[C=FFFFFF][b][u]VIP Server",
         port=10580,
         gametype="VIP Escort",
         mapname="Children of Taronne Tenement",
@@ -167,12 +178,15 @@ def test_post_game_data(db, post_game_data):
     response = post_game_data(game_data)
     assert_success_code(response)
 
-    # server is created
+    # server is created/updated
     server = Server.objects.get(ip="127.0.0.1", port=10580)
     assert server.enabled
     assert server.listed
     assert server.version == "1.1"
-    assert server.hostname == "VIP Server"
+    assert server.hostname == "[C=FFFFFF][b][u]VIP Server"
+    assert server.hostname_clean == "VIP Server"
+    assert server.hostname_updated_at == datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC)
+    assert server.game_count == 1
 
     game = Game.objects.get()
     assert game.tag == "foobar"
@@ -187,6 +201,11 @@ def test_post_game_data(db, post_game_data):
     assert game.score_sus == 45
     assert game.rd_bombs_defused == 0
     assert game.rd_bombs_total == 0
+
+    assert server.first_game.pk == game.pk
+    assert server.latest_game.pk == game.pk
+    assert server.first_game_played_at == datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC)
+    assert server.latest_game_played_at == datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC)
 
     profile1 = Profile.objects.get(alias__name="Serge")
     profile2 = Profile.objects.get(alias__name="AnotherDude")

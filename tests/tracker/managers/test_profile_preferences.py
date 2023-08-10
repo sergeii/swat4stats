@@ -10,6 +10,7 @@ from apps.tracker.factories import (
     ProfileFactory,
     RandomLoadoutFactory,
 )
+from apps.tracker.models import Profile
 from apps.utils.test import freeze_timezone_now
 
 
@@ -19,83 +20,83 @@ def _min_preferred_games(settings):
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_preferred_name_over_recent_games(db):
+def test_preferred_name_over_recent_games():
     profile = ProfileFactory()
 
-    assert profile.fetch_preferred_name() is None
+    assert Profile.objects.fetch_preferred_name_for_profile(profile) is None
 
     PlayerFactory(alias__profile=profile, alias__name="Serge")
-    assert profile.fetch_preferred_name() == "Serge"
+    assert Profile.objects.fetch_preferred_name_for_profile(profile) == "Serge"
 
     PlayerFactory.create_batch(4, alias__profile=profile, alias__name="|MYT|Serge")
-    assert profile.fetch_preferred_name() == "|MYT|Serge"
+    assert Profile.objects.fetch_preferred_name_for_profile(profile) == "|MYT|Serge"
 
     PlayerFactory.create_batch(3, alias__profile=profile, alias__name="AFK")
-    assert profile.fetch_preferred_name() == "AFK"
+    assert Profile.objects.fetch_preferred_name_for_profile(profile) == "AFK"
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_preferred_country(db):
+def test_preferred_country():
     profile = ProfileFactory()
     isp1 = ISPFactory(country="un")
     isp2 = ISPFactory(country="eu")
     isp3 = ISPFactory(country="uk")
 
-    assert profile.fetch_preferred_country() is None
+    assert Profile.objects.fetch_preferred_country_for_profile(profile) is None
 
     PlayerFactory(alias__profile=profile, alias__isp=isp1)
-    assert profile.fetch_preferred_country() == "un"
+    assert Profile.objects.fetch_preferred_country_for_profile(profile) == "un"
 
     PlayerFactory.create_batch(4, alias__profile=profile, alias__isp=isp2)
-    assert profile.fetch_preferred_country() == "eu"
+    assert Profile.objects.fetch_preferred_country_for_profile(profile) == "eu"
 
     PlayerFactory.create_batch(3, alias__profile=profile, alias__isp=isp3)
-    assert profile.fetch_preferred_country() == "uk"
+    assert Profile.objects.fetch_preferred_country_for_profile(profile) == "uk"
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_preferred_team(db):
+def test_preferred_team():
     profile = ProfileFactory()
 
-    assert profile.fetch_preferred_team() is None
+    assert Profile.objects.fetch_preferred_team_for_profile(profile) is None
 
     PlayerFactory(alias__profile=profile, team="swat")
-    assert profile.fetch_preferred_team() == "swat"
+    assert Profile.objects.fetch_preferred_team_for_profile(profile) == "swat"
 
     PlayerFactory.create_batch(2, alias__profile=profile, team="swat")
-    assert profile.fetch_preferred_team() == "swat"
+    assert Profile.objects.fetch_preferred_team_for_profile(profile) == "swat"
 
     PlayerFactory.create_batch(3, alias__profile=profile, team="suspects")
-    assert profile.fetch_preferred_team() == "suspects"
+    assert Profile.objects.fetch_preferred_team_for_profile(profile) == "suspects"
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_preferred_loadout(db):
+def test_preferred_loadout():
     profile = ProfileFactory()
     empty_loadout = LoadoutFactory()
     another_loadout = LoadoutFactory(primary="9mm SMG", secondary="Taser Stun Gun")
 
-    assert profile.fetch_preferred_loadout() is None
+    assert Profile.objects.fetch_preferred_loadout_for_profile(profile) is None
 
     PlayerFactory(alias__profile=profile, loadout=empty_loadout)
-    assert profile.fetch_preferred_loadout() == empty_loadout.pk
+    assert Profile.objects.fetch_preferred_loadout_for_profile(profile) == empty_loadout.pk
 
     PlayerFactory.create_batch(4, alias__profile=profile, loadout=empty_loadout)
-    assert profile.fetch_preferred_loadout() == empty_loadout.pk
+    assert Profile.objects.fetch_preferred_loadout_for_profile(profile) == empty_loadout.pk
 
     PlayerFactory.create_batch(3, alias__profile=profile, loadout=another_loadout)
-    assert profile.fetch_preferred_loadout() == another_loadout.pk
+    assert Profile.objects.fetch_preferred_loadout_for_profile(profile) == another_loadout.pk
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_update_preferences(db):
+def test_update_preferences():
     now = timezone.now()
     initial_loadout = RandomLoadoutFactory()
     another_loadout = RandomLoadoutFactory()
     profile = ProfileFactory(name="Player", team="swat", country="eu", loadout=initial_loadout)
 
     with freeze_timezone_now(now):
-        profile.update_preferences()
+        Profile.objects.update_preferences_for_profile(profile)
 
     profile.refresh_from_db()
     assert profile.name == "Player"
@@ -113,7 +114,7 @@ def test_update_preferences(db):
         loadout=another_loadout,
     )
     with freeze_timezone_now(now + timedelta(hours=1)):
-        profile.update_preferences()
+        Profile.objects.update_preferences_for_profile(profile)
 
     profile.refresh_from_db()
     assert profile.name == "Serge"

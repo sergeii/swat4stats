@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from django.core.management.base import BaseCommand
 from django.db.models import Q, Model
@@ -7,7 +8,7 @@ from django.db.models import Q, Model
 logger = logging.getLogger(__name__)
 
 
-def fill_profile_last_seen(profile_model: type[Model]):
+def fill_profile_last_seen(profile_model: type[Model]) -> None:
     queryset = (
         profile_model.objects.only("game_first__date_finished", "game_last__date_finished")
         .select_related("game_first", "game_last")
@@ -35,9 +36,10 @@ def fill_profile_last_seen(profile_model: type[Model]):
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         from apps.tracker.models import Profile
 
         console = logging.StreamHandler()
         logger.addHandler(console)
+
         fill_profile_last_seen(Profile)

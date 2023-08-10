@@ -1,36 +1,66 @@
 import logging
+from enum import StrEnum
 
-from apps.tracker.models import Profile, Alias
+from django.db.models import Model as DjangoModel
+
+from apps.tracker.models import Profile, Alias, Server
 from apps.utils.misc import iterate_queryset
 from swat4stats.celery import app, Queue
 
 
 __all__ = [
     "update_search_vector",
-    "update_search_vector_for_profiles",
-    "update_search_vector_for_aliases",
+    "update_search_vector_for_model",
 ]
 
 logger = logging.getLogger(__name__)
 
 
+class SearchVectorModel(StrEnum):
+    profile = "profile"
+    alias = "alias"
+    server = "server"
+
+    def to_model(self) -> type[Profile | Alias | Server]:
+        match self:
+            case SearchVectorModel.profile:
+                return Profile
+            case SearchVectorModel.alias:
+                return Alias
+            case SearchVectorModel.server:
+                return Server
+            case _:
+                err_msg = f"Unknown model {self}"
+                raise ValueError(err_msg)
+
+    @classmethod
+    def from_model(cls, model: type[DjangoModel]) -> "SearchVectorModel":
+        match model:
+            case Profile():
+                return cls.profile
+            case Alias():
+                return cls.alias
+            case Server():
+                return cls.server
+            case _:
+                err_msg = f"Unknown model {model}"
+                raise ValueError(err_msg)
+
+
 @app.task(name="update_search_vector", queue=Queue.default.value)
 def update_search_vector() -> None:
-    update_search_vector_for_profiles.delay()
-    update_search_vector_for_aliases.delay()
+    for model in [Profile, Alias, Server]:
+        svm = SearchVectorModel.from_model(model)
+        logger.info("firing search vector update task for %s (%s)", svm, model.__name__)
+        update_search_vector_for_model.delay(svm)
 
 
 @app.task(queue=Queue.default.value)
-def update_search_vector_for_profiles(chunk_size: int = 1000) -> None:
-    profiles_with_ids = Profile.objects.require_search_update().using("replica")
-    for chunk in iterate_queryset(profiles_with_ids, fields=["pk"], chunk_size=chunk_size):
-        profile_ids = [profile["pk"] for profile in chunk]
-        Profile.objects.update_search_vector(*profile_ids)
+def update_search_vector_for_model(model_alias: str, chunk_size: int = 1000) -> None:
+    model_class = SearchVectorModel[model_alias].to_model()
+    logger.info("updating search vector for %s", model_class.__name__)
 
+    items_with_ids = model_class.objects.require_search_update().using("replica")
 
-@app.task(queue=Queue.default.value)
-def update_search_vector_for_aliases(chunk_size: int = 1000) -> None:
-    aliases_with_ids = Alias.objects.require_search_update().using("replica")
-    for chunk in iterate_queryset(aliases_with_ids, fields=["pk"], chunk_size=chunk_size):
-        alias_ids = [profile["pk"] for profile in chunk]
-        Alias.objects.update_search_vector(*alias_ids)
+    for chunk in iterate_queryset(items_with_ids, fields=["pk"], chunk_size=chunk_size):
+        model_class.objects.update_search_vector(*(item["pk"] for item in chunk))

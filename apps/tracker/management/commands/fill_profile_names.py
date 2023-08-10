@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def fill_profile_names(profile_model: type[Model]) -> None:
-    profiles_with_ids = list(
-        profile_model.objects.using("replica").only("pk").values_list("pk", flat=True)
-    )
+    profiles_with_ids = list(profile_model.objects.using("replica").values_list("pk", flat=True))
     for profile_ids in iterate_list(profiles_with_ids, size=1000):
         profile_model.objects.denorm_alias_names(*profile_ids)
 

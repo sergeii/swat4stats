@@ -10,7 +10,7 @@ class ServerSitemap(sitemaps.Sitemap):
     changefreq = "hourly"
 
     def items(self) -> ServerQuerySet:
-        return m.Server.objects.listed()
+        return m.Server.objects.listed().order_by("pk")
 
     def location(self, obj: m.Server) -> str:
         return reverse("servers:detail", kwargs={"server_ip": obj.ip, "server_port": obj.port})

@@ -7,7 +7,6 @@ from swat4stats.celery import app, Queue
 
 __all__ = [
     "denorm_profile_names",
-    "denorm_server_stats",
 ]
 
 logger = logging.getLogger(__name__)
@@ -19,8 +18,3 @@ def denorm_profile_names(chunk_size: int = 1000) -> None:
     for chunk in iterate_queryset(profiles_with_ids, fields=["pk"], chunk_size=chunk_size):
         profile_ids = [profile["pk"] for profile in chunk]
         Profile.objects.denorm_alias_names(*profile_ids)
-
-
-@app.task(name="denorm_server_stats", queue=Queue.default.value)
-def denorm_server_stats() -> None:
-    ...

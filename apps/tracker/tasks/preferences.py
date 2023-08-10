@@ -33,4 +33,4 @@ def update_player_preferences_for_profile(profile_pk: int) -> None:
     """Update preferences for given profile"""
     profile = Profile.objects.get(pk=profile_pk)
     logger.info("updating preferences for %s", profile)
-    profile.update_preferences()
+    Profile.objects.update_preferences_for_profile(profile)

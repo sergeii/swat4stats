@@ -1,31 +1,61 @@
+from datetime import datetime
 from functools import partial
 from unittest import mock
 
+import pytest
+import pytz
 from django.conf import settings
 
 from apps.tracker.factories import ServerFactory, ServerQueryFactory
 from apps.tracker.models import Server
-from apps.tracker.signals import (
-    live_servers_detected,
-    offline_servers_detected,
-    failed_servers_detected,
-)
+from apps.tracker.signals import live_servers_detected, failed_servers_detected
+
 from apps.tracker.tasks import refresh_listed_servers
+from apps.utils.test import freeze_timezone_now
 
 
-def test_hostname_is_updated_for_active_servers(db, create_udpservers):
+@freeze_timezone_now(datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC))
+@pytest.mark.parametrize(
+    "current_hostname_updated_at",
+    [
+        None,
+        datetime(2022, 8, 1, 11, 22, 33, tzinfo=pytz.UTC),
+    ],
+)
+@pytest.mark.parametrize(
+    "raw_hostname, clean_hostname",
+    [
+        ("New Hostname", "New Hostname"),
+        ("[C=FFFFFF][b][u]Fancy Hostname[/u][/b][/C]", "Fancy Hostname"),
+    ],
+)
+def test_hostname_is_updated_for_active_servers(
+    now_mock,
+    db,
+    create_udpservers,
+    current_hostname_updated_at,
+    raw_hostname,
+    clean_hostname,
+):
     with create_udpservers(1) as udp_servers:
         udp_server = udp_servers[0]
         server_ip, server_port = udp_server.server_address
         udp_server.responses.append(
-            ServerQueryFactory(hostport=server_port - 1, hostname="New Hostname").as_gamespy()
+            ServerQueryFactory(hostport=server_port - 1, hostname=raw_hostname).as_gamespy()
         )
         server = ServerFactory(
-            ip=server_ip, port=server_port - 1, hostname="Old Hostname", listed=True
+            ip=server_ip,
+            port=server_port - 1,
+            hostname="Old Hostname",
+            hostname_updated_at=current_hostname_updated_at,
+            listed=True,
         )
         refresh_listed_servers.delay()
+
     server.refresh_from_db()
-    assert server.hostname == "New Hostname"
+    assert server.hostname == raw_hostname
+    assert server.hostname_clean == clean_hostname
+    assert server.hostname_updated_at == datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC)
 
 
 def test_server_status_signals_are_invoked(db, create_udpservers):
@@ -53,9 +83,6 @@ def test_server_status_signals_are_invoked(db, create_udpservers):
         create_failed_mock = partial(
             mock.patch.object, failed_servers_detected, "send", wraps=failed_servers_detected.send
         )
-        create_offline_mock = partial(
-            mock.patch.object, offline_servers_detected, "send", wraps=offline_servers_detected.send
-        )
 
         failing_server = servers[-1]
         failing_server.failures = settings.TRACKER_STATUS_TOLERATED_FAILURES - 1
@@ -64,7 +91,6 @@ def test_server_status_signals_are_invoked(db, create_udpservers):
         with (
             create_live_mock() as live_mock,
             create_failed_mock() as failed_mock,
-            create_offline_mock() as offline_mock,
         ):
             refresh_listed_servers.delay()
 
@@ -79,10 +105,6 @@ def test_server_status_signals_are_invoked(db, create_udpservers):
             assert failed_mock.called
             args, kwargs = failed_mock.call_args
             assert {obj.pk for obj in kwargs["servers"]} == {servers[2].pk, servers[4].pk}
-
-            assert offline_mock.called
-            args, kwargs = offline_mock.call_args
-            assert {obj.pk for obj in kwargs["servers"]} == {servers[4].pk}
 
         assert Server.objects.filter(pk__in=[servers[2].pk], failures=1).count() == 1
         assert (

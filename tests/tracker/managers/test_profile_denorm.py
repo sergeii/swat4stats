@@ -100,7 +100,7 @@ def test_denorm_profile_alias_names_on_delete():
 
 @pytest.mark.django_db(databases=["default", "replica"])
 @freeze_timezone_now(datetime(2023, 8, 7, 11, 22, 55, tzinfo=UTC))
-def test_update_search_vector_for_many(now_mock, django_assert_num_queries):
+def test_update_search_vector_for_many_profiles(now_mock, django_assert_num_queries):
     mccree = ProfileFactory(name="McCree", names=["Cassidy", "Cowboy"])
     solider76 = ProfileFactory(name="Solider76", names=["Jack", "Morrison"])
     reaper = ProfileFactory(name=None, names=["Reaper", "Gabriel", "Reyes"])
@@ -140,7 +140,9 @@ def test_update_search_vector_for_many(now_mock, django_assert_num_queries):
         (None, None, ""),
     ],
 )
-def test_update_search_vector_for_one(now_mock, django_assert_num_queries, name, names, tsv):
+def test_update_search_vector_for_one_profile(
+    now_mock, django_assert_num_queries, name, names, tsv
+):
     profile = ProfileFactory(name=name, names=names)
 
     with django_assert_num_queries(4):

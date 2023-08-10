@@ -7,10 +7,11 @@ from typing import TYPE_CHECKING, Any
 
 import voluptuous
 from django.conf import settings
+from django.contrib.postgres.search import SearchVector
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Q, F, QuerySet
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
@@ -21,16 +22,24 @@ from apps.tracker.schema import serverquery_schema
 from apps.tracker.aio_tasks.discovery import ServerDiscoveryTask
 from apps.tracker.aio_tasks.serverquery import ServerStatusTask, ServerInfo
 from apps.tracker.utils import aio
+from apps.tracker.utils.misc import force_clean_name
+from apps.utils.db.func import normalized_names_search_vector
 from apps.utils.misc import dumps, concat_it
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Server
+    from apps.tracker.models import Server, Game
 
 
 logger = logging.getLogger(__name__)
 
 
 class ServerQuerySet(models.QuerySet):
+    def require_search_update(self) -> models.QuerySet["Server"]:
+        return self.filter(
+            Q(hostname_updated_at__isnull=False),
+            Q(search_updated_at__isnull=True) | Q(hostname_updated_at__gt=F("search_updated_at")),
+        )
+
     def with_status(self, *, with_empty: bool = False) -> list["Server"]:
         """
         Obtain cached status for all eligible servers in the queryset.
@@ -57,8 +66,264 @@ class ServerQuerySet(models.QuerySet):
 
         return result
 
+    def enabled(self):
+        return self.filter(enabled=True)
+
+    def listed(self):
+        return self.enabled().filter(listed=True)
+
+
+class ServerManager(models.Manager):
+    def create_server(self, ip, port, **options):
+        # attempt to check for duplicates
+        if self.filter(ip=ip, port=port).exists():
+            raise ValidationError(_("The server has already been registered."))
+        return self.create(ip=ip, port=port, **options)
+
+    def create_servers(self, server_addrs: list[tuple[str, int]]) -> ServerQuerySet:
+        """
+        Create servers from a list of (server_ip, join_port) tuples.
+        Already existing servers are relisted.
+
+        Return queryset for created/existing servers.
+        """
+        server_pks = set()
+
+        for server_ip, server_port in server_addrs:
+            try:
+                server, created = self.get_or_create(ip=server_ip, port=server_port)
+            except ValidationError as exc:
+                logger.info("failed to create server %s:%s due to %s", server_ip, server_port, exc)
+                continue
+            if created:
+                logger.info("created server %s with %s:%s", server.pk, server_ip, server_port)
+            # skip disabled servers
+            elif not server.enabled:
+                logger.info(
+                    "server %s with %s:%s exists but is disabled", server.pk, server_ip, server_port
+                )
+                continue
+            server_pks.add(server.pk)
+
+        if not server_pks:
+            return self.none()
+
+        return self.filter(pk__in=server_pks)
+
+    def update_game_stats_with_game(self, game: "Game") -> None:
+        update_qs = self.filter(pk=game.server_id)
+
+        first_game_update_qs = update_qs.filter(first_game__isnull=True)
+        last_game_update_qs = update_qs.filter(~Q(latest_game=game.pk))
+
+        with transaction.atomic():
+            first_game_update_qs.update(first_game=game, first_game_played_at=game.date_finished)
+            last_game_update_qs.update(
+                game_count=F("game_count") + 1,
+                latest_game=game,
+                latest_game_played_at=game.date_finished,
+            )
+
+    @transaction.atomic
+    def denorm_game_stats(self, *servers) -> None:
+        from apps.tracker.models import Game
+
+        server_ids = [server.pk for server in servers]
+        game_stats_for_servers = (
+            Game.objects.filter(server_id__in=server_ids)
+            .order_by("server_id")
+            .values("server_id")
+            .annotate(
+                game_count=models.Count("pk"),
+                first_game_id=models.Min("pk"),
+                latest_game_id=models.Max("pk"),
+            )
+        )
+
+        game_stats_per_server_id: dict[int, dict] = {}
+        game_ids: set[int] = set()
+        for stats in game_stats_for_servers:
+            game_stats_per_server_id[stats["server_id"]] = stats
+            game_ids.add(stats["first_game_id"])
+            game_ids.add(stats["latest_game_id"])
+
+        min_max_games_qs = Game.objects.filter(pk__in=game_ids).values("pk", "date_finished")
+        date_played_per_game_id = {row["pk"]: row["date_finished"] for row in min_max_games_qs}
+
+        for server in servers:
+            if stats := game_stats_per_server_id.get(server.pk):
+                server.game_count = stats["game_count"]
+                server.first_game_id = stats["first_game_id"]
+                server.first_game_played_at = date_played_per_game_id.get(stats["first_game_id"])
+                server.latest_game_id = stats["latest_game_id"]
+                server.latest_game_played_at = date_played_per_game_id.get(stats["latest_game_id"])
+            else:
+                server.game_count = 0
+                server.first_game_id = None
+                server.first_game_played_at = None
+                server.latest_game_id = None
+                server.latest_game_played_at = None
+
+        self.bulk_update(
+            servers,
+            [
+                "game_count",
+                "first_game_id",
+                "first_game_played_at",
+                "latest_game_id",
+                "latest_game_played_at",
+            ],
+        )
+
+    @transaction.atomic
+    def update_search_vector(self, *server_ids: int) -> None:
+        logger.info("updating search vector for %d servers", len(server_ids))
+
+        vector = SearchVector(
+            "hostname_clean", config="simple", weight="A"
+        ) + normalized_names_search_vector("hostname_clean", config="simple", weight="B")
+
+        self.filter(pk__in=server_ids).update(search=vector)
+        self.filter(pk__in=server_ids).update(search_updated_at=timezone.now())
+
+    def update_hostnames(self, *hostname_updates: list[tuple["Server", str]]) -> int:
+        from apps.tracker.models import Server
+
+        servers_to_update = []
+        for server, new_hostname in hostname_updates:
+            server.hostname = new_hostname
+            server.hostname_clean = force_clean_name(new_hostname)
+            servers_to_update.append(server)
+
+        updated_server_ids = [server.pk for server in servers_to_update]
+
+        logger.info("updating hostname for %d servers", len(servers_to_update))
+
+        with transaction.atomic():
+            updated_rows_cnt = Server.objects.bulk_update(
+                servers_to_update, ["hostname", "hostname_clean"]
+            )
+            Server.objects.filter(pk__in=updated_server_ids).update(
+                hostname_updated_at=timezone.now()
+            )
+
+        return updated_rows_cnt
+
+    def increment_query_failures(self, *server_ids: int) -> int:
+        return self.filter(pk__in=server_ids, listed=True).update(failures=F("failures") + 1)
+
+    def get_listed_servers_with_exceeded_failures(self) -> QuerySet["Server"]:
+        return self.filter(listed=True, failures__gte=settings.TRACKER_STATUS_TOLERATED_FAILURES)
+
+    def reset_query_failures(self, *server_ids: int, **when: Any) -> int:
+        return self.filter(pk__in=server_ids, failures__gt=0, **when).update(failures=0)
+
+    def relist_servers(self, *server_ids: int) -> int:
+        return self.filter(pk__in=server_ids, listed=False).update(listed=True, failures=0)
+
+    def unlist_servers(self, *server_ids: int) -> int:
+        return self.filter(pk__in=server_ids, listed=True).update(listed=False)
+
+    def merge_servers(
+        self, *, main: "Server", merged: list["Server"], no_savepoint: bool = False
+    ) -> None:
+        main_id = main.pk
+        merged_ids = [server.pk for server in merged]
+
+        # cannot merge to a server that is already merged
+        if main.merged_into is not None:
+            raise MergeServersError("cannot merge to a merged server")
+
+        # need at least one server to merge
+        if not merged_ids:
+            raise MergeServersError("too few servers to merge")
+
+        # cannot merge a server into itself
+        if main_id in merged_ids:
+            raise MergeServersError("cannot merge a server into itself")
+
+        with transaction.atomic(savepoint=not no_savepoint):
+            self._merge_servers(main_id, merged_ids)
+            self.denorm_game_stats(main, *merged)
+
+    def _merge_servers(self, main_id: int, merged_ids: list[int]) -> None:
+        from apps.tracker.models import Game
+
+        merged_ids_str = concat_it(merged_ids)
+
+        logger.info("updating games of servers %s to %s", merged_ids_str, main_id)
+        # fmt: off
+        affected_games_cnt = (
+            Game.objects
+            .filter(~Q(server_id=main_id), server_id__in=merged_ids)
+            .update(server_id=main_id)
+        )
+        # fmt: on
+        logger.info(
+            "finished updating %s games of servers %s to %s",
+            affected_games_cnt,
+            merged_ids_str,
+            main_id,
+        )
+
+        # disable merged servers and save merge reference to the main server
+        # fmt: off
+        affected_servers_cnt = (
+            self.filter(
+                ~Q(pk=main_id), merged_into__isnull=True, pk__in=merged_ids,
+            )
+            .update(enabled=False, merged_into=main_id, merged_into_at=timezone.now())
+        )
+        # fmt: on
+        if affected_servers_cnt != len(merged_ids):
+            raise MergeServersError("failed to merge all servers")
+
+        # also update references for those servers
+        # that were earlier merged into the servers that are being merged right now
+        # fmt: off
+        indirect_servers_qs = (
+            self.filter(~Q(pk=main_id), Q(merged_into__in=merged_ids))
+            .values_list("pk", flat=True)
+        )
+        # fmt: on
+        if indirect_servers_ids := list(indirect_servers_qs):
+            # don't update merged_into_at because the server were already merged
+            self.filter(pk__in=indirect_servers_ids).update(merged_into=main_id)
+            # fmt: off
+            logger.info(
+                "updated merge references for %d servers %s to %s",
+                len(indirect_servers_ids), concat_it(indirect_servers_ids), main_id,
+            )
+            # fmt: on
+
+    def fetch_status(self, *servers: "Server") -> dict["Server", OrderedDict | Exception | None]:
+        """
+        Attempt to fetch info for every server in the queryset.
+        Query result may also yield an exception.
+
+        :return: Ordered dict mapping a server instance to its query result
+        :rtype: collections.OrderedDict
+        """
+        # ensure result is ordered
+        result = OrderedDict((server, None) for server in servers)
+
+        tasks = [
+            ServerStatusTask(
+                callback=lambda server, status: op.setitem(result, server, status),
+                result_id=server,
+                ip=server.ip,
+                status_port=server.status_port,
+            )
+            for server in result
+        ]
+
+        aio.run_many(tasks, concurrency=settings.TRACKER_STATUS_QUERY_CONCURRENCY)
+
+        return result
+
     def refresh_status(
         self,
+        *servers: "Server",
     ) -> tuple[
         list[tuple["Server", dict[str, Any]]],
         list[tuple["Server", Exception] | tuple["Server", Invalid]],
@@ -74,7 +339,7 @@ class ServerQuerySet(models.QuerySet):
                                  2) an ordered list if (server instance, exception) tuples
         """
         redis = cache.client.get_client()
-        result = self.fetch_status()
+        result = self.fetch_status(*servers)
 
         with_status = []
         with_errors = []
@@ -116,142 +381,19 @@ class ServerQuerySet(models.QuerySet):
 
         return with_status, with_errors
 
-    def fetch_status(self) -> dict["Server", OrderedDict | Exception | None]:
-        """
-        Attempt to fetch info for every server in the queryset.
-        Query result may also yield an exception.
-
-        :return: Ordered dict mapping a server instance to its query result
-        :rtype: collections.OrderedDict
-        """
-        # ensure result is ordered
-        result = OrderedDict((server, None) for server in self.all())
-
-        tasks = [
-            ServerStatusTask(
-                callback=lambda server, status: op.setitem(result, server, status),
-                result_id=server,
-                ip=server.ip,
-                status_port=server.status_port,
-            )
-            for server in result
-        ]
-
-        aio.run_many(tasks, concurrency=settings.TRACKER_STATUS_QUERY_CONCURRENCY)
-
-        return result
-
-    def relist(self):
-        return self.filter(listed=False).update(listed=True, failures=0)
-
-    def reset_failures(self):
-        return self.filter(failures__gt=0).update(failures=0)
-
-    def enabled(self):
-        return self.filter(enabled=True)
-
-    def listed(self):
-        return self.enabled().filter(listed=True)
-
-
-class ServerManager(models.Manager):
-    def get_queryset(self, *args, **kwargs):
-        return super().get_queryset(*args, **kwargs).order_by("pk")
-
-    def create_server(self, ip, port, **options):
-        # attempt to check for duplicates
-        if self.filter(ip=ip, port=port).exists():
-            raise ValidationError(_("The server has already been registered."))
-        return self.create(ip=ip, port=port, **options)
-
-    def create_servers(self, server_addrs: list[tuple[str, int]]) -> ServerQuerySet:
-        """
-        Create servers from a list of (server_ip, join_port) tuples.
-        Already existing servers are relisted.
-
-        Return queryset for created/existing servers.
-        """
-        server_pks = set()
-
-        for server_ip, server_port in server_addrs:
-            try:
-                server, created = self.get_or_create(ip=server_ip, port=server_port)
-            except ValidationError as exc:
-                logger.info("failed to create server %s:%s due to %s", server_ip, server_port, exc)
-                continue
-            if created:
-                logger.info("created server %s with %s:%s", server.pk, server_ip, server_port)
-            # skip disabled servers
-            elif not server.enabled:
-                logger.info(
-                    "server %s with %s:%s exists but is disabled", server.pk, server_ip, server_port
-                )
-                continue
-            server_pks.add(server.pk)
-
-        if not server_pks:
-            return self.none()
-
-        return self.filter(pk__in=server_pks)
-
-    def merge_servers(
-        self, *, main: "Server", merged: list["Server"], no_savepoint: bool = False
+    def update_server_with_status(
+        self,
+        server: "Server",
+        status: dict[str, str | list[dict[str, str]]],
     ) -> None:
-        main_id = main.pk
-        merged_ids = [server.pk for server in merged]
+        redis = cache.client.get_client()
+        logger.info("storing status for server %s:%s (%s)", server.ip, server.port, server.pk)
+        redis.hset(settings.TRACKER_STATUS_REDIS_KEY, server.address, dumps(status).encode())
 
-        # cannot merge to a server that is already merged
-        if main.merged_into is not None:
-            raise MergeServersError("cannot merge to a merged server")
-
-        # need at least one server to merge
-        if not merged_ids:
-            raise MergeServersError("too few servers to merge")
-
-        # cannot merge a server into itself
-        if main_id in merged_ids:
-            raise MergeServersError("cannot merge a server into itself")
-
-        with transaction.atomic(savepoint=not no_savepoint):
-            self._merge_servers(main_id, merged_ids)
-
-    def _merge_servers(self, main_id: int, merged_ids: list[int]) -> None:
-        from apps.tracker.models import Game
-
-        merged_ids_str = concat_it(merged_ids)
-
-        logger.info("updating games of servers %s to %s", merged_ids_str, main_id)
-        affected_games_cnt = Game.objects.filter(
-            ~Q(server_id=main_id), server_id__in=merged_ids
-        ).update(server_id=main_id)
-        logger.info(
-            "finished updating %s games of servers %s to %s",
-            affected_games_cnt,
-            merged_ids_str,
-            main_id,
-        )
-
-        # disable merged servers and save merge reference to the main server
-        affected_servers_cnt = self.filter(
-            ~Q(pk=main_id), merged_into__isnull=True, pk__in=merged_ids
-        ).update(enabled=False, merged_into=main_id, merged_into_at=timezone.now())
-        if affected_servers_cnt != len(merged_ids):
-            raise MergeServersError("failed to merge all servers")
-
-        # also update references for those servers
-        # that were earlier merged into the servers that are being merged right now
-        indirect_servers_qs = self.filter(
-            ~Q(pk=main_id), Q(merged_into__in=merged_ids)
-        ).values_list("pk", flat=True)
-        if indirect_servers_ids := list(indirect_servers_qs):
-            # don't update merged_into_at because the server were already merged
-            self.filter(pk__in=indirect_servers_ids).update(merged_into=main_id)
-            logger.info(
-                "updated merge references for %d servers %s to %s",
-                len(indirect_servers_ids),
-                concat_it(indirect_servers_ids),
-                main_id,
-            )
+    def delete_status(self, *servers: "Server") -> int:
+        redis = cache.client.get_client()
+        keys_to_delete = (server.address for server in servers)
+        return redis.hdel(settings.TRACKER_STATUS_REDIS_KEY, *keys_to_delete)
 
     def probe_server_addr(self, server_addr: tuple[str, int]) -> ServerInfo | Exception:
         """Probe a server address for its status"""
@@ -302,8 +444,11 @@ class ServerManager(models.Manager):
             logger.info("discovered no live servers")
             return self.none()
 
-        servers = self.create_servers(good_server_addrs)
-        relisted = servers.relist()
+        with transaction.atomic():
+            servers = self.create_servers(good_server_addrs)
+            server_ids = [server.id for server in servers]
+            relisted = self.relist_servers(*server_ids)
+
         logger.info(
             "discovered %d good servers; accepted %d; relisted %d",
             len(good_server_addrs),
@@ -395,7 +540,11 @@ class ServerManager(models.Manager):
         If an extra port yields GS1 or AMMod response,
         then change the server's status port to the discovered one.
         """
-        probe_results = self._probe_good_query_ports(self.listed())
+        from apps.tracker.models import Server
+
+        listed_servers_qs = Server.objects.listed()
+
+        probe_results = self._probe_good_query_ports(listed_servers_qs)
         probed_query_ports: dict[tuple[str, int], list[dict[str, int | bool]]] = {}
         # collect server addresses that succeeded the probe
         for (server_ip, server_port, query_port), data_or_exc in probe_results.items():

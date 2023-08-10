@@ -10,7 +10,7 @@ from apps.utils.test import freeze_timezone_now
 
 @pytest.mark.django_db(databases=["default", "replica"])
 @freeze_timezone_now(datetime(2023, 8, 8, 11, 22, 55, tzinfo=UTC))
-def test_update_search_vector_for_many(now_mock, django_assert_num_queries):
+def test_update_search_vector_for_many_aliases(now_mock, django_assert_num_queries):
     mccree = AliasFactory(name="McCree")
     solider76 = AliasFactory(name="Solider76")
     mercy = AliasFactory(name="Mercy")
@@ -46,7 +46,7 @@ def test_update_search_vector_for_many(now_mock, django_assert_num_queries):
         ("", ""),
     ],
 )
-def test_update_search_vector_for_one(now_mock, django_assert_num_queries, name, tsv):
+def test_update_search_vector_for_one_alias(now_mock, django_assert_num_queries, name, tsv):
     alias = AliasFactory(name=name)
 
     with django_assert_num_queries(4):

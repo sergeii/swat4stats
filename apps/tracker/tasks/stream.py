@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Any
 
 import celery
-from django.db import transaction
 from pytz import utc
 
 from apps.tracker.exceptions import GameAlreadySavedError
@@ -15,6 +14,7 @@ from apps.tracker.signals import game_data_saved
 __all__ = [
     "process_game_data",
     "update_profile_games",
+    "update_server_games",
 ]
 
 logger = logging.getLogger(__name__)
@@ -51,14 +51,10 @@ def process_game_data(
 @app.task(queue=Queue.default.value)
 def update_profile_games(game_id: int) -> None:
     game = Game.objects.get(pk=game_id)
-    queryset = Profile.objects.filter(alias__player__game=game)
+    Profile.objects.update_with_game(game)
 
-    # the very first game
-    with transaction.atomic():
-        (
-            queryset.filter(game_first__isnull=True).update(
-                game_first=game, first_seen_at=game.date_finished
-            )
-        )
-        # to the latest game
-        queryset.update(game_last=game, last_seen_at=game.date_finished)
+
+@app.task(queue=Queue.default.value)
+def update_server_games(game_id: int) -> None:
+    game = Game.objects.get(pk=game_id)
+    Server.objects.update_game_stats_with_game(game)

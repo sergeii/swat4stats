@@ -3,10 +3,9 @@ from typing import ClassVar
 
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchVectorField
-from django.core.cache import cache
 from django.db import models
-from django.db.models import Q, F, When, Case, Count, Func, Expression, Subquery
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.models import Q, F, Func
+from django.core.exceptions import ValidationError
 from django.db.models.functions import Upper
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -30,11 +29,9 @@ from apps.tracker.managers import (
     ServerStatsManager,
 )
 from apps.tracker.managers.alias import AliasQuerySet
-from apps.tracker.schema import teams_reversed
 from apps.tracker.utils.game import map_background_picture
 from apps.tracker.utils.misc import force_clean_name, ratio
 from apps.utils.db.fields import EnumField
-from apps.utils.misc import dumps
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +44,25 @@ class Server(models.Model):
     listed = models.BooleanField(default=False)
     pinned = models.BooleanField(default=False)
     country = models.CharField(max_length=2, null=True, blank=True)
-    hostname = models.CharField(max_length=256, null=True, blank=True)
     version = models.CharField(max_length=64, null=True, blank=True)
     failures = models.PositiveSmallIntegerField(default=0)
+
+    hostname = models.CharField(max_length=256, null=True, blank=True)
+    hostname_clean = models.CharField(max_length=256, null=True, blank=True)
+    hostname_updated_at = models.DateTimeField(null=True, blank=True)
+
+    game_count = models.PositiveIntegerField(default=0)
+    first_game = models.ForeignKey("Game", related_name="+", null=True, on_delete=models.PROTECT)
+    first_game_played_at = models.DateTimeField(null=True, blank=True)
+    latest_game = models.ForeignKey("Game", related_name="+", null=True, on_delete=models.PROTECT)
+    latest_game_played_at = models.DateTimeField(null=True, blank=True)
 
     merged_into = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL)
     merged_into_at = models.DateTimeField(null=True, blank=True)
     merged_stats_at = models.DateTimeField(null=True, blank=True)
+
+    search = SearchVectorField(null=True, blank=True)
+    search_updated_at = models.DateTimeField(null=True)
 
     # pending removal
     port_gs1 = models.PositiveIntegerField(null=True, blank=True)
@@ -102,11 +111,6 @@ class Server(models.Model):
                 raise AssertionError
         except (ValueError, AssertionError):
             raise ValidationError(_("Port number must be between 1 and 65535 inclusive."))
-
-    def update_with_status(self, status: dict[str, str | list[dict[str, str]]]) -> None:
-        redis = cache.client.get_client()
-        logger.info("storing status for server %s:%s (%s)", self.ip, self.port, self.pk)
-        redis.hset(settings.TRACKER_STATUS_REDIS_KEY, self.address, dumps(status).encode())
 
 
 class Map(models.Model):
@@ -503,135 +507,6 @@ class Profile(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}, {self.country}"
-
-    def fetch_first_preferred_game_id(self) -> int | None:
-        # prepare a subquery to get the most recent game ids for the player
-        recent_game_ids = (
-            Player.objects.using("replica")
-            .select_related(None)
-            .for_profile(self)
-            .order_by("-pk")
-            .values_list("game_id", flat=True)
-        )[: settings.TRACKER_PREFERRED_GAMES]
-
-        # of the selected games, get the earliest
-        least_game_qs = (
-            Game.objects.using("replica")
-            .filter(pk__in=Subquery(recent_game_ids))
-            .only("pk")
-            .order_by("pk")
-        )[:1]
-
-        try:
-            least_recent_game = least_game_qs.get()
-        except ObjectDoesNotExist:
-            logger.info("least recent game is not available for %s (%s)", self, self.pk)
-            return None
-
-        return least_recent_game.pk
-
-    def fetch_preferred_field(
-        self,
-        field: str,
-        count_field: str | Expression | None = None,
-        least_game_id: int | None = None,
-    ) -> str | int | None:
-        """
-        Calculate the most popular item for given player field.
-        """
-        if least_game_id is None:
-            least_game_id = self.fetch_first_preferred_game_id()
-
-        if not least_game_id:
-            return None
-
-        queryset = (
-            Player.objects.using("replica")
-            .for_profile(self)
-            .filter(game_id__gte=least_game_id)
-            .values(field)
-            .annotate(num=Count(count_field if count_field else field))
-            .order_by("-num")
-        )[:1]
-
-        try:
-            aggregated = queryset.get()
-            return aggregated[field]
-        except ObjectDoesNotExist:
-            return None
-
-    def fetch_preferred_name(self, least_game_id: int | None = None) -> str | None:
-        """Get the most popular name"""
-        return self.fetch_preferred_field("alias__name", least_game_id=least_game_id)
-
-    def fetch_preferred_country(self, least_game_id: int | None = None) -> str | None:
-        """Get the most recent country"""
-        return self.fetch_preferred_field("alias__isp__country", least_game_id=least_game_id)
-
-    def fetch_preferred_team(self, least_game_id: int | None = None) -> str | None:
-        """Get the most preferred team"""
-        return self.fetch_preferred_field("team", least_game_id=least_game_id)
-
-    def fetch_preferred_loadout(self, least_game_id: int | None = None) -> int | None:
-        """Fetch the most preferred non VIP loadout"""
-        return self.fetch_preferred_field(
-            "loadout_id",
-            count_field=Case(When(vip=False, then="loadout_id")),
-            least_game_id=least_game_id,
-        )
-
-    def update_preferences(self):
-        """
-        Update the player's recent preferences
-        such as name, team, loadout and country.
-        """
-        if not (least_game_id := self.fetch_first_preferred_game_id()):
-            logger.info(
-                "wont update preferences for %s with name=%s team=%s country=%s loadout=%s",
-                self,
-                self.name,
-                self.team,
-                self.country,
-                self.loadout_id,
-            )
-            return
-
-        logger.info(
-            "updating preferences for %s since %d, name=%s team=%s country=%s loadout=%s",
-            self,
-            least_game_id,
-            self.name,
-            self.team,
-            self.country,
-            self.loadout_id,
-        )
-
-        self.name = self.fetch_preferred_name(least_game_id) or self.name
-        self.country = self.fetch_preferred_country(least_game_id) or self.country
-        self.team = self.fetch_preferred_team(least_game_id) or self.team
-        self.team_legacy = teams_reversed.get(self.team)
-        self.loadout_id = self.fetch_preferred_loadout(least_game_id) or self.loadout_id
-        self.preferences_updated_at = timezone.now()
-
-        logger.info(
-            "finished updating popular for %s, name=%s team=%s country=%s loadout=%s",
-            self,
-            self.name,
-            self.team,
-            self.country,
-            self.loadout_id,
-        )
-
-        self.save(
-            update_fields=[
-                "name",
-                "country",
-                "team",
-                "team_legacy",
-                "loadout_id",
-                "preferences_updated_at",
-            ]
-        )
 
 
 class Stats(models.Model):

@@ -9,17 +9,18 @@ from django.contrib.postgres.expressions import ArraySubquery
 from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Q, F, OuterRef
+from django.db.models import Q, F, OuterRef, Case, When, Expression, Count, Subquery
 from django.utils import timezone
 
 from apps.geoip.models import ISP
 from apps.tracker.exceptions import NoProfileMatchError
 from apps.tracker.managers.stats import get_stats_period_for_year
+from apps.tracker.schema import teams_reversed
 from apps.utils.misc import concat_it
 from apps.utils.db.func import ArrayToString, normalized_names_search_vector
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Profile, Server, Alias  # noqa: F401
+    from apps.tracker.models import Profile, Server, Game, Alias  # noqa: F401
     from apps.tracker.managers import PlayerQuerySet
 
 
@@ -192,11 +193,172 @@ class ProfileManager(models.Manager):
             return self.create(name=name), True
 
     @classmethod
+    def fetch_first_preferred_game_id_for_profile(cls, profile: "Profile") -> int | None:
+        from apps.tracker.models import Game, Player
+
+        # prepare a subquery to get the most recent game ids for the player
+        recent_game_ids = (
+            Player.objects.using("replica")
+            .select_related(None)
+            .for_profile(profile)
+            .order_by("-pk")
+            .values_list("game_id", flat=True)
+        )[: settings.TRACKER_PREFERRED_GAMES]
+
+        # of the selected games, get the earliest
+        least_game_qs = (
+            Game.objects.using("replica")
+            .filter(pk__in=Subquery(recent_game_ids))
+            .only("pk")
+            .order_by("pk")
+        )[:1]
+
+        try:
+            least_recent_game = least_game_qs.get()
+        except ObjectDoesNotExist:
+            logger.info("least recent game is not available for %s (%s)", profile, profile.pk)
+            return None
+
+        return least_recent_game.pk
+
+    @classmethod
+    def fetch_preferred_field_for_profile(
+        cls,
+        profile: "Profile",
+        field: str,
+        count_field: str | Expression | None = None,
+        least_game_id: int | None = None,
+    ) -> str | int | None:
+        """
+        Calculate the most popular item for given player field.
+        """
+        from apps.tracker.models import Player
+
+        if least_game_id is None:
+            least_game_id = cls.fetch_first_preferred_game_id_for_profile(profile)
+
+        if not least_game_id:
+            return None
+
+        queryset = (
+            Player.objects.using("replica")
+            .for_profile(profile)
+            .filter(game_id__gte=least_game_id)
+            .values(field)
+            .annotate(num=Count(count_field if count_field else field))
+            .order_by("-num")
+        )[:1]
+
+        try:
+            aggregated = queryset.get()
+            return aggregated[field]
+        except ObjectDoesNotExist:
+            return None
+
+    @classmethod
+    def fetch_preferred_name_for_profile(
+        cls, profile: "Profile", least_game_id: int | None = None
+    ) -> str | None:
+        """Get the most popular name"""
+        return cls.fetch_preferred_field_for_profile(
+            profile, "alias__name", least_game_id=least_game_id
+        )
+
+    @classmethod
+    def fetch_preferred_country_for_profile(
+        cls, profile: "Profile", least_game_id: int | None = None
+    ) -> str | None:
+        """Get the most recent country"""
+        return cls.fetch_preferred_field_for_profile(
+            profile, "alias__isp__country", least_game_id=least_game_id
+        )
+
+    @classmethod
+    def fetch_preferred_team_for_profile(
+        cls, profile: "Profile", least_game_id: int | None = None
+    ) -> str | None:
+        """Get the most preferred team"""
+        return cls.fetch_preferred_field_for_profile(profile, "team", least_game_id=least_game_id)
+
+    @classmethod
+    def fetch_preferred_loadout_for_profile(
+        cls, profile: "Profile", least_game_id: int | None = None
+    ) -> int | None:
+        """Fetch the most preferred non VIP loadout"""
+        return cls.fetch_preferred_field_for_profile(
+            profile,
+            "loadout_id",
+            count_field=Case(When(vip=False, then="loadout_id")),
+            least_game_id=least_game_id,
+        )
+
+    @classmethod
+    def update_preferences_for_profile(cls, profile: "Profile") -> None:
+        """
+        Update the player's recent preferences
+        such as name, team, loadout and country.
+        """
+        if not (least_game_id := cls.fetch_first_preferred_game_id_for_profile(profile)):
+            # fmt: off
+            logger.info(
+                "wont update preferences for %s with name=%s team=%s country=%s loadout=%s",
+                profile, profile.name, profile.team, profile.country, profile.loadout_id,
+            )
+            # fmt: on
+            return
+
+        # fmt: off
+        logger.info(
+            "updating preferences for %s since %d, name=%s team=%s country=%s loadout=%s",
+            profile, least_game_id, profile.name, profile.team, profile.country, profile.loadout_id,
+        )
+        # fmt: on
+
+        profile.name = cls.fetch_preferred_name_for_profile(profile, least_game_id) or profile.name
+        profile.country = (
+            cls.fetch_preferred_country_for_profile(profile, least_game_id) or profile.country
+        )
+        profile.team = cls.fetch_preferred_team_for_profile(profile, least_game_id) or profile.team
+        profile.team_legacy = teams_reversed.get(profile.team)
+        profile.loadout_id = (
+            cls.fetch_preferred_loadout_for_profile(profile, least_game_id) or profile.loadout_id
+        )
+        profile.preferences_updated_at = timezone.now()
+
+        # fmt: off
+        logger.info(
+            "finished updating popular for %s, name=%s team=%s country=%s loadout=%s",
+            profile, profile.name, profile.team, profile.country, profile.loadout_id,
+        )
+        # fmt: on
+
+        profile.save(
+            update_fields=[
+                "name",
+                "country",
+                "team",
+                "team_legacy",
+                "loadout_id",
+                "preferences_updated_at",
+            ]
+        )
+
+    @classmethod
     def update_stats_for_profile(cls, profile: "Profile") -> None:
         if profile.last_seen_at:
             cls.update_annual_stats_for_profile(profile=profile, year=profile.last_seen_at.year)
         profile.stats_updated_at = timezone.now()
         profile.save(update_fields=["stats_updated_at"])
+
+    def update_with_game(self, game: "Game") -> None:
+        update_qs = self.filter(alias__player__game=game)
+
+        first_game_update_qs = update_qs.filter(game_first__isnull=True)
+        last_game_update_qs = update_qs.filter(~Q(game_last=game.pk))
+
+        with transaction.atomic():
+            first_game_update_qs.update(game_first=game, first_seen_at=game.date_finished)
+            last_game_update_qs.update(game_last=game, last_seen_at=game.date_finished)
 
     @classmethod
     def update_annual_stats_for_profile(cls, *, profile: "Profile", year: int) -> None:

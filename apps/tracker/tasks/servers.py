@@ -12,6 +12,7 @@ from apps.geoip.models import ISP
 
 __all__ = [
     "refresh_listed_servers",
+    "unlist_failed_servers",
     "update_server_country",
     "merge_servers",
     "merge_server_stats",
@@ -25,10 +26,10 @@ def refresh_listed_servers() -> None:
     """
     Refresh listed servers (i.e. the servers that are expected to be online)
     """
-    queryset = Server.objects.listed()
+    listed_servers = list(Server.objects.listed())
 
-    logger.debug("refreshing status for %s servers", queryset.count())
-    status, errors = queryset.refresh_status()
+    logger.debug("refreshing status for %d servers", len(listed_servers))
+    status, errors = Server.objects.refresh_status(*listed_servers)
 
     servers_failed: dict[Server, Exception] = {}
     servers_live: dict[Server, dict[str, Any]] = {}
@@ -54,6 +55,34 @@ def refresh_listed_servers() -> None:
     if servers_failed:
         logger.debug("%s of %s servers are failed", len(servers_failed), len(status))
         failed_servers_detected.send(sender=None, servers=servers_failed)
+
+
+@app.task(name="unlist_failed_servers", queue=Queue.serverquery.value)
+def unlist_failed_servers() -> None:
+    """
+    Unlist servers that have reached the maximum number of tolerated failures.
+    """
+    offline_servers = list(Server.objects.get_listed_servers_with_exceeded_failures())
+
+    if not offline_servers:
+        logger.debug("no servers with too many query failures detected")
+        return
+
+    server_ids = [obj.pk for obj in offline_servers]
+
+    logger.info("detected %d listed servers with too many query failures", len(offline_servers))
+
+    if updated_cnt := Server.objects.unlist_servers(*server_ids):
+        logger.info("unlisted %d of %d offline servers", updated_cnt, len(offline_servers))
+    else:
+        logger.info("did not unlist any of %d offline servers", len(offline_servers))
+
+    if deleted_cnt := Server.objects.delete_status(*offline_servers):
+        logger.info(
+            "deleted status for %d of %d offline servers", deleted_cnt, len(offline_servers)
+        )
+    else:
+        logger.info("did not delete status for any of %d offline servers", len(offline_servers))
 
 
 @app.task(time_limit=10, queue=Queue.default.value)
@@ -87,23 +116,21 @@ def merge_servers(main_server_id: int, merged_server_ids: list[int]) -> None:
     main_server = servers[main_server_id]
     merged_servers = [servers[server_id] for server_id in merged_server_ids]
 
-    merged_servers_str = (concat_it([f"{server} {server.pk}" for server in merged_servers]),)
+    merged_servers_str = concat_it([f"{server} {server.pk}" for server in merged_servers])
+    # fmt: off
     logger.info(
         "merging %d servers %s into %s (%s)",
-        len(merged_server_ids),
-        merged_servers_str,
-        main_server,
-        main_server_id,
+        len(merged_server_ids), merged_servers_str, main_server, main_server_id,
     )
+    # fmt: on
     Server.objects.merge_servers(main=main_server, merged=merged_servers, no_savepoint=True)
 
+    # fmt: off
     logger.info(
         "finished merging %d servers %s into %s (%s)",
-        len(merged_server_ids),
-        merged_servers_str,
-        main_server,
-        main_server_id,
+        len(merged_server_ids), merged_servers_str, main_server, main_server_id,
     )
+    # fmt: on
 
 
 @app.task(name="merge_server_stats", queue=Queue.heavy.value)

@@ -15,6 +15,30 @@ def test_merge_servers(db):
     games1 = GameFactory.create_batch(2, server=server1)
     games2 = GameFactory.create_batch(3, server=server2)
 
+    Server.objects.filter(pk=server1.pk).update(
+        game_count=1,  # wrong game count on purpose
+        first_game=games1[0],
+        first_game_played_at=games1[0].date_finished,
+        latest_game=games1[1],
+        latest_game_played_at=games1[1].date_finished,
+    )
+
+    Server.objects.filter(pk=server2.pk).update(
+        game_count=3,
+        first_game=games2[0],
+        first_game_played_at=games2[0].date_finished,
+        latest_game=games2[-1],
+        latest_game_played_at=games2[-1].date_finished,
+    )
+
+    Server.objects.filter(pk=server3.pk).update(
+        game_count=1,  # wrong game count on purpose
+        first_game=None,
+        first_game_played_at=None,
+        latest_game=None,
+        latest_game_played_at=None,
+    )
+
     now = datetime(2023, 5, 1, 23, 0, 0, tzinfo=UTC)
 
     with freeze_timezone_now(now):
@@ -26,16 +50,31 @@ def test_merge_servers(db):
     assert server2.enabled
     assert server2.merged_into is None
     assert server2.merged_into_at is None
+    assert server2.game_count == 5
+    assert server2.first_game == games1[0]
+    assert server2.first_game_played_at == games1[0].date_finished
+    assert server2.latest_game == games2[-1]
+    assert server2.latest_game_played_at == games2[-1].date_finished
 
     assert not server1.enabled
     assert server1.merged_into.pk == server2.pk
     assert server1.merged_into_at == now
     assert server1.merged_stats_at is None
+    assert server1.game_count == 0
+    assert server1.first_game is None
+    assert server1.first_game_played_at is None
+    assert server1.latest_game is None
+    assert server1.latest_game_played_at is None
 
     assert not server3.enabled
     assert server3.merged_into.pk == server2.pk
     assert server3.merged_into_at == now
     assert server3.merged_stats_at is None
+    assert server3.game_count == 0
+    assert server3.first_game is None
+    assert server3.first_game_played_at is None
+    assert server3.latest_game is None
+    assert server3.latest_game_played_at is None
 
     for game in Game.objects.filter(pk__in=[g.pk for g in games1 + games2]):
         assert game.server.pk == server2.pk

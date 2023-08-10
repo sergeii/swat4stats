@@ -315,7 +315,7 @@ class ServerCreateSerializer(ServerFullSerializer):
         else:
             instance = self.update(instance, validated_data)
 
-        instance.update_with_status(status)
+        Server.objects.update_server_with_status(instance, status)
         instance.status = status
 
         return instance

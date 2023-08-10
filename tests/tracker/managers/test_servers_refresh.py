@@ -28,7 +28,7 @@ def test_queryset_refresh_status(db, create_udpservers):
             ).as_gamespy()
         )
 
-        status, errors = Server.objects.refresh_status()
+        status, errors = Server.objects.refresh_status(*servers)
         assert len(status) == 2
         assert len(errors) == 1
 
@@ -62,7 +62,7 @@ def test_queryset_refresh_status(db, create_udpservers):
 def test_negative_timers_are_supported(db, udp_server):
     server_ip, server_query_port = udp_server.server_address
     server_join_port = server_query_port - 1
-    ServerFactory(ip=server_ip, port=server_join_port)
+    server = ServerFactory(ip=server_ip, port=server_join_port)
 
     udp_server.responses.append(
         ServerQueryFactory(
@@ -74,7 +74,7 @@ def test_negative_timers_are_supported(db, udp_server):
         ).as_gamespy()
     )
 
-    status, errors = Server.objects.refresh_status()
+    status, errors = Server.objects.refresh_status(server)
     assert len(status) == 1
     assert len(errors) == 0
 
