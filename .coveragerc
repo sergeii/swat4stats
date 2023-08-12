@@ -1,4 +1,10 @@
 [run]
 branch = True
 omit =
-    src/apps/*/migrations/*
+    apps/*/migrations/*
+    tests/*
+    apps/*/translation.py
+
+[report]
+include =
+    apps/*

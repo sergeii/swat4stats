@@ -3,7 +3,7 @@
 *.py[cod]
 .coverage.xml
 .coverage
-/htmlcov
+/htmlcov/
 __pycache__/
 /celerybeat*
 /.pytest_cache
