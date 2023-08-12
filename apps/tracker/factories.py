@@ -39,6 +39,7 @@ from apps.tracker.schema import (
     coop_status_reversed,
     weapon_reversed,
 )
+from apps.tracker.utils.misc import force_clean_name
 from apps.utils.misc import dumps, timestamp
 from apps.geoip.factories import ISPFactory
 
@@ -157,6 +158,9 @@ class ServerFactory(factory.django.DjangoModelFactory):
     ip = "127.0.0.100"
     port = factory.LazyAttribute(lambda o: random.randint(10000, 65535))
     hostname = "Swat4 Server"
+    hostname_clean = factory.LazyAttribute(
+        lambda o: force_clean_name(o.hostname) if o.hostname else None
+    )
     enabled = True
 
     @factory.post_generation

@@ -159,15 +159,25 @@ def test_update_search_vector_for_many_servers(now_mock, django_assert_num_queri
 @pytest.mark.parametrize(
     "hostname, tsv",
     [
-        ("-==MYT Team Svr==-", "'myt':1A,4B 'svr':3A,6B 'team':2A,5B"),
+        (
+            "-==MYT Team Svr==-",
+            "'myt':1A,4B,7B,10B,13B 'svr':3A,6B,9B,12B,15B 'team':2A,5B,8B,11B,14B",
+        ),
         (
             "[c=4169e1]Sog-team.co.uk [c=00c500]P[c=00DB00]r[c=22FF22]o[C=6fff6f]!",
-            "'pro':2A,4B 'sog-team.co.uk':1A,3B",
+            "'co':9B,14B 'pro':2A,4B,6B,11B,16B 'sog':7B,12B 'sog-team.co.uk':1A,3B,5B 'team':8B,13B 'uk':10B,15B",  # noqa: E501
         ),
-        ("[CN]SSF PVP Server", "'cn':1A,5B 'pvp':3A,7B 'server':4A,8B 'ssf':2A,6B"),
+        (
+            "[CN]SSF PVP Server",
+            "'cn':1A,5B,9B,13B,17B 'pvp':3A,7B,11B,15B,19B 'server':4A,8B,12B,16B,20B 'ssf':2A,6B,10B,14B,18B",  # noqa: E501
+        ),
         (
             "[c=ff0000]L[c=ffffff]egends [c=ff0000]N[c=ffffff]ever [c=ff0000]D[c=ffffff]ie [c=b000ff]c[c=a70bee]o[c=8a08c5]o[c=b83fee]o[c=be4af2]P [c=00ffff]=)",  # noqa: E501
-            "'cooo':8B 'cooop':4A 'die':3A,7B 'legends':1A,5B 'never':2A,6B 'p':9B",
+            "'cooo':8B,21B 'cooop':4A,13B,17B 'die':3A,7B,12B,16B,20B 'legends':1A,5B,10B,14B,18B 'never':2A,6B,11B,15B,19B 'p':9B,22B",  # noqa: E501
+        ),
+        (
+            "WWW.EPiCS.TOP",
+            "'cs':10B 'cs.top':3B 'epi':9B 'epics':6B 'top':7B,11B 'www':5B,8B 'www.epi':2B 'www.epics.top':1A,4B",  # noqa: E501
         ),
         ("", ""),
         (None, ""),

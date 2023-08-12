@@ -87,13 +87,18 @@ def test_update_search_vector_for_profiles(
     for profile in [mccree, soldier, roadhog, already_updated_profile, never_updated_profile]:
         profile.refresh_from_db()
 
-    assert mccree.search == "'cassidy':2B,6C 'cree':5C 'mc':4C 'mccree':1A 'outlaw':3B,7C"
+    # fmt: off
+    assert mccree.search == "'cassidy':2B,10C,12C,14C,16C 'cree':5C,9C 'mc':4C,8C 'mccree':1A,6C,7C 'outlaw':3B,11C,13C,15C,17C"  # noqa: E501
     assert mccree.search_updated_at == now
+    # fmt: on
 
-    assert soldier.search == "'jack':4C 'jackmorrison':2B 'morrison':5C 'solider':3C 'solider76':1A"
+    # fmt: off
+    assert soldier.search == "'jack':7C,11C 'jackmorrison':2B,9C,10C 'morrison':8C,12C 'solider':4C,6C 'solider76':1A,3C,5C"  # noqa: E501
+    # fmt: on
+
     assert soldier.search_updated_at == now
 
-    assert roadhog.search == "'roadhog':1A,2C"
+    assert roadhog.search == "'roadhog':1A,2C,3C,4C,5C"
     assert roadhog.search_updated_at == now
 
     assert already_updated_profile.search is None
@@ -147,13 +152,13 @@ def test_update_search_vector_for_aliases(
     for alias in [mccree, soldier, roadhog, already_updated_alias]:
         alias.refresh_from_db()
 
-    assert mccree.search == "'cree':3B 'mc':2B 'mccree':1A"
+    assert mccree.search == "'cree':3B,7B 'mc':2B,6B 'mccree':1A,4B,5B"
     assert mccree.search_updated_at == now
 
-    assert soldier.search == "'solider':2B 'solider76':1A"
+    assert soldier.search == "'solider':3B,5B 'solider76':1A,2B,4B"
     assert soldier.search_updated_at == now
 
-    assert roadhog.search == "'roadhog':1A,2B"
+    assert roadhog.search == "'roadhog':1A,2B,3B,4B,5B"
     assert roadhog.search_updated_at == now
 
     assert already_updated_alias.search is None
@@ -218,13 +223,17 @@ def test_update_search_vector_for_servers(
     for server in [myt, legends, sog]:
         server.refresh_from_db()
 
-    assert myt.search == "'myt':1A,4B 'svr':3A,6B 'team':2A,5B"
+    assert myt.search == "'myt':1A,4B,7B,10B,13B 'svr':3A,6B,9B,12B,15B 'team':2A,5B,8B,11B,14B"
     assert myt.search_updated_at == now
 
-    assert legends.search == "'cooo':8B 'cooop':4A 'die':3A,7B 'legends':1A,5B 'never':2A,6B 'p':9B"
+    # fmt: off
+    assert legends.search == "'cooo':8B,21B 'cooop':4A,13B,17B 'die':3A,7B,12B,16B,20B 'legends':1A,5B,10B,14B,18B 'never':2A,6B,11B,15B,19B 'p':9B,22B"  # noqa: E501
     assert legends.search_updated_at == now
+    # fmt: on
 
-    assert sog.search == "'pro':2A,4B 'sog-team.co.uk':1A,3B"
+    # fmt: off
+    assert sog.search == "'co':9B,14B 'pro':2A,4B,6B,11B,16B 'sog':7B,12B 'sog-team.co.uk':1A,3B,5B 'team':8B,13B 'uk':10B,15B" # noqa: E501
+    # fmt: on
     assert sog.search_updated_at == now
 
     assert already_updated_server.search is None

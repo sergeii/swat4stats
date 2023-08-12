@@ -179,9 +179,12 @@ class ServerManager(models.Manager):
     def update_search_vector(self, *server_ids: int) -> None:
         logger.info("updating search vector for %d servers", len(server_ids))
 
-        vector = SearchVector(
-            "hostname_clean", config="simple", weight="A"
-        ) + normalized_names_search_vector("hostname_clean", config="simple", weight="B")
+        # fmt: off
+        vector = (
+            SearchVector("hostname_clean", config="simple", weight="A")
+            + normalized_names_search_vector("hostname_clean", config="simple", weight="B")
+        )
+        # fmt: on
 
         self.filter(pk__in=server_ids).update(search=vector)
         self.filter(pk__in=server_ids).update(search_updated_at=timezone.now())

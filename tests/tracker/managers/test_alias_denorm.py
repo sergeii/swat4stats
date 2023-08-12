@@ -32,17 +32,17 @@ def test_update_search_vector_for_many_aliases(now_mock, django_assert_num_queri
     [
         (
             "McCree",
-            "'cree':3B 'mc':2B 'mccree':1A",
+            "'cree':3B,7B 'mc':2B,6B 'mccree':1A,4B,5B",
         ),
         (
             "Winston123",
-            "'winston':2B 'winston123':1A",
+            "'winston':3B,5B 'winston123':1A,2B,4B",
         ),
         (
             "WinstonChurchill123",
-            "'churchill':3B 'winston':2B 'winstonchurchill123':1A",
+            "'churchill':7B 'churchill123':3B 'winston':2B,6B 'winstonchurchill':4B 'winstonchurchill123':1A,5B",  # noqa: E501
         ),
-        ("Mercy", "'mercy':1A,2B"),
+        ("Mercy", "'mercy':1A,2B,3B,4B,5B"),
         ("", ""),
     ],
 )

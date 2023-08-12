@@ -1,3 +1,5 @@
+from functools import reduce
+
 from django.contrib.postgres.search import SearchVector
 from django.db.models import Func, TextField, Expression, Value, F
 
@@ -21,22 +23,38 @@ class RegexpReplace(Func):
 def normalized_names_search_vector(
     names_expr: Expression | F, config: str, weight: str
 ) -> SearchVector:
-    return SearchVector(
-        RegexpReplace(
-            RegexpReplace(
-                # replace camel case with spaces,
-                # so that "JohnDoe" becomes "John Doe"
-                names_expr,
-                r"([a-z])([A-Z])",
-                r"\1 \2",
-                "g",
-            ),
+    norm_whitespace = (r"\s+", " ", "g")
+    norm_camelcase = (r"([a-z])([A-Z])", r"\1 \2", "g")
+    norm_digits = (r"\d+", "", "g")
+    norm_alnum = (r"\W+", " ", "g")
+
+    rules: list[tuple[tuple[str, str, str], ...]] = [
+        # replace camel case with spaces,
+        # so that "JohnDoe" becomes "John Doe"
+        (norm_camelcase,),
+        (
             # remove all digits,
-            # so that "John Doe 123" becomes "John Doe"
-            r"\d+",
-            "",
-            "g",
+            # so that "JohnDoe123" becomes "JohnDoe",
+            norm_digits,
         ),
-        config=config,
-        weight=weight,
-    )
+        (
+            # replace all non-letter characters with spaces,
+            # so that "John-Doe" becomes "John Doe"
+            norm_alnum,
+            norm_whitespace,
+        ),
+        (
+            # finally, apply all rules above in a single pass,
+            # so that "Super.JohnDoe.123" becomes "Super John Doe"
+            norm_camelcase,
+            norm_digits,
+            norm_alnum,
+            norm_whitespace,
+        ),
+    ]
+
+    expressions = [
+        reduce(lambda expr, rule: RegexpReplace(expr, *rule), rule, names_expr) for rule in rules
+    ]
+
+    return SearchVector(*expressions, config=config, weight=weight)

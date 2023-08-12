@@ -214,6 +214,9 @@ class ServerBaseSerializer(serializers.ModelSerializer):
             "hostname",
             "name_clean",
             "status",
+            "first_game_played_at",
+            "latest_game_played_at",
+            "game_count",
         )
         fields: tuple[str, ...] = (
             *read_only_fields,
@@ -228,7 +231,9 @@ class ServerBaseSerializer(serializers.ModelSerializer):
         return None
 
     def get_name_clean(self, obj: Server) -> str:
-        return force_clean_name(obj.name)
+        if not obj.hostname_clean:
+            return obj.address
+        return obj.hostname_clean
 
 
 class ServerFullSerializer(ServerBaseSerializer):
@@ -651,7 +656,7 @@ class PlayerStatSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class SearchResultItemSerializer(serializers.Serializer):
+class ProfileSearchItemSerializer(serializers.Serializer):
     item = ProfileSerializer(source="*")
     headline = serializers.CharField()
     excerpt = serializers.CharField()
@@ -659,3 +664,16 @@ class SearchResultItemSerializer(serializers.Serializer):
     class Meta:
         fields = ("item", "headline", "excerpt")
         read_only_fields = fields
+
+
+class ServerSearchItemSerializer(serializers.Serializer):
+    item = ServerBaseSerializer(source="*")
+    headline = serializers.CharField()
+    excerpt = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ("item", "headline", "excerpt")
+        read_only_fields = fields
+
+    def get_excerpt(self, _: Server) -> None:
+        return None

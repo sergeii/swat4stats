@@ -175,6 +175,9 @@ def test_get_server_detail_for_merged(
         "hostname": "Swat4 Server",
         "name_clean": "Swat4 Server",
         "pinned": False,
+        "game_count": 0,
+        "first_game_played_at": None,
+        "latest_game_played_at": None,
     }
 
     if with_merged_status:

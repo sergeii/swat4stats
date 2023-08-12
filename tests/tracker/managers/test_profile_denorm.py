@@ -127,16 +127,16 @@ def test_update_search_vector_for_many_profiles(now_mock, django_assert_num_quer
         (
             "McCree",
             ["Cassidy", "Cowboy"],
-            "'cassidy':2B,6C 'cowboy':3B,7C 'cree':5C 'mc':4C 'mccree':1A",
+            "'cassidy':2B,10C,12C,14C,16C 'cowboy':3B,11C,13C,15C,17C 'cree':5C,9C 'mc':4C,8C 'mccree':1A,6C,7C",  # noqa: E501
         ),
         (
             "Winston123",
             ["Winston", "Churchill"],
-            "'churchill':3B,6C 'winston':2B,4C,5C 'winston123':1A",
+            "'churchill':3B,9C,11C,13C,15C 'winston':2B,5C,7C,8C,10C,12C,14C 'winston123':1A,4C,6C",
         ),
-        (None, ["Mercy", "Angela"], "'angela':2B,4C 'mercy':1B,3C"),
-        ("Mercy", [], "'mercy':1A,2C"),
-        ("Mercy", None, "'mercy':1A,2C"),
+        (None, ["Mercy", "Angela"], "'angela':2B,4C,6C,8C,10C 'mercy':1B,3C,5C,7C,9C"),
+        ("Mercy", [], "'mercy':1A,2C,3C,4C,5C"),
+        ("Mercy", None, "'mercy':1A,2C,3C,4C,5C"),
         (None, None, ""),
     ],
 )

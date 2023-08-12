@@ -13,7 +13,7 @@ def now():
 
 
 @pytest.fixture
-def update_search_vector():
+def update_search_vector_for_players():
     def updater():
         profile_ids = Profile.objects.values_list("pk", flat=True)
         Profile.objects.denorm_alias_names(*profile_ids)
@@ -26,7 +26,7 @@ def update_search_vector():
 
 
 @pytest.fixture(autouse=True)
-def _setup_profiles(now, db, update_search_vector):
+def _setup_players(now, db, update_search_vector_for_players):
     today = now
     yesterday = now - timezone.timedelta(days=1)
     two_days_ago = now - timezone.timedelta(days=2)
@@ -76,13 +76,13 @@ def _setup_profiles(now, db, update_search_vector):
     thrall = ProfileFactory(name="|WOW|Thrall", country="US", last_seen_at=four_days_ago)
     AliasFactory(profile=thrall, name="|WOW|Thrall", isp__country="US")
 
-    update_search_vector()
+    update_search_vector_for_players()
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_search_no_filters(api_client, django_assert_max_num_queries):
+def test_search_players_no_filters(api_client, django_assert_max_num_queries):
     with django_assert_max_num_queries(3):
-        resp = api_client.get("/api/search/")
+        resp = api_client.get("/api/search/players/")
 
     assert resp.status_code == 200
 
@@ -181,16 +181,16 @@ def test_search_no_filters(api_client, django_assert_max_num_queries):
     ],
 )
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_search_ordering(api_client, query_params, expected_names):
-    resp = api_client.get("/api/search/", query_params)
+def test_search_players_ordering(api_client, query_params, expected_names):
+    resp = api_client.get("/api/search/players/", query_params)
     assert resp.status_code == 200
     names = [obj["item"]["name"] for obj in resp.data["results"]]
     assert names == expected_names
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_search_pagination_no_filters(api_client):
-    resp = api_client.get("/api/search/?limit=7")
+def test_search_players_pagination_no_filters(api_client):
+    resp = api_client.get("/api/search/players/?limit=7")
 
     assert resp.status_code == 200
 
@@ -206,7 +206,7 @@ def test_search_pagination_no_filters(api_client):
     ]
 
     next_url = urllib.parse.urlparse(resp.data["next"])
-    assert next_url.path == "/api/search/"
+    assert next_url.path == "/api/search/players/"
     assert next_url.query == "limit=7&offset=7"
 
     resp = api_client.get(resp.data["next"])
@@ -219,7 +219,7 @@ def test_search_pagination_no_filters(api_client):
     assert resp.data["next"] is None
 
     prev_url = urllib.parse.urlparse(resp.data["previous"])
-    assert prev_url.path == "/api/search/"
+    assert prev_url.path == "/api/search/players/"
     assert prev_url.query == "limit=7"
 
     resp = api_client.get(resp.data["previous"])
@@ -260,8 +260,8 @@ def test_search_pagination_no_filters(api_client):
     ],
 )
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_search_by_country(api_client, country, names):
-    resp = api_client.get(f"/api/search/?country={country}")
+def test_search_players_by_country(api_client, country, names):
+    resp = api_client.get(f"/api/search/players/?country={country}")
     assert resp.status_code == 200
     assert [obj["item"]["name"] for obj in resp.data["results"]] == names
 
@@ -275,18 +275,19 @@ def test_search_by_country(api_client, country, names):
         ("Tracer", ["OW|Tracer", "T-racer"]),
         ("tracer", ["OW|Tracer", "T-racer"]),
         ("ow tracer", ["OW|Tracer"]),
-        ("ow", ["OW|Hanzo", "OW|Winston", "OW|Tracer", "OW|Mercy"]),
+        ("ow", ["OW|Tracer", "OW|Hanzo", "OW|Winston", "OW|Mercy"]),
         ("winston", ["OW|Winston", "WinstonChurchill", "Winston123"]),
         ("Churchill", ["WinstonChurchill"]),
         ("Church", []),
         ("Mercy", ["OW|Mercy", "Genji"]),
         ("Mercy Heal Me", ["Genji"]),
     ],
+    ids=str,
 )
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_search_by_name(api_client, django_assert_max_num_queries, search_q, names):
+def test_search_players_by_name(api_client, django_assert_max_num_queries, search_q, names):
     with django_assert_max_num_queries(3):
-        resp = api_client.get(f"/api/search/?q={search_q}")
+        resp = api_client.get(f"/api/search/players/?q={search_q}")
     assert resp.status_code == 200
     assert [obj["item"]["name"] for obj in resp.data["results"]] == names
 
@@ -298,18 +299,18 @@ def test_search_by_name(api_client, django_assert_max_num_queries, search_q, nam
         ("Tracer", "gb", ["OW|Tracer", "T-racer"]),
         ("tracer", "gb", ["OW|Tracer", "T-racer"]),
         ("ow tracer", "gb", ["OW|Tracer"]),
-        ("ow", "gb", ["OW|Winston", "OW|Tracer"]),
+        ("ow", "gb", ["OW|Tracer", "OW|Winston"]),
         ("winston", "gb", ["OW|Winston", "WinstonChurchill"]),
         ("ow", "us", []),
         ("wow", "us", ["|WOW|Thrall"]),
     ],
 )
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_search_by_name_and_country(
+def test_search_players_by_name_and_country(
     api_client, django_assert_max_num_queries, search_q, country, names
 ):
     with django_assert_max_num_queries(3):
-        resp = api_client.get(f"/api/search/?q={search_q}&country={country}")
+        resp = api_client.get(f"/api/search/players/?q={search_q}&country={country}")
     assert resp.status_code == 200
     assert [obj["item"]["name"] for obj in resp.data["results"]] == names
 
@@ -322,8 +323,8 @@ def test_search_by_name_and_country(
     ],
 )
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_search_relevance(api_client, search_q, names):
-    resp = api_client.get(f"/api/search/?q={search_q}")
+def test_search_players_relevance(api_client, search_q, names):
+    resp = api_client.get(f"/api/search/players/?q={search_q}")
     assert resp.status_code == 200
     assert [obj["item"]["name"] for obj in resp.data["results"]] == names
 
@@ -332,10 +333,10 @@ def test_search_relevance(api_client, search_q, names):
     "search_q, headline, excerpt",
     [
         ("tracer", "OW|<b>Tracer</b>", "<b>Tracer</b>"),
-        ("OW|Tracer", "<b>OW</b>|<b>Tracer</b>", None),
-        ("Tracer ow", "<b>OW</b>|<b>Tracer</b>", None),
-        ("|OW|Tracer", "<b>OW</b>|<b>Tracer</b>", None),
-        ("ow tracer", "<b>OW</b>|<b>Tracer</b>", None),
+        ("OW|Tracer", "<b>OW</b>|<b>Tracer</b>", "<OW><b>Tracer</b>"),
+        ("Tracer ow", "<b>OW</b>|<b>Tracer</b>", "<OW><b>Tracer</b>"),
+        ("|OW|Tracer", "<b>OW</b>|<b>Tracer</b>", "<OW><b>Tracer</b>"),
+        ("ow tracer", "<b>OW</b>|<b>Tracer</b>", "<OW><b>Tracer</b>"),
         ("t racer", "T-<b>racer</b>", None),
         ("mercy", "OW|<b>Mercy</b>", None),
         ("winston", "OW|<b>Winston</b>", "WinstonTheScientist"),
@@ -344,8 +345,8 @@ def test_search_relevance(api_client, search_q, names):
     ],
 )
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_search_headline(api_client, search_q, headline, excerpt):
-    resp = api_client.get(f"/api/search/?q={search_q}")
+def test_search_players_headline(api_client, search_q, headline, excerpt):
+    resp = api_client.get(f"/api/search/players/?q={search_q}")
     assert resp.status_code == 200
     first_match = resp.data["results"][0]
     assert first_match["headline"] == headline
