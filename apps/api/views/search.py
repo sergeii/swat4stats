@@ -24,7 +24,11 @@ class SearchPlayersView(ListAPIView):
     ordering = "-last_seen_at"
 
     def get_queryset(self) -> QuerySet[Profile]:
-        return Profile.objects.select_related("loadout").filter(last_seen_at__isnull=False)
+        return (
+            Profile.objects.using("replica")
+            .select_related("loadout")
+            .filter(last_seen_at__isnull=False)
+        )
 
 
 class SearchServersView(ListAPIView):
@@ -38,4 +42,4 @@ class SearchServersView(ListAPIView):
     ordering = "-latest_game_played_at"
 
     def get_queryset(self) -> QuerySet[Server]:
-        return Server.objects.filter(latest_game_played_at__isnull=False)
+        return Server.objects.using("replica").filter(latest_game_played_at__isnull=False)
