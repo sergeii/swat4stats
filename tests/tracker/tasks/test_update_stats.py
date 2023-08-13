@@ -6,15 +6,14 @@ from django.db.models import Q
 from django.utils import timezone
 from pytz import UTC
 
-from apps.tracker.factories import (
-    ProfileFactory,
-    PlayerFactory,
-    PlayerStatsFactory,
-    MapFactory,
-    GametypeStatsFactory,
-)
 from apps.tracker.models import PlayerStats, MapStats, GametypeStats
 from apps.tracker.tasks import update_player_stats
+from tests.factories.tracker import (
+    ProfileFactory,
+    PlayerFactory,
+    MapFactory,
+)
+from tests.factories.stats import PlayerStatsFactory, GametypeStatsFactory
 
 
 @pytest.fixture

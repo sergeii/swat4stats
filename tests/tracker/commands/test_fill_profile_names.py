@@ -1,7 +1,7 @@
 import pytest
 from django.core.management import call_command
 
-from apps.tracker.factories import AliasFactory, ProfileFactory
+from tests.factories.tracker import AliasFactory, ProfileFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])

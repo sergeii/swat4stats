@@ -136,10 +136,21 @@ class ProfileManager(models.Manager):
 
         # step 3: name+country lookup against the recent players
         if can_use_name and isp and isp.country:
-            steps.append({"recent": True, "name__iexact": name, "isp__country": isp.country})
+            steps.append(
+                {
+                    "recent": True,  # type: ignore[dict-item]
+                    "name__iexact": name,
+                    "isp__country": isp.country,
+                }
+            )
 
         # step 4: ip lookup against the recent players
-        steps.append({"recent": True, "player__ip": ip_address})
+        steps.append(
+            {
+                "recent": True,  # type: ignore[dict-item]
+                "player__ip": ip_address,
+            }
+        )
 
         return steps
 
@@ -385,19 +396,22 @@ class ProfileManager(models.Manager):
         per_server_stats = queryset.aggregate_stats_by_server()
         per_weapon_stats = queryset.aggregate_stats_by_weapon()
 
-        save_kwargs = {"profile": profile, "year": year}
-
         with transaction.atomic(durable=True):
-            PlayerStats.objects.save_stats(player_stats, **save_kwargs)
-            MapStats.objects.save_grouped_stats(per_map_stats, grouping_key="map_id", **save_kwargs)
+            PlayerStats.objects.save_stats(player_stats, profile=profile, year=year)
+            MapStats.objects.save_grouped_stats(
+                per_map_stats,
+                grouping_key="map_id",
+                profile=profile,
+                year=year,
+            )
             GametypeStats.objects.save_grouped_stats(
-                per_gametype_stats, grouping_key="gametype", **save_kwargs
+                per_gametype_stats, grouping_key="gametype", profile=profile, year=year
             )
             ServerStats.objects.save_grouped_stats(
-                per_server_stats, grouping_key="server_id", **save_kwargs
+                per_server_stats, grouping_key="server_id", profile=profile, year=year
             )
             WeaponStats.objects.save_grouped_stats(
-                per_weapon_stats, grouping_key="weapon", **save_kwargs
+                per_weapon_stats, grouping_key="weapon", profile=profile, year=year
             )
 
     @classmethod
@@ -547,17 +561,29 @@ class ProfileManager(models.Manager):
     ) -> None:
         from apps.tracker.models import ServerStats
 
-        rank_kwargs = {"year": year, "filters": filters}
         ServerStats.objects.rank(
-            cats=["spm_ratio"], qualify={"time": settings.TRACKER_MIN_TIME}, **rank_kwargs
+            cats=["spm_ratio"],
+            qualify={"time": settings.TRACKER_MIN_TIME},
+            year=year,
+            filters=filters,
         )
         ServerStats.objects.rank(
-            cats=["spr_ratio"], qualify={"games": settings.TRACKER_MIN_GAMES}, **rank_kwargs
+            cats=["spr_ratio"],
+            qualify={"games": settings.TRACKER_MIN_GAMES},
+            year=year,
+            filters=filters,
         )
         ServerStats.objects.rank(
-            cats=["kd_ratio"], qualify={"kills": settings.TRACKER_MIN_KILLS}, **rank_kwargs
+            cats=["kd_ratio"],
+            qualify={"kills": settings.TRACKER_MIN_KILLS},
+            year=year,
+            filters=filters,
         )
-        ServerStats.objects.rank(exclude_cats=["spm_ratio", "spr_ratio", "kd_ratio"], **rank_kwargs)
+        ServerStats.objects.rank(
+            exclude_cats=["spm_ratio", "spr_ratio", "kd_ratio"],
+            year=year,
+            filters=filters,
+        )
 
     def denorm_alias_names(self, *profile_ids: int) -> None:
         from apps.tracker.models import Alias  # noqa: F811

@@ -31,7 +31,7 @@ class APIWhoisView(generic.View):
         try:
             messages = self.handle(whois_args)
         except APIError as exc:
-            return APIResponse.from_error([exc.message])
+            return APIResponse.from_error([exc.message] if exc.message else None)
         else:
             return APIResponse.from_success(messages)
 
@@ -55,7 +55,7 @@ class APIWhoisView(generic.View):
             ),
         ]
 
-    def handle_whois(self, arg: str) -> dict[str, Any]:
+    def handle_whois(self, arg: str | None) -> dict[str, Any]:
         """
         Handle a whois command
 
@@ -63,8 +63,11 @@ class APIWhoisView(generic.View):
                     the value is expected to be a player name along with
                     an IP address delimited by \t (tab character)
         """
+        if not arg:
+            raise APIError(_("whois command requires an argument"))
+
         try:
-            name, ip = arg.split("\t")
+            name, ip = arg.split("\t", maxsplit=1)
         except Exception as exc:
             logger.error("invalid whois args %s: %s", arg, exc)
             raise APIError(

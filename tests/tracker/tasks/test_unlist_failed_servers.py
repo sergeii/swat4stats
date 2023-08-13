@@ -1,6 +1,5 @@
-from apps.tracker.factories import ServerFactory
-
 from apps.tracker.tasks import unlist_failed_servers
+from tests.factories.tracker import ServerFactory
 
 
 def test_unlist_failed_servers(db, django_assert_num_queries, redis, settings):

@@ -3,8 +3,8 @@ from ipaddress import IPv4Address
 
 import pytest
 
-from apps.geoip.factories import ISPFactory
 from apps.geoip.models import IP, ISP
+from tests.factories.geoip import ISPFactory
 
 
 @pytest.fixture(autouse=True)

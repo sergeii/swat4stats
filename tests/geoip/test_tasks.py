@@ -5,10 +5,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from pytz import UTC
 
-from apps.geoip.factories import ISPFactory, IPFactory
 from apps.geoip.models import IP, ISP
 from apps.geoip.tasks import delete_expired_ips
 from apps.utils.test import freeze_timezone_now
+from tests.factories.geoip import ISPFactory, IPFactory
 
 
 def test_expired_ips_are_deleted(db):

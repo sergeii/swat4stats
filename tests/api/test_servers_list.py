@@ -1,4 +1,5 @@
-from apps.tracker.factories import ServerFactory, ServerStatusFactory
+from tests.factories.tracker import ServerFactory
+from tests.factories.query import ServerStatusFactory
 
 
 def test_get_server_list(db, api_client):

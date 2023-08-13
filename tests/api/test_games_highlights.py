@@ -1,4 +1,4 @@
-from apps.tracker.factories import GameFactory, PlayerFactory, WeaponFactory
+from tests.factories.tracker import GameFactory, PlayerFactory, WeaponFactory
 
 
 def test_get_game_highlights_unknown_404(db, api_client):

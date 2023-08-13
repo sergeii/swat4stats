@@ -23,7 +23,7 @@ class MapStatsAdmin(admin.ModelAdmin):
     list_display = ("profile", "category", "year", "map", "points", "position")
     list_filter = (("map", admin.RelatedOnlyFieldListFilter), "category", "year")
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self, *args: Any, **kwargs: Any) -> QuerySet[MapStats]:
         return super().get_queryset(*args, **kwargs).select_related("map", "profile")
 
 
@@ -38,5 +38,5 @@ class ServerStatsAdmin(admin.ModelAdmin):
     list_display = ("profile", "category", "year", "server", "points", "position")
     list_filter = (("server", admin.RelatedOnlyFieldListFilter), "category", "year")
 
-    def get_queryset(self, *args: Any, **kwargs: Any) -> QuerySet:
+    def get_queryset(self, *args: Any, **kwargs: Any) -> QuerySet[ServerStats]:
         return super().get_queryset(*args, **kwargs).select_related("server", "profile")

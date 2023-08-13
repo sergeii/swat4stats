@@ -3,14 +3,14 @@ from datetime import datetime
 import pytest
 from pytz import UTC
 
-from apps.tracker.factories import (
+from tests.factories.tracker import (
     MapFactory,
     GameFactory,
     ServerFactory,
     PlayerFactory,
-    RandomLoadoutFactory,
     ProfileFactory,
 )
+from tests.factories.loadout import RandomLoadoutFactory
 
 
 @pytest.fixture

@@ -3,10 +3,10 @@ from datetime import datetime
 import pytest
 from pytz import UTC
 
-from apps.tracker.factories import GameFactory, ServerFactory
 from apps.tracker.models import Server
 from apps.tracker.utils.misc import force_clean_name
 from apps.utils.test import freeze_timezone_now
+from tests.factories.tracker import GameFactory, ServerFactory
 
 
 def test_denorm_game_stats_for_servers(db):

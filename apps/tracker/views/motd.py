@@ -98,7 +98,7 @@ class MotdLeaderboardForm(MotdBaseForm):
         if gametype_slug := cleaned_data.get("gametype"):
             gametype = self.gametypes[gametype_slug]
         else:
-            gametype = self._guess_gametype_by_category(category)
+            gametype = self._guess_gametype_by_category(category)  # type: ignore[assignment]
 
         cleaned_data.update(
             {

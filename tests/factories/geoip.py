@@ -2,7 +2,6 @@ import random
 from ipaddress import IPv4Network, IPv4Address
 
 import factory
-import factory.fuzzy
 
 from apps.geoip.models import IP, ISP
 

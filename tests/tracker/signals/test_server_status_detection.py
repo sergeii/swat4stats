@@ -4,8 +4,6 @@ from unittest import mock
 import pytest
 import pytz
 
-from apps.geoip.factories import ISPFactory
-from apps.tracker.factories import ServerFactory, ListedServerFactory, ServerQueryFactory
 from apps.tracker.models import Server
 from apps.tracker.signals import (
     failed_servers_detected,
@@ -13,6 +11,9 @@ from apps.tracker.signals import (
 )
 from apps.tracker.tasks import refresh_listed_servers
 from apps.utils.test import freeze_timezone_now
+from tests.factories.geoip import ISPFactory
+from tests.factories.tracker import ServerFactory, ListedServerFactory
+from tests.factories.query import ServerQueryFactory
 
 
 @pytest.fixture

@@ -5,19 +5,20 @@ import pytest
 from django.utils import timezone
 from pytz import UTC
 
-from apps.geoip.factories import ISPFactory
 from apps.geoip.models import ISP
 from apps.tracker.exceptions import NoProfileMatchError
-from apps.tracker.factories import (
+
+from apps.tracker.managers.profile import is_name_popular
+from apps.tracker.models import Profile, Alias
+from apps.utils.test import freeze_timezone_now
+from tests.factories.geoip import ISPFactory
+from tests.factories.tracker import (
     ServerFactory,
     GameFactory,
     PlayerFactory,
     ProfileFactory,
     AliasFactory,
 )
-from apps.tracker.managers.profile import is_name_popular
-from apps.tracker.models import Profile, Alias
-from apps.utils.test import freeze_timezone_now
 
 
 def test_match_will_match_against_known_pair_of_name_ip(db):

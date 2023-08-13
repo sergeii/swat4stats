@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 from apps.news.entities import RendererType
-from apps.news.factories import ArticleFactory
+from tests.factories.news import ArticleFactory
 
 
 def test_get_articles(db, api_client):

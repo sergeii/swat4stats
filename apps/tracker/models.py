@@ -1,5 +1,5 @@
 import logging
-from typing import ClassVar
+from typing import ClassVar, Any
 
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchVectorField
@@ -82,7 +82,7 @@ class Server(models.Model):
     def __str__(self) -> str:
         return self.name
 
-    def save(self, *args, **kwargs) -> None:
+    def save(self, *args: Any, **kwargs: Any) -> None:
         self.clean()
         # set default status port
         if not self.status_port:
@@ -122,15 +122,15 @@ class Map(models.Model):
         return self.name
 
     @cached_property
-    def slug(self):
+    def slug(self) -> str:
         return slugify(self.name)
 
     @cached_property
-    def preview_picture(self):
+    def preview_picture(self) -> str:
         return map_background_picture(self.name, style="preview")
 
     @cached_property
-    def background_picture(self):
+    def background_picture(self) -> str:
         return map_background_picture(self.name, style="background")
 
 
@@ -170,7 +170,7 @@ class Game(models.Model):
         return f"{self.date_finished} - {self.time} - {self.outcome}"
 
     @cached_property
-    def is_coop_game(self):
+    def is_coop_game(self) -> bool:
         return self.gametype in (GameType.co_op, GameType.co_op_qmm)
 
     def get_neighboring_games(self) -> GameNeighbors:
@@ -259,11 +259,11 @@ class Weapon(models.Model):
         return f"{self.name} of player {self.player_id} ({self.pk})"
 
     @cached_property
-    def is_grenade_weapon(self):
+    def is_grenade_weapon(self) -> bool:
         return self.name in self._grenade_weapons
 
     @cached_property
-    def accuracy(self):
+    def accuracy(self) -> int:
         min_shots = (
             settings.TRACKER_MIN_GAME_GRENADES
             if self.is_grenade_weapon
@@ -366,22 +366,22 @@ class Player(models.Model):
         return f"{self.name}, {self.ip}"
 
     @cached_property
-    def profile(self):
+    def profile(self) -> "Profile":
         return self.alias.profile
 
     @cached_property
-    def name(self):
+    def name(self) -> str:
         return self.alias.name
 
     @cached_property
-    def country(self):
+    def country(self) -> str | None:
         try:
             return self.alias.isp.country
         except AttributeError:
             return None
 
     @cached_property
-    def special(self):
+    def special(self) -> int:
         return (
             self.vip_escapes
             + self.vip_captures
@@ -391,7 +391,7 @@ class Player(models.Model):
         )
 
     @cached_property
-    def coop_enemy_incaps_and_kills(self):
+    def coop_enemy_incaps_and_kills(self) -> int:
         return self.coop_enemy_incaps + self.coop_enemy_kills
 
     @cached_property
@@ -399,7 +399,7 @@ class Player(models.Model):
         return [weapon for weapon in self.weapons.all() if weapon.name in self._gun_weapon_names]
 
     @cached_property
-    def gun_weapon_shots(self):
+    def gun_weapon_shots(self) -> int:
         """
         Calculate the number of rounds fired for both primary and secondary weapons.
         """

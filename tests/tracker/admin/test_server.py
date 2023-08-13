@@ -3,8 +3,8 @@ from unittest import mock
 import pytest
 from django.urls import reverse
 
-from apps.tracker.factories import ServerFactory
 from apps.tracker.tasks import merge_servers
+from tests.factories.tracker import ServerFactory
 
 
 @pytest.fixture

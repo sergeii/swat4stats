@@ -1,5 +1,5 @@
-from apps.tracker.factories import ServerFactory, GameFactory
 from apps.tracker.tasks import merge_servers
+from tests.factories.tracker import ServerFactory, GameFactory
 
 
 def test_merge_servers_task(db):

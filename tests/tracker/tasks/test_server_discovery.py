@@ -1,8 +1,9 @@
 from django.test import override_settings
 
-from apps.tracker.factories import ServerFactory, ServerQueryFactory
 from apps.tracker.models import Server
 from apps.tracker.tasks import discover_published_servers
+from tests.factories.tracker import ServerFactory
+from tests.factories.query import ServerQueryFactory
 
 
 def test_server_discovery(db, create_httpservers, create_udpservers):

@@ -3,15 +3,15 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from apps.tracker.factories import (
+from apps.tracker.models import ServerStats
+from apps.utils.test import freeze_timezone_now
+from tests.factories.tracker import (
     ServerFactory,
     ProfileFactory,
-    ServerStatsFactory,
     PlayerFactory,
     GameFactory,
 )
-from apps.tracker.models import ServerStats
-from apps.utils.test import freeze_timezone_now
+from tests.factories.stats import ServerStatsFactory
 
 
 @pytest.fixture

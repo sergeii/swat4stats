@@ -1,6 +1,6 @@
 from django.core.management import call_command
 
-from apps.tracker.factories import PlayerStatsFactory
+from tests.factories.stats import PlayerStatsFactory
 
 
 def test_convert_stats(db):

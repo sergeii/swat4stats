@@ -6,23 +6,25 @@ from django.utils.timezone import now
 from pytz import UTC
 import pytest
 
-from apps.geoip.factories import ISPFactory
-from apps.tracker.factories import (
-    ServerFactory,
-    GameFactory,
-    ServerGameDataFactory,
-    PlayerGameDataFactory,
-    SimplePlayerGameDataFactory,
-    AliasFactory,
-    ProfileFactory,
-    WeaponGameDataFactory,
-    ProcedureGameDataFactory,
-    ObjectiveGameDataFactory,
-    PlayerFactory,
-    LoadoutFactory,
-)
 from apps.tracker.models import Game, Profile, Player, Server
 from apps.utils.test import freeze_timezone_now
+from tests.factories.geoip import ISPFactory
+from tests.factories.tracker import (
+    ServerFactory,
+    GameFactory,
+    AliasFactory,
+    ProfileFactory,
+    PlayerFactory,
+)
+from tests.factories.loadout import LoadoutFactory
+from tests.factories.streaming import (
+    WeaponGameDataFactory,
+    SimplePlayerGameDataFactory,
+    PlayerGameDataFactory,
+    ObjectiveGameDataFactory,
+    ProcedureGameDataFactory,
+    ServerGameDataFactory,
+)
 
 
 @pytest.fixture

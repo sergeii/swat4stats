@@ -1,6 +1,6 @@
 from django.core.management import call_command
 
-from apps.tracker.factories import ServerFactory
+from tests.factories.tracker import ServerFactory
 
 
 def test_fill_status_port(db):

@@ -36,7 +36,7 @@ class SearchVectorModel(StrEnum):
 
     @classmethod
     def from_model(cls, model: type[DjangoModel]) -> "SearchVectorModel":
-        mapping: dict[type[DjangoModel] : "SearchVectorModel"] = {
+        mapping: dict[type[DjangoModel], "SearchVectorModel"] = {
             Profile: cls.profile,
             Alias: cls.alias,
             Server: cls.server,

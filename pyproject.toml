@@ -121,7 +121,7 @@ target-version = "py311"
 
 [tool.ruff.per-file-ignores]
 "apps/*/migrations/*.py" = ["E501", "RUF012"]
-"factories.py" = ["N805", "RUF012"]
+"tests/factories/*.py" = ["N805", "RUF012"]
 
 [tool.ruff.flake8-pytest-style]
 parametrize-names-type = "csv"

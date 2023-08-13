@@ -3,8 +3,8 @@ import urllib.parse
 import pytest
 from django.utils import timezone
 
-from apps.tracker.factories import ServerFactory
 from apps.tracker.models import Server
+from tests.factories.tracker import ServerFactory
 
 
 @pytest.fixture

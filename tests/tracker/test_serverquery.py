@@ -3,11 +3,10 @@ from collections import OrderedDict
 
 import pytest
 
-from apps.tracker.factories import ServerFactory, ServerQueryFactory
 from apps.tracker.utils import aio
 from apps.tracker.aio_tasks.serverquery import ServerStatusTask, ResponseMalformedError
-
-pytestmark = pytest.mark.django_db
+from tests.factories.tracker import ServerFactory
+from tests.factories.query import ServerQueryFactory
 
 
 def query_servers(*addresses):
@@ -29,6 +28,7 @@ def query_servers(*addresses):
     return list(result.values())
 
 
+@pytest.mark.django_db()
 def test_serverquery_async_task_pool(create_udpservers):
     with create_udpservers(3) as udp_servers:
         result = {}
@@ -141,6 +141,7 @@ def test_adminmod_serverquery_is_supported(udp_server):
     assert data["players"][2]["score"] == "1"
 
 
+@pytest.mark.django_db()
 def test_gs1_serverquery_is_supported(udp_server):
     payload = [
         b"\\player_3\\Morgan\\score_3\\6\\ping_3\\53\\team_3\\1\\kills_3\\6\\deaths_3\\7"
@@ -175,6 +176,7 @@ def test_gs1_serverquery_is_supported(udp_server):
     assert data["players"][12]["ping"] == "999"
 
 
+@pytest.mark.django_db()
 def test_original_swat_protocol_is_supported(udp_server):
     payload = [
         b"\\hostname\\[C=FFFF00]WWW.HOUSEOFPAiN.TK (Antics)\\numplayers\\4"

@@ -2,8 +2,8 @@ import factory
 import pytest
 from django.db.models.signals import post_save
 
-from apps.geoip.factories import ISPFactory
 from apps.tracker.models import Server
+from tests.factories.geoip import ISPFactory
 
 
 @pytest.fixture

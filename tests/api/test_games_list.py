@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 from pytz import UTC
 
-from apps.tracker.factories import MapFactory, GameFactory, ServerFactory
+from tests.factories.tracker import MapFactory, GameFactory, ServerFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])

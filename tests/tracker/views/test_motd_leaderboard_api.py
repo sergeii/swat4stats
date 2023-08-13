@@ -5,10 +5,10 @@ from urllib.parse import urlencode
 import pytest
 from pytz import UTC
 
-from apps.tracker.factories import PlayerStatsFactory, GametypeStatsFactory
 from apps.tracker.views import motd as motd_views
 from apps.tracker.utils.misc import force_clean_name
 from apps.utils.test import freeze_timezone_now
+from tests.factories.stats import PlayerStatsFactory, GametypeStatsFactory
 
 
 def parse_content(content: bytes) -> list[str]:

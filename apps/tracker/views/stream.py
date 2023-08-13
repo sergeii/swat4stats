@@ -35,7 +35,7 @@ class DataStreamView(generic.View):
             return APIResponse.from_error(exc.message)
 
     @transaction.atomic
-    def handle(self, request, game_data: dict[str, Any]) -> HttpResponse:
+    def handle(self, request: HttpRequest, game_data: dict[str, Any]) -> HttpResponse:
         server = self._get_or_create_server(
             ip=request.META["REAL_REMOTE_ADDR"], port=game_data["port"]
         )

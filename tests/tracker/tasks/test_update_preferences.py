@@ -4,9 +4,10 @@ from unittest import mock
 import pytest
 from django.utils import timezone
 
-from apps.tracker.factories import ProfileFactory, LoadoutFactory, PlayerFactory
 from apps.tracker.tasks import update_player_preferences, update_player_preferences_for_profile
 from apps.utils.test import freeze_timezone_now
+from tests.factories.tracker import ProfileFactory, PlayerFactory
+from tests.factories.loadout import LoadoutFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])

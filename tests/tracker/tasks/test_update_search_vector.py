@@ -4,11 +4,11 @@ import pytest
 from django.utils import timezone
 from pytz import UTC
 
-from apps.tracker.factories import ProfileFactory, AliasFactory, ServerFactory
 from apps.tracker.models import Alias
 from apps.tracker.tasks import update_search_vector, update_search_vector_for_model
 from apps.tracker.tasks.search import SearchVectorModel
 from apps.utils.test import freeze_timezone_now
+from tests.factories.tracker import ProfileFactory, AliasFactory, ServerFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])

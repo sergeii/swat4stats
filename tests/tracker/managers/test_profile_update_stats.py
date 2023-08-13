@@ -4,13 +4,6 @@ from functools import partial
 import pytest
 from pytz import UTC
 
-from apps.tracker.factories import (
-    PlayerFactory,
-    ProfileFactory,
-    MapFactory,
-    WeaponFactory,
-    ServerFactory,
-)
 from apps.tracker.models import (
     MapStats,
     PlayerStats,
@@ -18,6 +11,13 @@ from apps.tracker.models import (
     ServerStats,
     GametypeStats,
     Profile,
+)
+from tests.factories.tracker import (
+    PlayerFactory,
+    ProfileFactory,
+    MapFactory,
+    WeaponFactory,
+    ServerFactory,
 )
 
 

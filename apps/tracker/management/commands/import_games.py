@@ -1,4 +1,6 @@
+import argparse
 from pathlib import Path
+from typing import Any
 
 from django.core.management.base import BaseCommand
 from django.test import RequestFactory
@@ -8,10 +10,10 @@ from apps.tracker.views import DataStreamView
 
 
 class Command(BaseCommand):
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument("path", help="Path to file with urlencoded games")
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         path = options["path"]
         factory = RequestFactory()
         with Path.open(path) as f:

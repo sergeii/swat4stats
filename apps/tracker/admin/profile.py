@@ -36,16 +36,16 @@ class ProfileAdmin(admin.ModelAdmin):
     list_per_page = 20
     inlines: ClassVar[list[admin.TabularInline]] = [AliasInline]
 
-    def earliest_name(self, obj):
+    def earliest_name(self, obj: Profile) -> str:
         return obj.alias_set.first().name
 
-    def latest_name(self, obj):
+    def latest_name(self, obj: Profile) -> str:
         return obj.alias_set.last().name
 
-    def alias_count(self, obj):
+    def alias_count(self, obj: Profile) -> int:
         return obj.alias_set.count()
 
-    def player_count(self, obj):
+    def player_count(self, obj: Profile) -> int:
         return obj.alias_set.aggregate(num=Count("player"))["num"]
 
     def has_delete_permission(self, *args: Any, **kwargs: Any) -> bool:

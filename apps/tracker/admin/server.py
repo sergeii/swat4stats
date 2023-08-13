@@ -7,9 +7,9 @@ from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv4_address
 from django.db.models import QuerySet, Case, When, Value, BooleanField
-from django.http import HttpRequest, QueryDict, HttpResponseRedirect
+from django.http import HttpRequest, QueryDict, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
-from django.urls import path, reverse
+from django.urls import path, reverse, URLPattern
 from django.utils.translation import gettext_lazy as _
 
 from apps.tracker.models import Server
@@ -215,7 +215,7 @@ class ServerAdmin(admin.ModelAdmin):
 
         return HttpResponseRedirect(f"{url}?ids={ids_by_comma}")
 
-    def merge_servers_form(self, request: HttpRequest):
+    def merge_servers_form(self, request: HttpRequest) -> HttpResponse:
         return_url = reverse("admin:tracker_server_changelist")
 
         if not (server_ids_comma := request.GET.get("ids")):
@@ -251,7 +251,7 @@ class ServerAdmin(admin.ModelAdmin):
             {"form": form, "title": _("Merge servers")},
         )
 
-    def get_urls(self):
+    def get_urls(self) -> list[URLPattern]:
         urls = super().get_urls()
         extra_urls = [
             path(

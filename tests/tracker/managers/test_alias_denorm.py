@@ -3,9 +3,9 @@ from datetime import datetime
 import pytest
 from pytz import UTC
 
-from apps.tracker.factories import AliasFactory
 from apps.tracker.models import Alias
 from apps.utils.test import freeze_timezone_now
+from tests.factories.tracker import AliasFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])

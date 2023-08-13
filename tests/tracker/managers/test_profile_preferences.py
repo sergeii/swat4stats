@@ -3,15 +3,11 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from apps.geoip.factories import ISPFactory
-from apps.tracker.factories import (
-    LoadoutFactory,
-    PlayerFactory,
-    ProfileFactory,
-    RandomLoadoutFactory,
-)
 from apps.tracker.models import Profile
 from apps.utils.test import freeze_timezone_now
+from tests.factories.geoip import ISPFactory
+from tests.factories.tracker import PlayerFactory, ProfileFactory
+from tests.factories.loadout import LoadoutFactory, RandomLoadoutFactory
 
 
 @pytest.fixture(autouse=True)

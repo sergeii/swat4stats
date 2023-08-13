@@ -1,7 +1,7 @@
 from django.core.management import call_command
 
-from apps.tracker.factories import ServerGameDataFactory
 from apps.tracker.models import Game
+from tests.factories.streaming import ServerGameDataFactory
 
 
 def test_import_games(db, tmpdir):
