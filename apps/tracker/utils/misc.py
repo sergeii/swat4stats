@@ -1,7 +1,9 @@
 import re
 import hashlib
 import logging
+from datetime import date
 from ipaddress import IPv4Address
+from collections.abc import Iterator
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -74,7 +76,7 @@ def format_name(name: str) -> str:
     return html.mark_safe(name)
 
 
-def iterate_years(start_date, end_date):
+def iterate_years(start_date: date, end_date: date) -> Iterator[date]:
     end_date = force_date(end_date)
     year_day = force_date(start_date).replace(day=1, month=1)
     while True:

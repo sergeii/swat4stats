@@ -98,6 +98,7 @@ INSTALLED_APPS: tuple[str, ...] = (
     "django_countries",
     "django_filters",
     "rest_framework",
+    "drf_yasg",
     "apps.tracker",
     "apps.news",
     "apps.geoip",

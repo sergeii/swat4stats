@@ -19,6 +19,7 @@ from apps.api.views import (
     SearchPlayersView,
     SearchServersView,
 )
+from apps.api.docs import DocsSchemaView
 from apps.tracker.sitemaps import ServerSitemap, ProfileSitemap
 from apps.tracker.views import APIWhoisView, DataStreamView
 from apps.tracker.views.motd import APIMotdLeaderboardView, APILegacySummaryView
@@ -43,6 +44,8 @@ api_router.register("data-popular-mapnames", PopularMapnamesViewSet, basename="p
 api_router.register("data-popular-servers", PopularServersViewSet, basename="popular-servers")
 
 api_urls = [
+    path("docs<format>/", DocsSchemaView.without_ui(cache_timeout=0), name="schema-json"),
+    path("docs/", DocsSchemaView.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
     path("search/players/", SearchPlayersView.as_view()),
     path("search/servers/", SearchServersView.as_view()),
     path(r"", include(api_router.urls)),
@@ -73,10 +76,10 @@ urlpatterns = [
             ]
         ),
     ),
-    # server stream api view
-    path("stream/", csrf_exempt(DataStreamView.as_view()), name="stream"),
     # rest api
     path("api/", include((api_urls, "api"), namespace="api")),
+    # server stream api view
+    path("stream/", csrf_exempt(DataStreamView.as_view()), name="stream"),
     # noop views, for reverse purposes
     re_path(
         r"^player/(?:(?P<year>\d{4})/)?(?:(?P<slug>[^/]+)/)?(?P<profile_id>\d+)/",

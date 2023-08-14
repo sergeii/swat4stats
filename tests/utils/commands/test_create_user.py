@@ -5,11 +5,10 @@ from django.core.management import call_command
 
 def test_create_user(db):
     opts = {
-        "username": "testuser",
         "password": "testpassword",
         "email": "user@example.com",
     }
-    call_command("createuser", **opts)
+    call_command("createuser", "testuser", **opts)
 
     user = User.objects.get(username="testuser")
 
@@ -29,14 +28,13 @@ def test_create_user(db):
 )
 def test_create_staff_user(db, opt_is_staff, db_is_staff):
     opts = {
-        "username": "testuser",
         "password": "testpassword",
         "email": "user@example.com",
     }
     if opt_is_staff is not None:
         opts["is_staff"] = opt_is_staff
 
-    call_command("createuser", **opts)
+    call_command("createuser", "testuser", **opts)
 
     user = User.objects.get(username="testuser")
 
@@ -56,7 +54,6 @@ def test_create_staff_user(db, opt_is_staff, db_is_staff):
 )
 def test_create_superuser(db, opt_is_superuser, db_is_superuser):
     opts = {
-        "username": "testuser",
         "password": "testpassword",
         "email": "user@example.com",
     }
@@ -64,7 +61,7 @@ def test_create_superuser(db, opt_is_superuser, db_is_superuser):
     if opt_is_superuser is not None:
         opts["is_superuser"] = opt_is_superuser
 
-    call_command("createuser", **opts)
+    call_command("createuser", "testuser", **opts)
 
     user = User.objects.get(username="testuser")
 

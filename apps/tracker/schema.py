@@ -1,4 +1,6 @@
 # ruff: noqa: E501, RUF001
+from typing import Any, TypeVar
+
 from voluptuous import Schema, Optional, All, In, Coerce, Range, Boolean, REMOVE_EXTRA, Maybe
 
 from apps.tracker.entities import (
@@ -13,6 +15,8 @@ from apps.tracker.entities import (
     Ammo,
 )
 from apps.utils.schema import Mapping, FallbackMapping, OptionalMapping, DefaultMapping
+
+T = TypeVar("T")
 
 
 teams_encoded: dict[int, str] = {
@@ -263,7 +267,7 @@ mapnames_reversed: dict[str, str] = {
     map_name: map_legacy_id for map_legacy_id, map_name in mapnames_encoded.items()
 }
 
-outcome_encoded: dict[int, str] = {
+outcome_encoded: dict[int, str | None] = {
     0: None,
     1: GameOutcome.swat_bs,
     2: GameOutcome.sus_bs,
@@ -552,7 +556,7 @@ weapon_reversed: dict[str, int] = {
 }
 
 
-def extract_names(encoded_names):
+def extract_names(encoded_names: dict[Any, T]) -> list[T]:
     return [name for _, name in sorted(encoded_names.items(), key=lambda item: int(item[0]))]
 
 
@@ -576,10 +580,10 @@ class ListOrDict:
     Allow a list schema to be used for both lists and enumerated dicts.
     """
 
-    def __init__(self, schema):
+    def __init__(self, schema: list | dict) -> None:
         self.schema = Schema(schema, required=True, extra=REMOVE_EXTRA)
 
-    def __call__(self, value):
+    def __call__(self, value: dict | list) -> list:
         if isinstance(value, dict):
             value = list(value.values())
         return self.schema(value)

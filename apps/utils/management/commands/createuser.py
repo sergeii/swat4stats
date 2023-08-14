@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = "Create a user"  # noqa: A003
 
     def add_arguments(self, parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("--username", required=True)
+        parser.add_argument("username")
         parser.add_argument("--password", required=True)
         parser.add_argument("--email", required=True)
         parser.add_argument("--is-superuser", action="store_true", default=False)
