@@ -129,7 +129,7 @@ def udp_server(request, create_udpservers):
         yield server
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def create_udpservers():
     """
     Yield a generator to create a variable number of udp servers

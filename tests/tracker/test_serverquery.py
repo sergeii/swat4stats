@@ -9,6 +9,12 @@ from tests.factories.tracker import ServerFactory
 from tests.factories.query import ServerQueryFactory
 
 
+@pytest.fixture(scope="session")
+def the_udp_server(create_udpservers):
+    with create_udpservers(1) as servers:
+        yield servers[0]
+
+
 def query_servers(*addresses):
     result = OrderedDict([(query_address, None) for query_address in addresses])
     tasks = []
@@ -68,7 +74,7 @@ def test_serverquery_async_task_pool(create_udpservers):
         assert len(status["players"]) == 15
 
 
-def test_adminmod_serverquery_is_supported(udp_server):
+def test_adminmod_serverquery_is_supported(the_udp_server):
     payload = [
         # last packet comes first and so forth
         b"\\statusresponse\\2\\kills_13\\1\\kills_14\\1\\deaths_1\\1\\deaths_2\\1\\deaths_4\\1\\deaths_5\\1"
@@ -89,8 +95,8 @@ def test_adminmod_serverquery_is_supported(udp_server):
         b"\\Daro\\player_7\\Majos\\player_8\\mi\\player_9\\tony\\player_10\\MENDEZ\\player_11\\ARoXDeviL"
         b"\\player_12\\{FAB}Chry<CPL>\\player_13\\P\\player_14\\xXx\\score_0\\eof\\",
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert data["hostname"] == "{FAB} Clan Server"
     assert data["hostport"] == "10580"
@@ -121,8 +127,8 @@ def test_adminmod_serverquery_is_supported(udp_server):
         b"\\1\\arrested_1\\1\\arrested_2\\2\\arrested_4\\1\\arrested_5\\1\\arrested_6\\1"
         b"\\arrested_9\\2\\queryid\\AMv1\\final\\\\eof\\",
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert data["hostname"] == (
         "[C=FF0000][c=33CCCC]>|S[C=FFFFFF]S|<[c=ffff00]Arg[C=ffffff]"
@@ -142,7 +148,7 @@ def test_adminmod_serverquery_is_supported(udp_server):
 
 
 @pytest.mark.django_db()
-def test_gs1_serverquery_is_supported(udp_server):
+def test_gs1_serverquery_is_supported(the_udp_server):
     payload = [
         b"\\player_3\\Morgan\\score_3\\6\\ping_3\\53\\team_3\\1\\kills_3\\6\\deaths_3\\7"
         b"\\arrested_3\\1\\player_4\\Jericho\\score_4\\3\\ping_4\\46\\team_4\\0\\kills_4\\3"
@@ -163,8 +169,8 @@ def test_gs1_serverquery_is_supported(udp_server):
         b"\\kills_10\\7\\deaths_10\\2\\player_11\\Enigma51\\score_11\\0\\ping_11\\289\\team_11\\0"
         b"\\deaths_11\\1\\player_12\\Billy\\score_12\\0\\ping_12\\999\\team_12\\0\\queryid\\3\\final\\",
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert data["hostname"] == "-==MYT Team Svr==-"
     assert data["numplayers"] == "13"
@@ -177,7 +183,7 @@ def test_gs1_serverquery_is_supported(udp_server):
 
 
 @pytest.mark.django_db()
-def test_original_swat_protocol_is_supported(udp_server):
+def test_original_swat_protocol_is_supported(the_udp_server):
     payload = [
         b"\\hostname\\[C=FFFF00]WWW.HOUSEOFPAiN.TK (Antics)\\numplayers\\4"
         b"\\maxplayers\\12\\gametype\\Barricaded Suspects\\gamevariant\\SWAT 4"
@@ -186,8 +192,8 @@ def test_original_swat_protocol_is_supported(udp_server):
         b"\\score_0\\15\\score_1\\0\\score_2\\3\\score_3\\0\\ping_0\\56\\ping_1\\160"
         b"\\ping_2\\256\\ping_3\\262\\final\\\\queryid\\1.1"
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert data["hostname"] == "[C=FFFF00]WWW.HOUSEOFPAiN.TK (Antics)"
     assert data["numplayers"] == "4"
@@ -198,65 +204,65 @@ def test_original_swat_protocol_is_supported(udp_server):
     assert data["players"][3]["ping"] == "262"
 
 
-def test_response_incomplete(udp_server):
+def test_response_incomplete(the_udp_server):
     payload = [
         b"\\hostname\\test\\queryid\\1",
         b"\\hostport\\10480\\queryid\\2",
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert isinstance(data, asyncio.TimeoutError)
 
 
-def test_response_malformed(udp_server):
+def test_response_malformed(the_udp_server):
     payload = [
         b"\\hostname\\test\\hostport\\10480\\final\\",
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert isinstance(data, ResponseMalformedError)
 
 
-def test_vanilla_queryid_is_not_integer(udp_server):
+def test_vanilla_queryid_is_not_integer(the_udp_server):
     payload = [
         b"\\hostname\\test\\hostport\\10480\\queryid\\gs1\\final\\",
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert data["queryid"] == "gs1"
     assert data["final"] == ""
 
 
-def test_queryid_is_not_zero_based(udp_server):
+def test_queryid_is_not_zero_based(the_udp_server):
     payload = [
         b"\\hostname\\test\\queryid\\1",
         b"\\hostport\\10480\\queryid\\2\\final\\",
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert data["final"] == ""
 
 
-def test_statusresponse_is_zero_based(udp_server):
+def test_statusresponse_is_zero_based(the_udp_server):
     payload = [
         b"\\statusresponse\\0\\hostname\\test\\queryid\\AMv1\\eof\\",
         b"\\statusresponse\\1\\queryid\\AMv1\\final\\\\eof\\",
     ]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert data["final"] == ""
     assert "eof" not in data
 
 
-def test_statusresponse_eof_removed_from_response_final_queryid_are_not(udp_server):
+def test_statusresponse_eof_removed_from_response_final_queryid_are_not(the_udp_server):
     payload = [b"\\statusresponse\\0\\hostname\\test\\queryid\\AMv1\\final\\\\eof\\"]
-    udp_server.responses.extend(payload)
-    data = query_servers(udp_server.server_address).pop()
+    the_udp_server.responses.extend(payload)
+    data = query_servers(the_udp_server.server_address).pop()
 
     assert "statusresponse" not in data
     assert "eof" not in data

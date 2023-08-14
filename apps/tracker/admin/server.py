@@ -75,9 +75,13 @@ class ServerMergeForm(forms.Form):
                 }
             )
 
-        merged_servers = Server.objects.filter(
-            merged_into__isnull=True, pk__in=merged_server_ids_uniq
+        # fmt: off
+        merged_servers = (
+            Server.objects
+            .filter(merged_into__isnull=True, pk__in=merged_server_ids_uniq)
+            .order_by("pk")
         )
+        # fmt: on
         if len(merged_servers) != len(merged_server_ids_uniq):
             raise ValidationError(_("Some of the selected servers are not available"))
 
@@ -227,9 +231,13 @@ class ServerAdmin(admin.ModelAdmin):
             logger.exception("unable to patse server ids %s due to %s", server_ids_comma, exc)
             return HttpResponseRedirect(return_url)
 
-        queryset = Server.objects.filter(pk__in=server_ids, merged_into__isnull=True).order_by(
-            "-pk"
+        # fmt: off
+        queryset = (
+            Server.objects
+            .filter(pk__in=server_ids, merged_into__isnull=True)
+            .order_by("-pk")
         )
+        # fmt: on
         form = ServerMergeForm(data=request.POST or None, queryset=queryset)
 
         if request.method == "POST" and form.is_valid():
