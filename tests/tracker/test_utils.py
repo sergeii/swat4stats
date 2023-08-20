@@ -95,7 +95,6 @@ def test_iterate_years():
         (Team.swat, True, EQ.none, EQ.none, "vip"),
         (Team.suspects, True, EQ.none, EQ.none, "vip"),
         (None, True, EQ.none, EQ.none, "vip"),
-        (None, True, EQ.none, EQ.none, "vip"),
     ],
 )
 def test_get_player_portrait_image(settings, team, is_vip, head, body, image):

@@ -494,7 +494,6 @@ def test_extra_whois_call_returns_same_ip_range(whois_mock):
         ("192.0.0.1", "IETF Protocol Assignments"),
         ("192.0.2.123", "TEST-NET-1"),
         ("192.88.99.1", "6to4 Relay Anycast"),
-        ("192.88.99.1", "6to4 Relay Anycast"),
         ("198.18.100.12", "Network Interconnect Device Benchmark Testing"),
         ("198.51.100.100", "TEST-NET-2"),
         ("203.0.113.3", "TEST-NET-3"),

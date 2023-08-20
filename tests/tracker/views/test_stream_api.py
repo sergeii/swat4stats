@@ -980,7 +980,6 @@ def test_post_smash_and_grab_game(db, post_game_data, test_server):
         {"gametype": "CO-OP QMM"},
         {"gametype": 0},
         {"gametype": 5},
-        {"gametype": 5},
         {"mapname": "-1"},
         {"mapname": 0},
         {"mapname": "Brewer County Courthouse"},
