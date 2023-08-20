@@ -93,8 +93,8 @@ celeryExporter:
     repository: danihodovic/celery-exporter
     pullPolicy: IfNotPresent
     pullSecrets: ""
-    tag: "0.7.5"
-    sha: "ac34dfb4edbc8a1eec047df8a5a705d3064ef7a55715ef3832156e076097dba3"
+    tag: "0.9.2"
+    sha: "1afefe83b0e2fd257455d42dfb0c122bd2c4828949e26c2d7cc422d1f42deba0"
 
 staticfiles:
   port: 10080
