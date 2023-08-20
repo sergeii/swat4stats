@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "swat4stats-api.podname" (set . "Name" "uwsgi") }}
+  name: {{ include "swat4stats-core.podname" (set . "Name" "uwsgi") }}
   labels:
-    {{- include "swat4stats-api.labels" . | nindent 4 }}
+    {{- include "swat4stats-core.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.uwsgi.replicas }}
   strategy:
@@ -13,11 +13,11 @@ spec:
       maxUnavailable: 25%
   selector:
     matchLabels:
-      {{- include "swat4stats-api.selectorLabels" (set $ "Backend" "uwsgi") | nindent 6 }}
+      {{- include "swat4stats-core.selectorLabels" (set $ "Backend" "uwsgi") | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "swat4stats-api.selectorLabels" (set $ "Backend" "uwsgi") | nindent 8 }}
+        {{- include "swat4stats-core.selectorLabels" (set $ "Backend" "uwsgi") | nindent 8 }}
       annotations:
       {{- if .Values.uwsgiExporter.enabled }}
         prometheus.io/scrape: "true"
@@ -30,7 +30,7 @@ spec:
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.uwsgi.terminationGracePeriodSeconds }}
       initContainers:
-        - name: {{ include "swat4stats-api.podname" (set . "Name" "copystatic") }}
+        - name: {{ include "swat4stats-core.podname" (set . "Name" "copystatic") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["cp", "-r", "/app/static/.", "/var/www/static"]
@@ -38,7 +38,7 @@ spec:
             - name: staticfiles
               mountPath: /var/www/static
       containers:
-        - name: {{ include "swat4stats-api.podname" (set . "Name" "staticfiles") }}
+        - name: {{ include "swat4stats-core.podname" (set . "Name" "staticfiles") }}
           {{- with .Values.staticfiles.image }}
           image: "{{ .repository }}:{{ .tag | default "latest" }}"
           imagePullPolicy: {{ .pullPolicy }}
@@ -56,7 +56,7 @@ spec:
           resources:
             {{- toYaml .Values.staticfiles.resources | nindent 12 }}
         {{- if .Values.uwsgiExporter.enabled }}
-        - name: {{ include "swat4stats-api.podname" (set . "Name" "uwsgi-exporter") }}
+        - name: {{ include "swat4stats-core.podname" (set . "Name" "uwsgi-exporter") }}
           {{- with .Values.uwsgiExporter.image }}
           image: "{{ .repository }}:{{ .tag | default "latest" }}{{ if .sha }}@sha256:{{ .sha }}{{ end }}"
           imagePullPolicy: {{ .pullPolicy }}
@@ -71,7 +71,7 @@ spec:
               path: /-/healthy
               port: exporter
         {{- end }}
-        - name: {{ include "swat4stats-api.podname" (set . "Name" "uwsgi") }}
+        - name: {{ include "swat4stats-core.podname" (set . "Name" "uwsgi") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -104,7 +104,7 @@ spec:
           emptyDir: {}
         - name: config
           configMap:
-            name: {{ include "swat4stats-api.fullname" . }}
+            name: {{ include "swat4stats-core.fullname" . }}
 
 
 {{- range .Values.celery.workers }}
@@ -125,20 +125,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "swat4stats-api.podname" (set $ "Name" $workerName) }}
+  name: {{ include "swat4stats-core.podname" (set $ "Name" $workerName) }}
   labels:
-    {{- include "swat4stats-api.labels" $ | nindent 4 }}
+    {{- include "swat4stats-core.labels" $ | nindent 4 }}
 spec:
   replicas: {{ .replicas }}
   strategy:
     type: RollingUpdate
   selector:
     matchLabels:
-      {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $workerName) | nindent 6 }}
+      {{- include "swat4stats-core.selectorLabels" (set $ "Backend" $workerName) | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $workerName) | nindent 8 }}
+        {{- include "swat4stats-core.selectorLabels" (set $ "Backend" $workerName) | nindent 8 }}
     spec:
       {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
@@ -146,7 +146,7 @@ spec:
       {{- end }}
       terminationGracePeriodSeconds: {{ .timeLimit }}
       containers:
-        - name: {{ include "swat4stats-api.podname" (set $ "Name" $workerName) }}
+        - name: {{ include "swat4stats-core.podname" (set $ "Name" $workerName) }}
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           command:
@@ -177,27 +177,27 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "swat4stats-api.podname" (set $ "Name" $beatName) }}
+  name: {{ include "swat4stats-core.podname" (set $ "Name" $beatName) }}
   labels:
-    {{- include "swat4stats-api.labels" $ | nindent 4 }}
+    {{- include "swat4stats-core.labels" $ | nindent 4 }}
 spec:
   replicas: {{ .beat.replicas }}
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $beatName) | nindent 6 }}
+      {{- include "swat4stats-core.selectorLabels" (set $ "Backend" $beatName) | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $beatName) | nindent 8 }}
+        {{- include "swat4stats-core.selectorLabels" (set $ "Backend" $beatName) | nindent 8 }}
     spec:
       {{- with $.Values.image.pullSecrets }}
       imagePullSecrets:
           {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "swat4stats-api.podname" (set $ "Name" $beatName) }}
+        - name: {{ include "swat4stats-core.podname" (set $ "Name" $beatName) }}
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           volumeMounts:
@@ -228,20 +228,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "swat4stats-api.podname" (set $ "Name" $exporterName) }}
+  name: {{ include "swat4stats-core.podname" (set $ "Name" $exporterName) }}
   labels:
-    {{- include "swat4stats-api.labels" $ | nindent 4 }}
+    {{- include "swat4stats-core.labels" $ | nindent 4 }}
 spec:
   replicas: {{ if .enabled }}1{{ else }}0{{ end }}
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $exporterName) | nindent 6 }}
+      {{- include "swat4stats-core.selectorLabels" (set $ "Backend" $exporterName) | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "swat4stats-api.selectorLabels" (set $ "Backend" $exporterName) | nindent 8 }}
+        {{- include "swat4stats-core.selectorLabels" (set $ "Backend" $exporterName) | nindent 8 }}
       annotations:
       {{- if .enabled }}
         prometheus.io/scrape: "true"
@@ -253,7 +253,7 @@ spec:
           {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "swat4stats-api.podname" (set $ "Name" $exporterName) }}
+        - name: {{ include "swat4stats-core.podname" (set $ "Name" $exporterName) }}
           image: "{{ .image.repository }}:{{ .image.tag | default "latest" }}{{ if .image.sha }}@sha256:{{ .image.sha }}{{ end }}"
           imagePullPolicy: {{ .image.pullPolicy }}
           env:

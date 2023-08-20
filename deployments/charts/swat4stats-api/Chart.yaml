@@ -1,6 +1,6 @@
 apiVersion: v2
-name: swat4stats-api
-description: Helm chart for deployment of swat4stats.com api
+name: swat4stats-core
+description: Helm chart for deployment of swat4stats.com core
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

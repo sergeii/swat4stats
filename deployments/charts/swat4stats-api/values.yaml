@@ -112,7 +112,7 @@ staticfiles:
     #   memory: 128Mi
 
 service:
-  name: swat4stats-api
+  name: swat4stats-core
   type: ClusterIP
 
 envFromSecrets: []

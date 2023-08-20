@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: {{ .Values.service.name }}
   labels:
-    {{- include "swat4stats-api.labels" . | nindent 4 }}
+    {{- include "swat4stats-core.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -16,4 +16,4 @@ spec:
       protocol: TCP
       name: staticfiles
   selector:
-    {{- include "swat4stats-api.selectorLabels" (set $ "Backend" "uwsgi") | nindent 4 }}
+    {{- include "swat4stats-core.selectorLabels" (set $ "Backend" "uwsgi") | nindent 4 }}
