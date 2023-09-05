@@ -1,13 +1,12 @@
 import logging
+import warnings
 from datetime import timedelta
 from pathlib import Path
-import warnings
 
 from celery.schedules import crontab
 from django.utils.deprecation import RemovedInDjango50Warning
 
 from apps.utils.settings import env, env_bool, env_list, env_log_level
-
 
 warnings.simplefilter("ignore", RemovedInDjango50Warning)
 warnings.simplefilter("ignore", DeprecationWarning)
@@ -338,42 +337,56 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update_player_preferences": {
         "task": "update_player_preferences",
-        "schedule": crontab(minute=15),
+        "schedule": crontab(minute="15"),
         "options": {
             "expires": 15 * 60,
         },
     },
     "update_player_stats": {
         "task": "update_player_stats",
-        "schedule": crontab(minute=0),
+        "schedule": crontab(minute="0"),
         "options": {
             "expires": 30 * 60,
         },
     },
     "merge_server_stats": {
         "task": "merge_server_stats",
-        "schedule": crontab(hour="*/2", minute=30),
+        "schedule": crontab(hour="*/2", minute="30"),
         "options": {
             "expires": 30 * 60,
         },
     },
     "update_player_positions": {
         "task": "update_player_positions",
-        "schedule": crontab(hour="*/6", minute=30),
+        "schedule": crontab(hour="*/6", minute="30"),
         "options": {
             "expires": 2 * 60 * 60,
         },
     },
+    "update_map_ratings": {
+        "task": "update_map_ratings",
+        "schedule": crontab(hour="1", minute="45"),
+        "options": {
+            "expires": 23 * 60 * 60,
+        },
+    },
+    "update_server_ratings": {
+        "task": "update_server_ratings",
+        "schedule": crontab(hour="2", minute="45"),
+        "options": {
+            "expires": 23 * 60 * 60,
+        },
+    },
     "settle_annual_player_positions": {
         "task": "settle_annual_player_positions",
-        "schedule": crontab(hour=6, minute=45, day_of_month="1-3", month_of_year=1),
+        "schedule": crontab(hour="6", minute="45", day_of_month="1-3", month_of_year="1"),
         "options": {
             "expires": 12 * 60 * 60,
         },
     },
     "delete_expired_ips": {
         "task": "delete_expired_ips",
-        "schedule": crontab(hour=10, minute=20),
+        "schedule": crontab(hour="10", minute="20"),
         "options": {
             "expires": 12 * 60 * 60,
         },
@@ -422,6 +435,12 @@ TRACKER_MIN_KILLS = 500
 TRACKER_MIN_TIME = 10 * 60 * 60
 # min time for round based stats
 TRACKER_MIN_GAMES = 100
+
+# how much seconds into past to calculate map ratings for
+TRACKER_MAP_RATINGS_FOR_PERIOD = 180 * 24 * 60 * 60
+
+# same as above, but for server ratings
+TRACKER_SERVER_RATINGS_FOR_PERIOD = 90 * 24 * 60 * 60
 
 # min ammo required for accuracy calculation in a single game round
 TRACKER_MIN_GAME_AMMO = 60

@@ -64,6 +64,7 @@ select = [
     "E",        # pycodestyle Error
     "W",        # pycodestyle Warning
     "C90",      # mccabe
+    "I",        # isort
     "N",        # pep8-naming
     "UP",       # pyupgrade
     "YTT",      # flake8-2020
@@ -134,6 +135,9 @@ ignore-variadic-names = true
 [tool.black]
 line-length = 100
 target-version = ["py311"]
+
+[tool.ruff.isort]
+force-sort-within-sections = false
 
 [tool.mypy]
 disable_error_code = "misc"

@@ -1,29 +1,30 @@
 from datetime import datetime, timedelta
 
+import pytest
 import pytz
 from django.test import Client
 from django.utils.timezone import now
 from pytz import UTC
-import pytest
 
-from apps.tracker.models import Game, Profile, Player, Server
+from apps.tracker.models import Game, Map, Player, Profile, Server
 from apps.utils.test import freeze_timezone_now
 from tests.factories.geoip import ISPFactory
-from tests.factories.tracker import (
-    ServerFactory,
-    GameFactory,
-    AliasFactory,
-    ProfileFactory,
-    PlayerFactory,
-)
 from tests.factories.loadout import LoadoutFactory
 from tests.factories.streaming import (
-    WeaponGameDataFactory,
-    SimplePlayerGameDataFactory,
-    PlayerGameDataFactory,
     ObjectiveGameDataFactory,
+    PlayerGameDataFactory,
     ProcedureGameDataFactory,
     ServerGameDataFactory,
+    SimplePlayerGameDataFactory,
+    WeaponGameDataFactory,
+)
+from tests.factories.tracker import (
+    AliasFactory,
+    GameFactory,
+    MapFactory,
+    PlayerFactory,
+    ProfileFactory,
+    ServerFactory,
 )
 
 
@@ -78,7 +79,8 @@ def test_stream_endpoint_method_bypasses_csrf_check(db, test_game_data, post_gam
 
 @freeze_timezone_now(datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC))
 @pytest.mark.parametrize("server_exists", [True, False])
-def test_post_game_data(now_mock, db, post_game_data, server_exists):
+@pytest.mark.parametrize("map_exists", [True, False])
+def test_post_game_data(now_mock, db, post_game_data, server_exists, map_exists):
     if server_exists:
         ServerFactory(
             ip="127.0.0.1",
@@ -86,6 +88,8 @@ def test_post_game_data(now_mock, db, post_game_data, server_exists):
             hostname="Swat4 Server",
             hostname_updated_at=datetime(2022, 1, 19, 18, 44, 11, tzinfo=pytz.UTC),
         )
+    if map_exists:
+        MapFactory(name="Children of Taronne Tenement")
 
     game_data = ServerGameDataFactory(
         tag="foobar",
@@ -190,6 +194,9 @@ def test_post_game_data(now_mock, db, post_game_data, server_exists):
     assert server.hostname_updated_at == datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC)
     assert server.game_count == 1
 
+    # map is created/updated
+    taronne = Map.objects.get(name="Children of Taronne Tenement")
+
     game = Game.objects.get()
     assert game.tag == "foobar"
     assert game.server == server
@@ -203,6 +210,13 @@ def test_post_game_data(now_mock, db, post_game_data, server_exists):
     assert game.score_sus == 45
     assert game.rd_bombs_defused == 0
     assert game.rd_bombs_total == 0
+
+    assert taronne.game_count == 1
+    assert taronne.first_game.pk == game.pk
+    assert taronne.latest_game.pk == game.pk
+    assert taronne.first_game_played_at == datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC)
+    assert taronne.latest_game_played_at == datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC)
+    assert taronne.rating is None
 
     assert server.first_game.pk == game.pk
     assert server.latest_game.pk == game.pk

@@ -1,16 +1,17 @@
 from typing import ClassVar
 
+from django.db.models import QuerySet
 from django.http import Http404
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, ListModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
 from rest_framework.viewsets import GenericViewSet
 
 from apps.api.filters import ServerFilterBackend
 from apps.api.pagination import cursor_paginator_factory
 from apps.api.serializers import (
+    PlayerStatSerializer,
     ServerBaseSerializer,
     ServerCreateSerializer,
     ServerFullSerializer,
-    PlayerStatSerializer,
 )
 from apps.tracker.managers import ServerQuerySet
 from apps.tracker.models import Server, ServerStats
@@ -82,3 +83,14 @@ class ServerLeaderboardViewSet(ListModelMixin, GenericViewSet):
         return ServerStats.objects.select_related("profile", "profile__loadout").filter(
             year=get_current_stat_year()
         )
+
+
+class PopularServersViewSet(ListModelMixin, GenericViewSet):
+    serializer_class = ServerBaseSerializer
+    pagination_class = None
+
+    max_servers = 50
+
+    def get_queryset(self) -> QuerySet[Server]:
+        qs = Server.objects.filter(rating__isnull=False).order_by("rating", "-game_count")
+        return qs[: self.max_servers]

@@ -1,28 +1,29 @@
 from typing import Any
 
 from django.conf import settings
-from django.urls import include, path, re_path
 from django.contrib import admin
-from django.http import response, HttpResponse
+from django.contrib.sitemaps.views import index as sitemap_index
+from django.contrib.sitemaps.views import sitemap
+from django.http import HttpResponse, response
+from django.urls import include, path, re_path
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.sitemaps.views import sitemap, index as sitemap_index
 from rest_framework import routers
 
+from apps.api.docs import DocsSchemaView
 from apps.api.views import (
-    ServerViewSet,
     ArticleViewSet,
-    PopularMapnamesViewSet,
-    PopularServersViewSet,
     GameViewSet,
-    ServerLeaderboardViewSet,
+    PopularMapsViewSet,
+    PopularServersViewSet,
     SearchPlayersView,
     SearchServersView,
+    ServerLeaderboardViewSet,
+    ServerViewSet,
 )
-from apps.api.docs import DocsSchemaView
-from apps.tracker.sitemaps import ServerSitemap, ProfileSitemap
+from apps.tracker.sitemaps import ProfileSitemap, ServerSitemap
 from apps.tracker.views import APIWhoisView, DataStreamView
-from apps.tracker.views.motd import APIMotdLeaderboardView, APILegacySummaryView
+from apps.tracker.views.motd import APILegacySummaryView, APIMotdLeaderboardView
 from apps.utils.views import healthcheck
 
 
@@ -40,7 +41,7 @@ api_router.register("servers", ServerViewSet)
 api_router.register("games", GameViewSet)
 api_router.register("articles", ArticleViewSet)
 api_router.register("server-leaderboard", ServerLeaderboardViewSet)
-api_router.register("data-popular-mapnames", PopularMapnamesViewSet, basename="popular-mapnames")
+api_router.register("data-popular-mapnames", PopularMapsViewSet, basename="popular-mapnames")
 api_router.register("data-popular-servers", PopularServersViewSet, basename="popular-servers")
 
 api_urls = [

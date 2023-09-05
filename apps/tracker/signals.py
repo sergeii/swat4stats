@@ -1,11 +1,11 @@
 import logging
 from typing import Any
 
-from django.dispatch import receiver, Signal
-from django.db.models.signals import post_save
 from django.db import transaction
+from django.db.models.signals import post_save
+from django.dispatch import Signal, receiver
 
-from apps.tracker.models import Server, Game
+from apps.tracker.models import Game, Server
 
 logger = logging.getLogger(__name__)
 
@@ -90,28 +90,28 @@ def change_hostname_for_streaming_server(
     server_hostname = server.hostname
     # check whether the hostname has changed for this server
     if not (data["hostname"] and data["hostname"] != server_hostname):
+        # fmt: off
         logger.debug(
             "current hostname '%s' for %s has not changed ('%s')",
-            server_hostname,
-            server.pk,
-            data["hostname"],
+            server_hostname, server.pk, data["hostname"],
         )
+        # fmt: on
         return
 
+    # fmt: off
     logger.info(
         "current hostname '%s' for %s is different from '%s'",
-        server_hostname,
-        server.pk,
-        data["hostname"],
+        server_hostname, server.pk, data["hostname"],
     )
+    # fmt: on
 
     if Server.objects.update_hostnames((server, data["hostname"])):
+        # fmt: off
         logger.info(
             "updated hostname for streaming server %s to '%s from '%s'",
-            server.pk,
-            data["hostname"],
-            server_hostname,
+            server.pk, data["hostname"], server_hostname,
         )
+        # fmt: on
     else:
         logger.info(
             "did not update hostname for streaming server %s to '%s'", server.pk, data["hostname"]
@@ -120,8 +120,9 @@ def change_hostname_for_streaming_server(
 
 @receiver(game_data_saved)
 @transaction.atomic(savepoint=False)
-def fire_game_related_stats_tasks(sender: Any, game: Game, **kwargs: Any) -> None:
-    from apps.tracker.tasks import update_profile_games, update_server_games
+def delay_game_related_stats_tasks(sender: Any, game: Game, **kwargs: Any) -> None:
+    from apps.tracker.tasks import update_map_games, update_profile_games, update_server_games
 
     transaction.on_commit(lambda: update_profile_games.delay(game.pk))
     transaction.on_commit(lambda: update_server_games.delay(game.pk))
+    transaction.on_commit(lambda: update_map_games.delay(game.pk))

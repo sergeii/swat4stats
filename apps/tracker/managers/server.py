@@ -3,6 +3,7 @@ import logging
 import operator as op
 import random
 from collections import OrderedDict
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 import voluptuous
@@ -11,23 +12,23 @@ from django.contrib.postgres.search import SearchVector
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import Q, F, QuerySet
+from django.db.models import Count, F, Q, QuerySet
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from voluptuous import Invalid
 
+from apps.tracker.aio_tasks.discovery import ServerDiscoveryTask
+from apps.tracker.aio_tasks.serverquery import ServerInfo, ServerStatusTask
 from apps.tracker.exceptions import MergeServersError
 from apps.tracker.schema import serverquery_schema
-from apps.tracker.aio_tasks.discovery import ServerDiscoveryTask
-from apps.tracker.aio_tasks.serverquery import ServerStatusTask, ServerInfo
 from apps.tracker.utils import aio
 from apps.tracker.utils.misc import force_clean_name
 from apps.utils.db.func import normalized_names_search_vector
-from apps.utils.misc import dumps, concat_it
+from apps.utils.misc import concat_it, dumps, iterate_list
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Server, Game
+    from apps.tracker.models import Game, Server
 
 
 logger = logging.getLogger(__name__)
@@ -174,6 +175,50 @@ class ServerManager(models.Manager):
                 "latest_game_played_at",
             ],
         )
+
+    def update_ratings(self, chunk_size: int = 1000) -> None:
+        from apps.tracker.models import Game, Server
+
+        finished_since = timezone.now() - timedelta(
+            seconds=settings.TRACKER_SERVER_RATINGS_FOR_PERIOD
+        )
+        top_servers_for_games = (
+            Game.objects.using("replica")
+            .filter(date_finished__gte=finished_since)
+            .order_by("server")
+            .values("server")
+            .annotate(game_cnt=Count("pk"))
+        )
+        # map server id to the number of played games,
+        # so we can use the latter number to sort the servers
+        # in the next query, where the ordering will be lost
+        top_servers_by_games_ids = {row["server"]: row["game_cnt"] for row in top_servers_for_games}
+
+        top_servers = Server.objects.using("replica").filter(pk__in=top_servers_by_games_ids)
+
+        servers_sorted_by_rating = sorted(
+            top_servers,
+            key=lambda s: (
+                # servers with more games first
+                -top_servers_by_games_ids[s.pk],
+                # among those with equal game count, favour servers with hostname
+                s.hostname or "",
+                # rest of the servers by id
+                s.pk,
+            ),
+        )
+        servers_with_rating = {s.pk: idx for idx, s in enumerate(servers_sorted_by_rating, start=1)}
+
+        for server_ids in iterate_list(list(servers_with_rating), size=chunk_size):
+            logger.info("updating rating for %d servers", len(server_ids))
+
+            servers_to_update_qs = self.filter(pk__in=server_ids).only("pk", "rating")
+            for server in servers_to_update_qs:
+                server.rating = servers_with_rating[server.pk]
+
+            with transaction.atomic():
+                self.bulk_update(servers_to_update_qs, ["rating"])
+                self.filter(pk__in=server_ids).update(rating_updated_at=timezone.now())
 
     @transaction.atomic
     def update_search_vector(self, *server_ids: int) -> None:

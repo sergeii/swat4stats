@@ -1,32 +1,32 @@
 import logging
-from typing import ClassVar, Any
+from typing import Any, ClassVar
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchVectorField
-from django.db import models
-from django.db.models import Q, F, Func
 from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models import F, Func, Q
 from django.db.models.functions import Upper
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
 
-from apps.tracker.entities import GameType, Equipment, GameNeighbors
+from apps.tracker.entities import Equipment, GameNeighbors, GameType
 from apps.tracker.managers import (
-    ServerQuerySet,
-    ServerManager,
-    MapManager,
+    AliasManager,
     GameManager,
     LoadoutManager,
-    AliasManager,
+    MapManager,
     PlayerManager,
     PlayerQuerySet,
     ProfileManager,
     ProfileQuerySet,
-    StatsManager,
+    ServerManager,
+    ServerQuerySet,
     ServerStatsManager,
+    StatsManager,
 )
 from apps.tracker.managers.alias import AliasQuerySet
 from apps.tracker.utils.game import map_background_picture
@@ -56,6 +56,9 @@ class Server(models.Model):
     first_game_played_at = models.DateTimeField(null=True, blank=True)
     latest_game = models.ForeignKey("Game", related_name="+", null=True, on_delete=models.PROTECT)
     latest_game_played_at = models.DateTimeField(null=True, blank=True)
+
+    rating = models.IntegerField(null=True, blank=True)
+    rating_updated_at = models.DateTimeField(null=True, blank=True)
 
     merged_into = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL)
     merged_into_at = models.DateTimeField(null=True, blank=True)
@@ -115,6 +118,15 @@ class Server(models.Model):
 
 class Map(models.Model):
     name = models.CharField(max_length=255, unique=True)
+
+    game_count = models.PositiveIntegerField(default=0)
+    first_game = models.ForeignKey("Game", related_name="+", null=True, on_delete=models.PROTECT)
+    first_game_played_at = models.DateTimeField(null=True, blank=True)
+    latest_game = models.ForeignKey("Game", related_name="+", null=True, on_delete=models.PROTECT)
+    latest_game_played_at = models.DateTimeField(null=True, blank=True)
+
+    rating = models.IntegerField(null=True, blank=True)
+    rating_updated_at = models.DateTimeField(null=True, blank=True)
 
     objects = MapManager()
 
