@@ -4,8 +4,8 @@ from django.utils import timezone
 
 from apps.tracker.models import Profile
 from apps.tracker.signals import game_data_saved
-from tests.factories.tracker import ServerFactory, GameFactory
 from tests.factories.streaming import ServerGameDataFactory
+from tests.factories.tracker import GameFactory, ServerFactory
 
 
 def test_last_seen_is_updated_when_game_data_is_saved(db):

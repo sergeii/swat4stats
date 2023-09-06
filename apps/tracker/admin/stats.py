@@ -1,9 +1,9 @@
 from typing import Any
 
-from django.db.models import QuerySet
 from django.contrib import admin
+from django.db.models import QuerySet
 
-from apps.tracker.models import WeaponStats, MapStats, GametypeStats, PlayerStats, ServerStats
+from apps.tracker.models import GametypeStats, MapStats, PlayerStats, ServerStats, WeaponStats
 
 
 @admin.register(PlayerStats)

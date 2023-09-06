@@ -2,11 +2,11 @@ from random import choice
 from typing import Any, ClassVar
 
 from django import forms
-from django.utils.translation import gettext_lazy as _
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
-from apps.tracker.models import PlayerStats, GametypeStats
+from apps.tracker.models import GametypeStats, PlayerStats
 from apps.tracker.utils.misc import get_current_stat_year
 
 

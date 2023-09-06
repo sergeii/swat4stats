@@ -1,6 +1,10 @@
-from datetime import datetime
+from collections.abc import Callable
+from contextlib import AbstractContextManager
+from datetime import datetime, timedelta
+from unittest import mock
 
 import pytest
+from django.utils import timezone
 from pytz import UTC
 
 from apps.tracker.models import Server
@@ -9,7 +13,8 @@ from apps.utils.test import freeze_timezone_now
 from tests.factories.tracker import GameFactory, ServerFactory
 
 
-def test_denorm_game_stats_for_servers(db):
+@pytest.mark.django_db()
+def test_denorm_game_stats_for_servers() -> None:
     server1, server2, server3, server4, server5 = ServerFactory.create_batch(5)
 
     game1, game2, game3 = GameFactory.create_batch(3, server=server1)
@@ -68,7 +73,8 @@ def test_denorm_game_stats_for_servers(db):
     assert server5.latest_game_played_at is None
 
 
-def test_update_existing_game_stats_for_server(db):
+@pytest.mark.django_db()
+def test_update_existing_game_stats_for_server() -> None:
     server1, server2 = ServerFactory.create_batch(2)
 
     game1, game2, game3 = GameFactory.create_batch(3, server=server1)
@@ -107,7 +113,8 @@ def test_update_existing_game_stats_for_server(db):
     assert server2.latest_game_played_at == game5.date_finished
 
 
-def test_update_game_stats_for_server_from_scratch(db):
+@pytest.mark.django_db()
+def test_update_game_stats_for_server_from_scratch() -> None:
     server = ServerFactory()
     game1, game2 = GameFactory.create_batch(2, server=server)
 
@@ -139,7 +146,10 @@ def test_update_game_stats_for_server_from_scratch(db):
 
 @pytest.mark.django_db(databases=["default", "replica"])
 @freeze_timezone_now(datetime(2023, 8, 8, 11, 22, 55, tzinfo=UTC))
-def test_update_search_vector_for_many_servers(now_mock, django_assert_num_queries):
+def test_update_search_vector_for_many_servers(
+    now_mock: mock.Mock,
+    django_assert_num_queries: Callable[[int], AbstractContextManager],
+) -> None:
     myt = ServerFactory(hostname_clean="-==MYT Team Svr==-")
     legends = ServerFactory(hostname_clean="Legends Never Die coooP =)")
     sog = ServerFactory(hostname_clean="Sog-team.co.uk Pro!")
@@ -183,7 +193,12 @@ def test_update_search_vector_for_many_servers(now_mock, django_assert_num_queri
         (None, ""),
     ],
 )
-def test_update_search_vector_for_one_server(now_mock, django_assert_num_queries, hostname, tsv):
+def test_update_search_vector_for_one_server(
+    now_mock: mock.Mock,
+    django_assert_num_queries: Callable[[int], AbstractContextManager],
+    hostname: str | None,
+    tsv: str,
+) -> None:
     server = ServerFactory(
         hostname=hostname, hostname_clean=None if hostname is None else force_clean_name(hostname)
     )
@@ -194,3 +209,93 @@ def test_update_search_vector_for_one_server(now_mock, django_assert_num_queries
     server.refresh_from_db()
     assert server.search == tsv
     assert server.search_updated_at == datetime(2023, 8, 7, 11, 22, 55, tzinfo=UTC)
+
+
+@pytest.mark.django_db(databases=["default", "replica"])
+@pytest.mark.parametrize(
+    "chunk_size, expected_queries",
+    [
+        (1000, 7),
+        (4, 8),
+        (2, 9),
+    ],
+)
+def test_update_ratings_ok(
+    django_assert_num_queries: Callable[[int], AbstractContextManager],
+    chunk_size: int,
+    expected_queries: int,
+) -> None:
+    now = timezone.now()
+
+    myt_coop = ServerFactory(hostname="-==MYT Co-op Svr==-")
+    myt_vip = ServerFactory(hostname="-==MYT Team Svr==-")
+    esa = ServerFactory(hostname=None, ip="62.21.98.150", port=9485)
+    soh = ServerFactory(hostname="[C=F00000] |SoH| [C=FDFDFD] Shadow [C=FF0000] OF Heroes")
+    swat = ServerFactory(hostname="Swat4 Server")
+    other = ServerFactory(hostname="Other", rating=1, rating_updated_at=now - timedelta(days=1))
+
+    GameFactory.create_batch(3, server=swat, date_finished=now - timedelta(days=200))  # old games
+    GameFactory.create_batch(3, server=myt_vip)
+    GameFactory(server=myt_coop, date_finished=now - timedelta(days=30))
+    GameFactory(server=esa)
+    GameFactory.create_batch(4, server=esa, date_finished=now - timedelta(days=91))  # old games
+    GameFactory.create_batch(2, server=soh, date_finished=now - timedelta(days=89))
+
+    with django_assert_num_queries(expected_queries):
+        Server.objects.update_ratings(chunk_size=chunk_size)
+
+    for obj in [myt_coop, myt_vip, esa, soh, swat, other]:
+        obj.refresh_from_db()
+
+    assert myt_vip.rating == 1
+    assert soh.rating == 2
+    assert esa.rating == 3
+    assert myt_coop.rating == 4
+    assert swat.rating is None
+    assert other.rating is None
+
+    for obj in [myt_vip, soh, esa, myt_coop, swat, other]:
+        assert obj.rating_updated_at >= now
+
+    GameFactory.create_batch(2, server=swat, date_finished=now - timedelta(days=1))
+    GameFactory.create_batch(4, server=myt_coop)
+
+    then = timezone.now()
+    Server.objects.update_ratings()
+
+    for obj in [myt_coop, myt_vip, esa, soh, swat, other]:
+        obj.refresh_from_db()
+
+    assert myt_coop.rating == 1
+    assert myt_vip.rating == 2
+    assert swat.rating == 3
+    assert soh.rating == 4
+    assert esa.rating == 5
+    assert other.rating is None
+
+    for obj in [myt_vip, soh, esa, myt_coop, swat, other]:
+        assert obj.rating_updated_at >= then
+
+
+@pytest.mark.django_db(databases=["default", "replica"])
+def test_update_ratings_no_games(
+    django_assert_num_queries: Callable[[int], AbstractContextManager]
+) -> None:
+    now = timezone.now()
+
+    myt_coop = ServerFactory(hostname="-==MYT Co-op Svr==-")
+    myt_vip = ServerFactory(hostname="-==MYT Team Svr==-")
+    esa = ServerFactory(hostname=None, ip="62.21.98.150", port=9485)
+    soh = ServerFactory(hostname="[C=F00000] |SoH| [C=FDFDFD] Shadow [C=FF0000] OF Heroes")
+    swat = ServerFactory(hostname="Swat4 Server")
+
+    GameFactory(server=swat, date_finished=now - timedelta(days=91))
+
+    # no games, no rating
+    with django_assert_num_queries(6):
+        Server.objects.update_ratings()
+
+    for obj in [myt_coop, myt_vip, esa, soh, swat]:
+        obj.refresh_from_db()
+        assert obj.rating is None
+        assert obj.rating_updated_at >= now

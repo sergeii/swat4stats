@@ -1,8 +1,7 @@
 import logging
 
 from django.core.management.base import BaseCommand
-from django.db.models import Q, F, Model
-
+from django.db.models import F, Model, Q
 
 logger = logging.getLogger(__name__)
 

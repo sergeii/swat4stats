@@ -1,15 +1,15 @@
 import contextlib
 import socketserver
 import threading
-from functools import cached_property
 from collections.abc import Iterator
+from functools import cached_property
 from unittest import mock
 
-from django.db import transaction
 import pytest
+from django.db import transaction
+from ipwhois import IPWhois
 from pytest_localserver.http import ContentServer
 from rest_framework.test import APIClient
-from ipwhois import IPWhois
 
 
 @pytest.fixture(scope="session", autouse=True)

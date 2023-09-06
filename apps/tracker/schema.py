@@ -1,20 +1,20 @@
 # ruff: noqa: E501, RUF001
 from typing import Any, TypeVar
 
-from voluptuous import Schema, Optional, All, In, Coerce, Range, Boolean, REMOVE_EXTRA, Maybe
+from voluptuous import REMOVE_EXTRA, All, Boolean, Coerce, In, Maybe, Optional, Range, Schema
 
 from apps.tracker.entities import (
-    Team,
-    GameType,
+    Ammo,
+    CoopObjectiveStatus,
+    CoopProcedure,
+    CoopStatus,
+    Equipment,
     GameName,
     GameOutcome,
-    CoopStatus,
-    CoopProcedure,
-    CoopObjectiveStatus,
-    Equipment,
-    Ammo,
+    GameType,
+    Team,
 )
-from apps.utils.schema import Mapping, FallbackMapping, OptionalMapping, DefaultMapping
+from apps.utils.schema import DefaultMapping, FallbackMapping, Mapping, OptionalMapping
 
 T = TypeVar("T")
 

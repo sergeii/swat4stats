@@ -1,7 +1,7 @@
 import logging
 
 from apps.tracker.models import Server
-from swat4stats.celery import app, Queue
+from swat4stats.celery import Queue, app
 
 __all__ = [
     "discover_published_servers",

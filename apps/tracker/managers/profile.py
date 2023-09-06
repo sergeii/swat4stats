@@ -1,27 +1,27 @@
 import logging
 import re
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from ipaddress import IPv4Address
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.contrib.postgres.expressions import ArraySubquery
 from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Q, F, OuterRef, Case, When, Expression, Count, Subquery
+from django.db.models import Case, Count, Expression, F, OuterRef, Q, Subquery, When
 from django.utils import timezone
 
 from apps.geoip.models import ISP
 from apps.tracker.exceptions import NoProfileMatchError
 from apps.tracker.managers.stats import get_stats_period_for_year
 from apps.tracker.schema import teams_reversed
-from apps.utils.misc import concat_it
 from apps.utils.db.func import ArrayToString, normalized_names_search_vector
+from apps.utils.misc import concat_it
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Profile, Server, Game, Alias  # noqa: F401
     from apps.tracker.managers import PlayerQuerySet
+    from apps.tracker.models import Alias, Game, Profile, Server  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
@@ -374,9 +374,9 @@ class ProfileManager(models.Manager):
     @classmethod
     def update_annual_stats_for_profile(cls, *, profile: "Profile", year: int) -> None:
         from apps.tracker.models import (
-            PlayerStats,
-            MapStats,
             GametypeStats,
+            MapStats,
+            PlayerStats,
             ServerStats,
             WeaponStats,
         )
@@ -501,7 +501,7 @@ class ProfileManager(models.Manager):
 
     @classmethod
     def update_player_positions_for_year(cls, year: int) -> None:
-        from apps.tracker.models import PlayerStats, GametypeStats
+        from apps.tracker.models import GametypeStats, PlayerStats
 
         logger.info("updating player positions for year %s", year)
 

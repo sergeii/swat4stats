@@ -7,7 +7,7 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from apps.news.entities import RendererType
-from apps.news.renderer import PlainRenderer, MarkdownRenderer, HtmlRenderer, BaseRenderer
+from apps.news.renderer import BaseRenderer, HtmlRenderer, MarkdownRenderer, PlainRenderer
 
 logger = logging.getLogger(__name__)
 

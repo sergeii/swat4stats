@@ -1,6 +1,6 @@
 import pytest
 
-from apps.tracker.discovery import csv_two_columns, plain_ip_port, html_ip_port, master_server_api
+from apps.tracker.discovery import csv_two_columns, html_ip_port, master_server_api, plain_ip_port
 
 
 @pytest.mark.parametrize(

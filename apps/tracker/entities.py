@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING, Optional
 from dataclasses import dataclass
-from enum import StrEnum, auto, IntEnum
+from enum import IntEnum, StrEnum, auto
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Player, Game
+    from apps.tracker.models import Game, Player
 
 
 class Team(StrEnum):

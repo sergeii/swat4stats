@@ -1,12 +1,11 @@
 import cProfile
-import pstats
 import logging
-from io import StringIO
+import pstats
 from collections.abc import Callable
+from io import StringIO
 
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.utils.html import format_html
-
 
 logger = logging.getLogger(__name__)
 

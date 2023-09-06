@@ -7,7 +7,7 @@ from django.db.models import F
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from apps.geoip.managers import ISPManager, IPManager
+from apps.geoip.managers import IPManager, ISPManager
 
 
 class IP(models.Model):

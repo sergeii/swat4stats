@@ -6,10 +6,10 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv4_address
-from django.db.models import QuerySet, Case, When, Value, BooleanField
-from django.http import HttpRequest, QueryDict, HttpResponseRedirect, HttpResponse
+from django.db.models import BooleanField, Case, QuerySet, Value, When
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, QueryDict
 from django.shortcuts import render
-from django.urls import path, reverse, URLPattern
+from django.urls import URLPattern, path, reverse
 from django.utils.translation import gettext_lazy as _
 
 from apps.tracker.models import Server

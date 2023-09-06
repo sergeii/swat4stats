@@ -2,10 +2,10 @@ from django.db.models import QuerySet
 from rest_framework.generics import ListAPIView
 
 from apps.api.filters import (
-    SearchPlayersFilterSet,
     SearchPlayersFilterBackend,
-    SearchServersFilterSet,
+    SearchPlayersFilterSet,
     SearchServersFilterBackend,
+    SearchServersFilterSet,
 )
 from apps.api.filters.base import ordering_filter_factory
 from apps.api.pagination import limit_offset_pagination_factory

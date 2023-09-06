@@ -3,8 +3,8 @@ import urllib.parse
 import pytest
 from django.utils import timezone
 
-from apps.tracker.models import Profile, Alias
-from tests.factories.tracker import ProfileFactory, AliasFactory
+from apps.tracker.models import Alias, Profile
+from tests.factories.tracker import AliasFactory, ProfileFactory
 
 
 @pytest.fixture

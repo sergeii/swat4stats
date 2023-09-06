@@ -1,6 +1,6 @@
 from apps.tracker.models import Server
-from tests.factories.tracker import ServerFactory
 from tests.factories.query import ServerQueryFactory
+from tests.factories.tracker import ServerFactory
 
 
 def test_queryset_refresh_status(db, create_udpservers):

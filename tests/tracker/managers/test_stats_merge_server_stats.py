@@ -5,13 +5,13 @@ from django.utils import timezone
 
 from apps.tracker.models import ServerStats
 from apps.utils.test import freeze_timezone_now
-from tests.factories.tracker import (
-    ServerFactory,
-    ProfileFactory,
-    PlayerFactory,
-    GameFactory,
-)
 from tests.factories.stats import ServerStatsFactory
+from tests.factories.tracker import (
+    GameFactory,
+    PlayerFactory,
+    ProfileFactory,
+    ServerFactory,
+)
 
 
 @pytest.fixture

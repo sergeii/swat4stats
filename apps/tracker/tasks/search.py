@@ -3,10 +3,9 @@ from enum import StrEnum
 
 from django.db.models import Model as DjangoModel
 
-from apps.tracker.models import Profile, Alias, Server
+from apps.tracker.models import Alias, Profile, Server
 from apps.utils.misc import iterate_queryset
-from swat4stats.celery import app, Queue
-
+from swat4stats.celery import Queue, app
 
 __all__ = [
     "update_search_vector",

@@ -1,5 +1,4 @@
 import logging
-
 from datetime import date
 from typing import Any
 
@@ -7,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import QuerySet
 from django.utils import timezone
 
-from apps.tracker.models import Profile, PlayerStats, GametypeStats, ServerStats
+from apps.tracker.models import GametypeStats, PlayerStats, Profile, ServerStats
 from apps.tracker.utils.misc import iterate_years
 
 logger = logging.getLogger(__name__)

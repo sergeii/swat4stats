@@ -1,5 +1,5 @@
 # ruff: noqa: C408
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 import pytest
 from django.utils import timezone
@@ -7,17 +7,16 @@ from pytz import UTC
 
 from apps.geoip.models import ISP
 from apps.tracker.exceptions import NoProfileMatchError
-
 from apps.tracker.managers.profile import is_name_popular
-from apps.tracker.models import Profile, Alias
+from apps.tracker.models import Alias, Profile
 from apps.utils.test import freeze_timezone_now
 from tests.factories.geoip import ISPFactory
 from tests.factories.tracker import (
-    ServerFactory,
+    AliasFactory,
     GameFactory,
     PlayerFactory,
     ProfileFactory,
-    AliasFactory,
+    ServerFactory,
 )
 
 

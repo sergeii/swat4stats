@@ -1,7 +1,7 @@
-from factory import fuzzy, django
+from factory import django, fuzzy
 
 from apps.tracker.models import Loadout
-from apps.tracker.schema import equipment_encoded, ammo_encoded
+from apps.tracker.schema import ammo_encoded, equipment_encoded
 
 
 class LoadoutFactory(django.DjangoModelFactory):

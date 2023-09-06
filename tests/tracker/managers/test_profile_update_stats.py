@@ -5,19 +5,19 @@ import pytest
 from pytz import UTC
 
 from apps.tracker.models import (
+    GametypeStats,
     MapStats,
     PlayerStats,
-    WeaponStats,
-    ServerStats,
-    GametypeStats,
     Profile,
+    ServerStats,
+    WeaponStats,
 )
 from tests.factories.tracker import (
+    MapFactory,
     PlayerFactory,
     ProfileFactory,
-    MapFactory,
-    WeaponFactory,
     ServerFactory,
+    WeaponFactory,
 )
 
 

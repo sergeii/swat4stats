@@ -1,6 +1,6 @@
 from apps.tracker.tasks import discover_good_query_ports
-from tests.factories.tracker import ServerFactory
 from tests.factories.query import ServerQueryFactory
+from tests.factories.tracker import ServerFactory
 
 
 def test_discover_good_query_ports(db, create_udpservers):

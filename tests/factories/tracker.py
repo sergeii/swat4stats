@@ -1,24 +1,24 @@
 import random
 
-from django.db.models.signals import post_save
 import factory
-from factory import fuzzy
+from django.db.models.signals import post_save
 from django_redis import get_redis_connection
+from factory import fuzzy
 
 from apps.tracker.models import (
-    Server,
-    Game,
-    Player,
     Alias,
-    Profile,
+    Game,
     Map,
+    Player,
+    Profile,
+    Server,
     Weapon,
 )
 from apps.tracker.schema import (
-    mapnames_encoded,
-    teams_reversed,
     coop_status_encoded,
     coop_status_reversed,
+    mapnames_encoded,
+    teams_reversed,
     weapon_reversed,
 )
 from apps.tracker.utils.misc import force_clean_name

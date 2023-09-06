@@ -1,7 +1,7 @@
 from functools import reduce
 
 from django.contrib.postgres.search import SearchVector
-from django.db.models import Func, TextField, Expression, Value, F
+from django.db.models import Expression, F, Func, TextField, Value
 
 
 class ArrayToString(Func):

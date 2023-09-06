@@ -3,7 +3,7 @@ from enum import StrEnum, auto
 from typing import Any
 
 from celery import Celery
-from celery.signals import setup_logging, celeryd_init
+from celery.signals import celeryd_init, setup_logging
 
 from .sentry import configure_sentry_for_celery
 

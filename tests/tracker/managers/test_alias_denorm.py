@@ -1,4 +1,7 @@
+from collections.abc import Callable
+from contextlib import AbstractContextManager
 from datetime import datetime
+from unittest import mock
 
 import pytest
 from pytz import UTC
@@ -10,7 +13,10 @@ from tests.factories.tracker import AliasFactory
 
 @pytest.mark.django_db(databases=["default", "replica"])
 @freeze_timezone_now(datetime(2023, 8, 8, 11, 22, 55, tzinfo=UTC))
-def test_update_search_vector_for_many_aliases(now_mock, django_assert_num_queries):
+def test_update_search_vector_for_many_aliases(
+    now_mock: mock.Mock,
+    django_assert_num_queries: Callable[[int], AbstractContextManager],
+) -> None:
     mccree = AliasFactory(name="McCree")
     solider76 = AliasFactory(name="Solider76")
     mercy = AliasFactory(name="Mercy")
@@ -46,7 +52,12 @@ def test_update_search_vector_for_many_aliases(now_mock, django_assert_num_queri
         ("", ""),
     ],
 )
-def test_update_search_vector_for_one_alias(now_mock, django_assert_num_queries, name, tsv):
+def test_update_search_vector_for_one_alias(
+    now_mock: mock.Mock,
+    django_assert_num_queries: Callable[[int], AbstractContextManager],
+    name: str,
+    tsv: str,
+) -> None:
     alias = AliasFactory(name=name)
 
     with django_assert_num_queries(4):

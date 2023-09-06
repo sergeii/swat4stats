@@ -4,9 +4,9 @@ import pytest
 from pytz import UTC
 
 from apps.tracker.exceptions import MergeServersError
-from apps.tracker.models import Server, Game
+from apps.tracker.models import Game, Server
 from apps.utils.test import freeze_timezone_now
-from tests.factories.tracker import ServerFactory, GameFactory
+from tests.factories.tracker import GameFactory, ServerFactory
 
 
 def test_merge_servers(db):

@@ -1,7 +1,7 @@
 import asyncio
-import socket
-import re
 import logging
+import re
+import socket
 from typing import Any, TypedDict
 
 from django.conf import settings

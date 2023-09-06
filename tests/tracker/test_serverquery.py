@@ -3,10 +3,10 @@ from collections import OrderedDict
 
 import pytest
 
+from apps.tracker.aio_tasks.serverquery import ResponseMalformedError, ServerStatusTask
 from apps.tracker.utils import aio
-from apps.tracker.aio_tasks.serverquery import ServerStatusTask, ResponseMalformedError
-from tests.factories.tracker import ServerFactory
 from tests.factories.query import ServerQueryFactory
+from tests.factories.tracker import ServerFactory
 
 
 @pytest.fixture(scope="session")

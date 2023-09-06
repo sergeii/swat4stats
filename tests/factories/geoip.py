@@ -1,5 +1,5 @@
 import random
-from ipaddress import IPv4Network, IPv4Address
+from ipaddress import IPv4Address, IPv4Network
 
 import factory
 

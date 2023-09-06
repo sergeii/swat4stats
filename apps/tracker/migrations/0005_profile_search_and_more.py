@@ -2,10 +2,10 @@
 
 import django.contrib.postgres.fields
 import django.contrib.postgres.search
-from django.db import migrations, models
 import django.db.models.deletion
 import django.db.models.functions.text
 import django.utils.timezone
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

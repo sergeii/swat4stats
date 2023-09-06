@@ -8,11 +8,10 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from apps.tracker.models import Server
 from apps.tracker import schema
+from apps.tracker.models import Server
 from apps.tracker.tasks import process_game_data
-from apps.tracker.views.api import APIResponse, APIError, require_julia_schema
-
+from apps.tracker.views.api import APIError, APIResponse, require_julia_schema
 
 logger = logging.getLogger(__name__)
 

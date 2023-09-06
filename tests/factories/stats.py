@@ -3,9 +3,8 @@ from django.utils import timezone
 from factory import fuzzy
 
 from apps.tracker.entities import LegacyStatCategory
-from apps.tracker.models import PlayerStats, ServerStats, MapStats, GametypeStats
-
-from tests.factories.tracker import ProfileFactory, ServerFactory, MapFactory
+from apps.tracker.models import GametypeStats, MapStats, PlayerStats, ServerStats
+from tests.factories.tracker import MapFactory, ProfileFactory, ServerFactory
 
 
 class AbstractStatsFactory(factory.django.DjangoModelFactory):

@@ -4,7 +4,6 @@ from django.db import DataError, IntegrityError
 from apps.tracker.models import Loadout
 from tests.factories.loadout import LoadoutFactory
 
-
 fields = [
     "primary",
     "primary_ammo",

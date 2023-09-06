@@ -7,8 +7,6 @@ from django.db import models, transaction
 from django.db.models import Count, F, Q
 from django.utils import timezone
 
-from apps.utils.misc import iterate_list
-
 if TYPE_CHECKING:
     from apps.tracker.models import Game, Map
 
@@ -36,45 +34,48 @@ class MapManager(models.Manager):
             )
 
     def update_ratings(self, chunk_size: int = 1000) -> None:
+        maps_with_rating = self._get_maps_with_rating()
+
+        logger.info("updating rating for %d maps", len(maps_with_rating))
+
+        maps_to_update_qs = self.only("pk", "rating")
+        for map_to_update in maps_to_update_qs:
+            map_to_update.rating = maps_with_rating.get(map_to_update.pk)
+
+        with transaction.atomic():
+            self.bulk_update(maps_to_update_qs, ["rating"], batch_size=chunk_size)
+            self.update(rating_updated_at=timezone.now())
+
+    def _get_maps_with_rating(self) -> dict[int, int]:
         from apps.tracker.models import Game, Map
 
         finished_since = timezone.now() - timedelta(seconds=settings.TRACKER_MAP_RATINGS_FOR_PERIOD)
-        top_maps_by_games_qs = (
+        game_stats_per_server = (
             Game.objects.using("replica")
             .filter(date_finished__gte=finished_since)
             .order_by("map")
             .values("map")
             .annotate(game_cnt=Count("pk"))
         )
-        top_maps_by_games_ids = {row["map"]: row["game_cnt"] for row in top_maps_by_games_qs}
+        game_count_per_server_id = {row["map"]: row["game_cnt"] for row in game_stats_per_server}
 
-        top_maps = Map.objects.using("replica").filter(pk__in=top_maps_by_games_ids)
         warehouse_map = Map.objects.using("replica").get(name="-EXP- Stetchkov Warehouse")
-
+        maps_with_rating = (
+            Map.objects.using("replica").filter(pk__in=game_count_per_server_id).only("pk", "name")
+        )
         maps_sorted_by_rating = sorted(
-            top_maps,
+            maps_with_rating,
             key=lambda m: (
                 # vanilla maps first
                 m.pk > warehouse_map.pk,
                 # tss immediately after vanilla
                 m.name.startswith("-EXP-"),
                 # all maps other than tss and vanilla, sort by games played
-                -top_maps_by_games_ids[m.pk] if m.pk > warehouse_map.pk else 0,
+                -game_count_per_server_id[m.pk] if m.pk > warehouse_map.pk else 0,
                 m.name,
             ),
         )
-        maps_with_rating = {m.pk: idx for idx, m in enumerate(maps_sorted_by_rating, start=1)}
-
-        for map_ids in iterate_list(list(maps_with_rating), size=chunk_size):
-            logger.info("updating rating for %d maps", len(map_ids))
-
-            maps_to_update_qs = self.filter(pk__in=map_ids).only("pk", "rating")
-            for map_to_update in maps_to_update_qs:
-                map_to_update.rating = maps_with_rating[map_to_update.pk]
-
-            with transaction.atomic():
-                self.bulk_update(maps_to_update_qs, ["rating"])
-                self.filter(pk__in=map_ids).update(rating_updated_at=timezone.now())
+        return {m.pk: idx for idx, m in enumerate(maps_sorted_by_rating, start=1)}
 
     @transaction.atomic
     def denorm_game_stats(self, *maps) -> None:

@@ -2,26 +2,26 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from django.db import models, transaction, IntegrityError
+from django.db import IntegrityError, models, transaction
 from django.utils.translation import gettext_lazy as _
 
-from apps.tracker.entities import GamePlayerHighlight, GameTopFieldPlayer, GameNeighbors
+from apps.tracker.entities import GameNeighbors, GamePlayerHighlight, GameTopFieldPlayer
 from apps.tracker.exceptions import GameAlreadySavedError
 from apps.tracker.schema import (
+    coop_status_reversed,
     gametypes_reversed,
     mapnames_reversed,
+    objective_status_reversed,
+    objectives_reversed,
     outcome_reversed,
     procedures_reversed,
-    objectives_reversed,
-    objective_status_reversed,
     teams_reversed,
-    coop_status_reversed,
     weapon_reversed,
 )
 from apps.tracker.utils.misc import force_name
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Server, Player, Game  # noqa: F401
+    from apps.tracker.models import Game, Player, Server  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
@@ -146,7 +146,7 @@ class GameManager(models.Manager):
 
     def _create_game_players(self, game: "Game", players: list[dict[str, Any]]) -> None:
         """Process round players"""
-        from apps.tracker.models import Alias, Player, Loadout, Weapon  # noqa: F811
+        from apps.tracker.models import Alias, Loadout, Player, Weapon  # noqa: F811
 
         fields = [
             "team",

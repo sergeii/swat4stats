@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
-from django.db.models import Case, When, F, Q, Value, QuerySet
+from django.db.models import Case, F, Q, QuerySet, Value, When
 from django.utils import timezone
 from ipwhois import IPWhois
 from ipwhois.utils import ipv4_is_defined

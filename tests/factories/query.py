@@ -1,6 +1,6 @@
 import factory
-from factory import fuzzy
 from django.utils.encoding import force_bytes
+from factory import fuzzy
 
 
 class PlayerQueryResponse(dict):

@@ -6,8 +6,8 @@ from django.utils import timezone
 from apps.tracker.models import Profile
 from apps.utils.test import freeze_timezone_now
 from tests.factories.geoip import ISPFactory
-from tests.factories.tracker import PlayerFactory, ProfileFactory
 from tests.factories.loadout import LoadoutFactory, RandomLoadoutFactory
+from tests.factories.tracker import PlayerFactory, ProfileFactory
 
 
 @pytest.fixture(autouse=True)

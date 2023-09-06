@@ -96,11 +96,11 @@ def test_update_game_stats_for_map_from_scratch() -> None:
     "chunk_size, expected_queries",
     [
         (1000, 8),
-        (4, 13),
-        (2, 18),
+        (4, 9),
+        (2, 11),
     ],
 )
-def test_update_rating_ok(
+def test_update_ratings_ok(
     django_assert_num_queries: Callable[[int], AbstractContextManager],
     chunk_size: int,
     expected_queries: int,
@@ -109,16 +109,11 @@ def test_update_rating_ok(
 
     abomb = MapFactory(name="A-Bomb Nightclub")
     brewer = MapFactory(name="Brewer County Courthouse")
-    northside = MapFactory(name="Northside Vending")
+    northside = MapFactory(name="Northside Vending", rating=2)
     warehouse = MapFactory(name="-EXP- Stetchkov Warehouse")
-    new_library = MapFactory(name="New Library")
+    new_library = MapFactory(name="New Library", rating=1)
     dead_end = MapFactory(name="DEAD_END")
     delta = MapFactory(name="DELTA CENTER")
-
-    for obj in [abomb, brewer, northside, warehouse, new_library, dead_end, delta]:
-        obj.refresh_from_db()
-        assert obj.rating is None
-        assert obj.rating_updated_at is None
 
     GameFactory.create_batch(3, map=dead_end, date_finished=now - timedelta(days=181))  # old games
     GameFactory.create_batch(4, map=delta)
@@ -138,12 +133,11 @@ def test_update_rating_ok(
     assert warehouse.rating == 3
     assert delta.rating == 4
     assert new_library.rating == 5
-
-    for obj in [abomb, brewer, warehouse, delta, new_library]:
-        assert obj.rating_updated_at >= now
-
     assert dead_end.rating is None
     assert northside.rating is None
+
+    for obj in [abomb, brewer, warehouse, delta, new_library, dead_end, northside]:
+        assert obj.rating_updated_at >= now
 
     GameFactory.create_batch(2, map=dead_end, date_finished=now - timedelta(days=1))
     GameFactory.create_batch(2, map=warehouse)
@@ -162,30 +156,28 @@ def test_update_rating_ok(
     assert dead_end.rating == 6
     assert northside.rating is None
 
-    for obj in [abomb, brewer, warehouse, delta, new_library, dead_end]:
+    for obj in [abomb, brewer, warehouse, delta, new_library, dead_end, northside]:
         assert obj.rating_updated_at >= then
-
-    assert northside.rating_updated_at is None
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
-def test_update_rating_no_games(
+def test_update_ratings_no_games(
     django_assert_num_queries: Callable[[int], AbstractContextManager]
 ) -> None:
     now = timezone.now()
 
-    abomb = MapFactory(name="A-Bomb Nightclub")
+    abomb = MapFactory(name="A-Bomb Nightclub", rating=1)
     northside = MapFactory(name="Northside Vending")
     warehouse = MapFactory(name="-EXP- Stetchkov Warehouse")
-    delta = MapFactory(name="DELTA CENTER")
+    delta = MapFactory(name="DELTA CENTER", rating=2)
 
     GameFactory(map=delta, date_finished=now - timedelta(days=181))
 
     # no games, no rating
-    with django_assert_num_queries(2):
+    with django_assert_num_queries(7):
         Map.objects.update_ratings()
 
     for obj in [abomb, northside, warehouse, delta]:
         obj.refresh_from_db()
         assert obj.rating is None
-        assert obj.rating_updated_at is None
+        assert obj.rating_updated_at >= now

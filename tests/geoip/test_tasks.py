@@ -8,7 +8,7 @@ from pytz import UTC
 from apps.geoip.models import IP, ISP
 from apps.geoip.tasks import delete_expired_ips
 from apps.utils.test import freeze_timezone_now
-from tests.factories.geoip import ISPFactory, IPFactory
+from tests.factories.geoip import IPFactory, ISPFactory
 
 
 def test_expired_ips_are_deleted(db):

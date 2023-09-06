@@ -1,12 +1,11 @@
 import logging
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 import aiohttp
 from django.conf import settings
 
 from apps.tracker.utils import aio
-
 
 logger = logging.getLogger(__name__)
 

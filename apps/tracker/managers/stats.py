@@ -4,13 +4,13 @@ from datetime import datetime, time
 from typing import TYPE_CHECKING, Any
 
 from django.db import models, transaction
-from django.db.models import Q, F, Exists, OuterRef
+from django.db.models import Exists, F, OuterRef, Q
 from django.db.models.functions import window
 from django.utils import timezone
 from pytz import UTC
 
 from apps.tracker.entities import LegacyStatCategory
-from apps.utils.misc import iterate_list, concat_it
+from apps.utils.misc import concat_it, iterate_list
 
 if TYPE_CHECKING:
     from apps.tracker.models import Profile
@@ -177,7 +177,7 @@ class StatsManager(models.Manager):
 
 class ServerStatsManager(StatsManager):
     def merge_unmerged_stats(self) -> None:
-        from apps.tracker.models import Server, Profile
+        from apps.tracker.models import Profile, Server
 
         # collect the servers that have been merged into other servers
         # and have not merged stats yet

@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, ClassVar
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Sum, Max, Count, Case, When, Q, Min, Value, Expression, QuerySet
-from django.db.models.functions import NullIf, Cast, Round
+from django.db.models import Case, Count, Expression, Max, Min, Q, QuerySet, Sum, Value, When
+from django.db.models.functions import Cast, NullIf, Round
 
-from apps.tracker.entities import Team, GameType, GameOutcome, Equipment
+from apps.tracker.entities import Equipment, GameOutcome, GameType, Team
 
 if TYPE_CHECKING:
     from apps.tracker.models import Player, Profile, Server

@@ -1,9 +1,8 @@
-import random
 import logging
+import random
 
-from swat4stats.celery import app, Queue
 from apps.tracker.models import Profile
-
+from swat4stats.celery import Queue, app
 
 __all__ = [
     "update_player_preferences",

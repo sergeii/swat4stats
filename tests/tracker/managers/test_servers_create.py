@@ -1,5 +1,5 @@
-from django.core import exceptions
 import pytest
+from django.core import exceptions
 
 from apps.tracker.models import Server
 

@@ -12,8 +12,8 @@ from apps.tracker.signals import (
 from apps.tracker.tasks import refresh_listed_servers
 from apps.utils.test import freeze_timezone_now
 from tests.factories.geoip import ISPFactory
-from tests.factories.tracker import ServerFactory, ListedServerFactory
 from tests.factories.query import ServerQueryFactory
+from tests.factories.tracker import ListedServerFactory, ServerFactory
 
 
 @pytest.fixture

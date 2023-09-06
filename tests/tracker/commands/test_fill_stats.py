@@ -6,10 +6,9 @@ import pytz
 from django.core.management import call_command
 from django.utils import timezone
 
-from apps.tracker.models import PlayerStats, GametypeStats, MapStats, ServerStats
+from apps.tracker.models import GametypeStats, MapStats, PlayerStats, ServerStats
 from apps.utils.test import freeze_timezone_now
-from tests.factories.tracker import ProfileFactory, MapFactory, PlayerFactory
-
+from tests.factories.tracker import MapFactory, PlayerFactory, ProfileFactory
 
 utc_datetime = partial(datetime, tzinfo=pytz.utc)
 

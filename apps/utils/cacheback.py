@@ -2,8 +2,8 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any
 
-from cacheback.jobs import FunctionJob
 from cacheback.decorators import cacheback as cacheback_decorator
+from cacheback.jobs import FunctionJob
 
 
 class UniversalDecoratorFunctionJob(FunctionJob):

@@ -4,8 +4,8 @@ from datetime import datetime
 
 from pytz import UTC
 
-from tests.factories.tracker import GameFactory, ProfileFactory, ServerFactory
 from tests.factories.query import ServerStatusFactory
+from tests.factories.tracker import GameFactory, ProfileFactory, ServerFactory
 
 
 def test_sitemap_xml(db, client):

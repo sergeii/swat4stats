@@ -1,7 +1,7 @@
 import pytest
-from voluptuous import Schema, Invalid, Optional
+from voluptuous import Invalid, Optional, Schema
 
-from apps.utils.schema import Mapping, FallbackMapping, OptionalMapping
+from apps.utils.schema import FallbackMapping, Mapping, OptionalMapping
 
 
 class TestMapping:

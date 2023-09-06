@@ -1,5 +1,5 @@
 import pytest
-from django.utils.safestring import SafeText, SafeData
+from django.utils.safestring import SafeData, SafeText
 
 from apps.news.entities import RendererType
 from apps.news.models import Article

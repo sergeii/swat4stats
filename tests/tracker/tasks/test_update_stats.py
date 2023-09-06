@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 import pytest
 from dateutil.relativedelta import relativedelta
@@ -6,14 +6,14 @@ from django.db.models import Q
 from django.utils import timezone
 from pytz import UTC
 
-from apps.tracker.models import PlayerStats, MapStats, GametypeStats
+from apps.tracker.models import GametypeStats, MapStats, PlayerStats
 from apps.tracker.tasks import update_player_stats
+from tests.factories.stats import GametypeStatsFactory, PlayerStatsFactory
 from tests.factories.tracker import (
-    ProfileFactory,
-    PlayerFactory,
     MapFactory,
+    PlayerFactory,
+    ProfileFactory,
 )
-from tests.factories.stats import PlayerStatsFactory, GametypeStatsFactory
 
 
 @pytest.fixture

@@ -1,8 +1,8 @@
 import pytest
 
 from apps.tracker.entities import GameType
-from tests.factories.tracker import ServerFactory
 from tests.factories.query import ServerStatusFactory
+from tests.factories.tracker import ServerFactory
 
 
 def test_get_server_detail_for_disabled_404(db, api_client):

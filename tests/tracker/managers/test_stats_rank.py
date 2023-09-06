@@ -1,9 +1,9 @@
 import pytest
 from django.utils import timezone
 
-from apps.tracker.models import PlayerStats, GametypeStats
+from apps.tracker.models import GametypeStats, PlayerStats
+from tests.factories.stats import GametypeStatsFactory, PlayerStatsFactory
 from tests.factories.tracker import ProfileFactory
-from tests.factories.stats import PlayerStatsFactory, GametypeStatsFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])

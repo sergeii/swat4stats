@@ -1,11 +1,11 @@
 import django_filters
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchHeadline
+from django.contrib.postgres.search import SearchHeadline, SearchQuery, SearchRank
 from django.db import models
-from django.db.models import QuerySet, F, Value, OuterRef, Subquery
+from django.db.models import F, OuterRef, QuerySet, Subquery, Value
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
-from apps.tracker.models import Profile, Alias, Server
+from apps.tracker.models import Alias, Profile, Server
 
 
 class SearchPlayersFilterBackend(django_filters.rest_framework.DjangoFilterBackend):

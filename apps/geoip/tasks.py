@@ -1,7 +1,7 @@
 import logging
 
-from swat4stats.celery import app
 from apps.geoip.models import IP
+from swat4stats.celery import app
 
 logger = logging.getLogger(__name__)
 

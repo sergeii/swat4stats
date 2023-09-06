@@ -1,5 +1,5 @@
-from django.urls import reverse
 from django.contrib import sitemaps
+from django.urls import reverse
 
 from apps.tracker import models as m
 from apps.tracker.managers import ProfileQuerySet, ServerQuerySet

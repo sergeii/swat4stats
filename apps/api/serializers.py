@@ -1,40 +1,40 @@
 import logging
-from typing import Any, ClassVar
 from collections.abc import Callable
+from typing import Any, ClassVar
 from urllib.parse import quote as urlquote
 
 import voluptuous
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
 from django.utils.safestring import SafeString
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.news.models import Article
-from apps.tracker.entities import GameType, CoopStatus
+from apps.tracker.entities import CoopStatus, GameType
 from apps.tracker.models import (
-    Server,
-    Map,
     Game,
-    Player,
-    Objective,
-    Procedure,
-    Weapon,
-    PlayerStats,
-    Profile,
     Loadout,
+    Map,
+    Objective,
+    Player,
+    PlayerStats,
+    Procedure,
+    Profile,
+    Server,
+    Weapon,
 )
 from apps.tracker.schema import coop_status_encoded, serverquery_schema
-from apps.tracker.utils.misc import force_clean_name, format_name, html
 from apps.tracker.utils.game import (
-    get_player_portrait_image,
     gametype_rules_text,
-    map_briefing_text,
+    get_player_portrait_image,
     map_background_picture,
+    map_briefing_text,
 )
 from apps.tracker.utils.geo import country
+from apps.tracker.utils.misc import force_clean_name, format_name, html
 
 logger = logging.getLogger(__name__)
 

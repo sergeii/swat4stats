@@ -3,10 +3,10 @@ from datetime import date, datetime
 import pytest
 from pytz import UTC
 
-from apps.tracker.entities import Team
 from apps.tracker.entities import Equipment as EQ  # noqa: N814
-from apps.tracker.utils.misc import force_name, force_clean_name, iterate_years
+from apps.tracker.entities import Team
 from apps.tracker.utils.game import get_player_portrait_image
+from apps.tracker.utils.misc import force_clean_name, force_name, iterate_years
 
 
 def test_force_name():

@@ -3,12 +3,11 @@ from typing import Any
 
 from django.db import transaction
 
-from apps.utils.misc import concat_it
-from swat4stats.celery import app, Queue
-from apps.tracker.models import Server, ServerStats
-from apps.tracker.signals import live_servers_detected, failed_servers_detected
 from apps.geoip.models import ISP
-
+from apps.tracker.models import Server, ServerStats
+from apps.tracker.signals import failed_servers_detected, live_servers_detected
+from apps.utils.misc import concat_it
+from swat4stats.celery import Queue, app
 
 __all__ = [
     "refresh_listed_servers",

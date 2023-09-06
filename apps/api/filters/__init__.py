@@ -1,9 +1,9 @@
 # ruff: noqa: F401
 from .games import GameFilterSet
 from .search import (
-    SearchPlayersFilterSet,
     SearchPlayersFilterBackend,
-    SearchServersFilterSet,
+    SearchPlayersFilterSet,
     SearchServersFilterBackend,
+    SearchServersFilterSet,
 )
 from .servers import ServerFilterBackend

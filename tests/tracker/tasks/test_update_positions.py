@@ -1,15 +1,15 @@
 import pytest
 from django.utils import timezone
 
-from apps.tracker.models import PlayerStats, ServerStats, MapStats, GametypeStats
-from apps.tracker.tasks import update_player_positions, settle_annual_player_positions
-from tests.factories.tracker import ProfileFactory, ServerFactory
+from apps.tracker.models import GametypeStats, MapStats, PlayerStats, ServerStats
+from apps.tracker.tasks import settle_annual_player_positions, update_player_positions
 from tests.factories.stats import (
+    GametypeStatsFactory,
+    MapStatsFactory,
     PlayerStatsFactory,
     ServerStatsFactory,
-    MapStatsFactory,
-    GametypeStatsFactory,
 )
+from tests.factories.tracker import ProfileFactory, ServerFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])

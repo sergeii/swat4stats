@@ -1,16 +1,16 @@
 import pytest
 from django.utils import timezone
 
-from apps.tracker.models import PlayerStats, ServerStats, MapStats, GametypeStats, Profile
+from apps.tracker.models import GametypeStats, MapStats, PlayerStats, Profile, ServerStats
+from tests.factories.stats import (
+    GametypeStatsFactory,
+    MapStatsFactory,
+    PlayerStatsFactory,
+    ServerStatsFactory,
+)
 from tests.factories.tracker import (
     ProfileFactory,
     ServerFactory,
-)
-from tests.factories.stats import (
-    PlayerStatsFactory,
-    ServerStatsFactory,
-    MapStatsFactory,
-    GametypeStatsFactory,
 )
 
 

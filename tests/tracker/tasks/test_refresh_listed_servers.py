@@ -7,11 +7,11 @@ import pytz
 from django.conf import settings
 
 from apps.tracker.models import Server
-from apps.tracker.signals import live_servers_detected, failed_servers_detected
+from apps.tracker.signals import failed_servers_detected, live_servers_detected
 from apps.tracker.tasks import refresh_listed_servers
 from apps.utils.test import freeze_timezone_now
-from tests.factories.tracker import ServerFactory
 from tests.factories.query import ServerQueryFactory
+from tests.factories.tracker import ServerFactory
 
 
 @freeze_timezone_now(datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC))

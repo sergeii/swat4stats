@@ -7,8 +7,8 @@ from django.core.management import call_command
 from django.utils import timezone
 
 from apps.utils.test import freeze_timezone_now
-from tests.factories.tracker import ProfileFactory, PlayerFactory
 from tests.factories.loadout import RandomLoadoutFactory
+from tests.factories.tracker import PlayerFactory, ProfileFactory
 
 utc_datetime = partial(datetime, tzinfo=pytz.utc)
 

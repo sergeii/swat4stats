@@ -1,18 +1,17 @@
 import functools
 import json
 import logging
+from collections.abc import Callable
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
 
 from django.core.exceptions import BadRequest
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.utils.translation import gettext_lazy as _
 from voluptuous import Invalid
 
 from apps.tracker.models import Server
 from apps.tracker.utils.parser import JuliaQueryString
-
 
 logger = logging.getLogger(__name__)
 

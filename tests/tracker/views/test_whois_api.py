@@ -2,7 +2,7 @@ import pytest
 
 from apps.tracker.utils.misc import force_clean_name
 from tests.factories.geoip import ISPFactory
-from tests.factories.tracker import ServerFactory, GameFactory, PlayerFactory, ProfileFactory
+from tests.factories.tracker import GameFactory, PlayerFactory, ProfileFactory, ServerFactory
 
 
 @pytest.fixture(autouse=True)

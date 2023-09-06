@@ -1,6 +1,5 @@
-from django_countries import countries as dj_countries
 from django.utils.translation import gettext_lazy as _
-
+from django_countries import countries as dj_countries
 
 countries = dict(dj_countries.countries)
 

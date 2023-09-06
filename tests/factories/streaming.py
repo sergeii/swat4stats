@@ -7,17 +7,17 @@ from typing import ClassVar
 from urllib.parse import urlencode
 
 import factory
-from factory import fuzzy
 from django.utils.encoding import force_bytes
+from factory import fuzzy
 
-from apps.utils.misc import timestamp
 from apps.tracker.schema import (
     equipment_encoded,
-    weapon_encoded,
-    objectives_encoded,
     objective_status_encoded,
+    objectives_encoded,
     procedures_encoded,
+    weapon_encoded,
 )
+from apps.utils.misc import timestamp
 
 
 class BaseGameData(dict):

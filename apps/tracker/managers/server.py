@@ -25,7 +25,7 @@ from apps.tracker.schema import serverquery_schema
 from apps.tracker.utils import aio
 from apps.tracker.utils.misc import force_clean_name
 from apps.utils.db.func import normalized_names_search_vector
-from apps.utils.misc import concat_it, dumps, iterate_list
+from apps.utils.misc import concat_it, dumps
 
 if TYPE_CHECKING:
     from apps.tracker.models import Game, Server
@@ -177,12 +177,25 @@ class ServerManager(models.Manager):
         )
 
     def update_ratings(self, chunk_size: int = 1000) -> None:
+        servers_with_rating = self._get_servers_with_rating()
+
+        logger.info("updating rating for %d servers", len(servers_with_rating))
+
+        servers_to_update_qs = self.only("pk", "rating")
+        for server in servers_to_update_qs:
+            server.rating = servers_with_rating.get(server.pk)
+
+        with transaction.atomic():
+            self.bulk_update(servers_to_update_qs, ["rating"], batch_size=chunk_size)
+            self.update(rating_updated_at=timezone.now())
+
+    def _get_servers_with_rating(self) -> dict[int, int]:
         from apps.tracker.models import Game, Server
 
         finished_since = timezone.now() - timedelta(
             seconds=settings.TRACKER_SERVER_RATINGS_FOR_PERIOD
         )
-        top_servers_for_games = (
+        game_stats_per_server = (
             Game.objects.using("replica")
             .filter(date_finished__gte=finished_since)
             .order_by("server")
@@ -192,33 +205,26 @@ class ServerManager(models.Manager):
         # map server id to the number of played games,
         # so we can use the latter number to sort the servers
         # in the next query, where the ordering will be lost
-        top_servers_by_games_ids = {row["server"]: row["game_cnt"] for row in top_servers_for_games}
+        game_count_per_server_id = {row["server"]: row["game_cnt"] for row in game_stats_per_server}
 
-        top_servers = Server.objects.using("replica").filter(pk__in=top_servers_by_games_ids)
-
+        servers_with_rating = (
+            Server.objects.using("replica")
+            .filter(pk__in=game_count_per_server_id)
+            .only("pk", "hostname")
+        )
         servers_sorted_by_rating = sorted(
-            top_servers,
+            servers_with_rating,
             key=lambda s: (
                 # servers with more games first
-                -top_servers_by_games_ids[s.pk],
+                -game_count_per_server_id[s.pk],
                 # among those with equal game count, favour servers with hostname
                 s.hostname or "",
                 # rest of the servers by id
                 s.pk,
             ),
         )
-        servers_with_rating = {s.pk: idx for idx, s in enumerate(servers_sorted_by_rating, start=1)}
 
-        for server_ids in iterate_list(list(servers_with_rating), size=chunk_size):
-            logger.info("updating rating for %d servers", len(server_ids))
-
-            servers_to_update_qs = self.filter(pk__in=server_ids).only("pk", "rating")
-            for server in servers_to_update_qs:
-                server.rating = servers_with_rating[server.pk]
-
-            with transaction.atomic():
-                self.bulk_update(servers_to_update_qs, ["rating"])
-                self.filter(pk__in=server_ids).update(rating_updated_at=timezone.now())
+        return {s.pk: idx for idx, s in enumerate(servers_sorted_by_rating, start=1)}
 
     @transaction.atomic
     def update_search_vector(self, *server_ids: int) -> None:

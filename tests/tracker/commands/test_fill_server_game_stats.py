@@ -2,7 +2,7 @@ import pytest
 from django.core.management import call_command
 
 from apps.tracker.models import Server
-from tests.factories.tracker import ServerFactory, GameFactory
+from tests.factories.tracker import GameFactory, ServerFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])

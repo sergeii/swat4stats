@@ -1,12 +1,11 @@
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import Decimal
 from functools import partial
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 from pytz import UTC
 
 from apps.utils import xjson
-
 
 utc_datetime = partial(datetime, tzinfo=UTC)
 utc_now = partial(datetime.now, tz=UTC)

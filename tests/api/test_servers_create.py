@@ -1,8 +1,7 @@
 from apps.tracker.models import Server
-
 from tests.factories.geoip import ISPFactory
+from tests.factories.query import PlayerQueryFactory, ServerQueryFactory
 from tests.factories.tracker import ServerFactory
-from tests.factories.query import ServerQueryFactory, PlayerQueryFactory
 
 
 def test_add_server_flow(db, api_client, udp_server):

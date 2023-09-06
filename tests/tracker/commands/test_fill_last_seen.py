@@ -4,8 +4,7 @@ from functools import partial
 import pytz
 from django.core.management import call_command
 
-from tests.factories.tracker import ProfileFactory, GameFactory
-
+from tests.factories.tracker import GameFactory, ProfileFactory
 
 utc_datetime = partial(datetime, tzinfo=pytz.utc)
 

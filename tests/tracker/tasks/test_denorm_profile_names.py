@@ -6,7 +6,7 @@ from pytz import UTC
 
 from apps.tracker.tasks import denorm_profile_names
 from apps.utils.test import freeze_timezone_now
-from tests.factories.tracker import ProfileFactory, AliasFactory
+from tests.factories.tracker import AliasFactory, ProfileFactory
 
 
 @pytest.mark.django_db(databases=["default", "replica"])
