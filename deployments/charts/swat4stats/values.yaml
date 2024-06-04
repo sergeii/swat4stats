@@ -7,7 +7,7 @@ image:
 uwsgi:
   port: 9090
   targetPort: 9090
-  replicas: 8
+  replicas: 4
   terminationGracePeriodSeconds: 10
   env:
     UWSGI_CHDIR: /app/src
@@ -93,8 +93,8 @@ celeryExporter:
     repository: danihodovic/celery-exporter
     pullPolicy: IfNotPresent
     pullSecrets: ""
-    tag: "0.9.2"
-    sha: "1afefe83b0e2fd257455d42dfb0c122bd2c4828949e26c2d7cc422d1f42deba0"
+    tag: "0.10.5"
+    sha: "sha256:fc63bacab6e429aa458e9d0244b0212e00d795fa913d4ce6d424ab77880eba04"
 
 staticfiles:
   port: 10080
