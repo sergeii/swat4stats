@@ -35,6 +35,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install poetry
+        run: pipx install poetry
+
       - name: Bump version in pyproject.toml
         run: "poetry version ${{ needs.prepare.outputs.new_version }}"
 
