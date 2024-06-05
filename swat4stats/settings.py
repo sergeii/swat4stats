@@ -4,11 +4,9 @@ from datetime import timedelta
 from pathlib import Path
 
 from celery.schedules import crontab
-from django.utils.deprecation import RemovedInDjango50Warning
 
 from apps.utils.settings import env, env_bool, env_list, env_log_level
 
-warnings.simplefilter("ignore", RemovedInDjango50Warning)
 warnings.simplefilter("ignore", DeprecationWarning)
 
 
@@ -97,7 +95,6 @@ INSTALLED_APPS: tuple[str, ...] = (
     "django_countries",
     "django_filters",
     "rest_framework",
-    "drf_yasg",
     "apps.tracker",
     "apps.news",
     "apps.geoip",

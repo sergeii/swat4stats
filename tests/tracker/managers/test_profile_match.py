@@ -1,9 +1,8 @@
 # ruff: noqa: C408
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from django.utils import timezone
-from pytz import UTC
 
 from apps.geoip.models import ISP
 from apps.tracker.exceptions import NoProfileMatchError
@@ -298,11 +297,11 @@ def test_player_does_not_receive_same_profile_after_long_period(db):
     [
         (None, datetime(2020, 1, 1, 11, 22, 55, tzinfo=UTC)),
         (
-            datetime(2019, 12, 31, 11, 22, 55, tzinfo=timezone.utc),
+            datetime(2019, 12, 31, 11, 22, 55, tzinfo=UTC),
             datetime(2020, 1, 1, 11, 22, 55, tzinfo=UTC),
         ),
         (
-            datetime(2021, 2, 1, 11, 22, 55, tzinfo=timezone.utc),
+            datetime(2021, 2, 1, 11, 22, 55, tzinfo=UTC),
             datetime(2021, 2, 1, 11, 22, 55, tzinfo=UTC),
         ),
     ],
@@ -339,7 +338,7 @@ def test_alias_is_created_with_new_profile(now_mock, db):
     assert profile.alias_updated_at is None
 
     created_profile = Profile.objects.get(pk=new_alias.profile.pk)
-    assert created_profile.alias_updated_at == datetime(2020, 1, 1, 11, 22, 55, tzinfo=timezone.utc)
+    assert created_profile.alias_updated_at == datetime(2020, 1, 1, 11, 22, 55, tzinfo=UTC)
 
 
 @pytest.mark.parametrize(

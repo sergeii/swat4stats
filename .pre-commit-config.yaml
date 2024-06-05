@@ -23,7 +23,7 @@ repos:
     hooks:
       - id: mypy
         args:
-          - --python-version=3.11
+          - --python-version=3.12
           - --no-strict-optional
           - --ignore-missing-imports
           - --disallow-untyped-defs
