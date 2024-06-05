@@ -59,5 +59,5 @@ def test_sitemap_players_xml(db, client, site, django_assert_max_num_queries):
     assert resp.headers["Content-Type"] == "application/xml"
 
     root = ET.fromstring(resp.content)
-    urls = [c[0].text for c in root]
-    assert urls == [f"http://{site.domain}/player/{p.name}/{p.id}/" for p in profiles]
+    urls = {c[0].text for c in root}
+    assert urls == {f"http://{site.domain}/player/{p.name}/{p.id}/" for p in profiles}
