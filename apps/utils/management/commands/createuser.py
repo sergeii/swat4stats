@@ -6,7 +6,7 @@ from django.core.management import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "Create a user"  # noqa: A003
+    help = "Create a user"
 
     def add_arguments(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument("username")

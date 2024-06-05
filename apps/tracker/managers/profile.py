@@ -91,7 +91,7 @@ class ProfileManager(models.Manager):
         recent: bool = False,
         **match_kwargs: dict[str, Any],
     ) -> "Profile":
-        from apps.tracker.models import Alias  # noqa: F811
+        from apps.tracker.models import Alias
 
         # filter players by recentness
         if recent:
@@ -586,7 +586,7 @@ class ProfileManager(models.Manager):
         )
 
     def denorm_alias_names(self, *profile_ids: int) -> None:
-        from apps.tracker.models import Alias  # noqa: F811
+        from apps.tracker.models import Alias
 
         unique_alias_names_subq = (
             Alias.objects.using("replica")

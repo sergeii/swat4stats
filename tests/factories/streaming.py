@@ -70,7 +70,7 @@ class BaseGameData(dict):
         return urlencode(
             OrderedDict(
                 [
-                    (str(keys[0]) + "".join("[%s]" % array_idx for array_idx in keys[1:]), value)
+                    (str(keys[0]) + "".join(f"[{array_idx}]" for array_idx in keys[1:]), value)
                     for keys, value in sorted(self.to_julia_dict().items())
                 ]
             )
@@ -243,7 +243,7 @@ class WeaponGameDataFactory(factory.Factory):
 
 
 class SimplePlayerGameDataFactory(factory.Factory):
-    id = factory.Sequence(lambda n: str(n))  # noqa: A003
+    id = factory.Sequence(lambda n: str(n))
     name = factory.Faker("first_name")
     dropped = 0
     vip = 0
@@ -326,7 +326,7 @@ class ServerGameDataFactory(factory.Factory):
     outcome = 0
 
     @factory.post_generation
-    def hash(obj, create, extracted, **kwargs):  # noqa: A003
+    def hash(obj, create, extracted, **kwargs):
         if not create:
             return
         key = kwargs.get("hash__key") or "key"

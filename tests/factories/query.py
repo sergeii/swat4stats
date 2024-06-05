@@ -34,7 +34,7 @@ class ServerQueryResponse(dict):
 
 
 class PlayerQueryFactory(factory.Factory):
-    id = factory.Sequence(lambda n: str(n))  # noqa: A003
+    id = factory.Sequence(lambda n: str(n))
     player = factory.Faker("first_name")
     ping = fuzzy.FuzzyInteger(25, 9999)
     score = fuzzy.FuzzyInteger(10, 30)
@@ -55,7 +55,7 @@ class ServerQueryFactory(factory.Factory):
     mapname = "A-Bomb Nightclub"
     numplayers = 0
     maxplayers = 16
-    round = 4  # noqa: A003
+    round = 4
     numrounds = 5
     swatscore = 100
     suspectsscore = 0
@@ -82,7 +82,7 @@ class ServerStatusFactory(factory.DictFactory):
     mapname = "A-Bomb Nightclub"
     numplayers = 0
     maxplayers = 16
-    round = 4  # noqa: A003
+    round = 4
     numrounds = 5
     timeleft = 100
     timespecial = 0

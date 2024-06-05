@@ -146,7 +146,7 @@ class GameManager(models.Manager):
 
     def _create_game_players(self, game: "Game", players: list[dict[str, Any]]) -> None:
         """Process round players"""
-        from apps.tracker.models import Alias, Loadout, Player, Weapon  # noqa: F811
+        from apps.tracker.models import Alias, Loadout, Player, Weapon
 
         fields = [
             "team",

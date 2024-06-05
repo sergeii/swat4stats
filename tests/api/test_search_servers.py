@@ -324,22 +324,28 @@ def test_search_servers_pagination_no_filters(api_client):
     [
         ("GB", ["Sog-team.co.uk Pro!"]),
         ("gb", ["Sog-team.co.uk Pro!"]),
-        ("DE", [
-            "-==MYT Team Svr==-",
-            "[CN]SWAT4X COOP Server",
-            "-==MYT World Svr==-",
-            "-==MYT Coop Pro Svr==-",
-            "-==MYT Coop Svr==-",
-            "WWW.EPiCS.TOP",
-        ]),
-        ("de", [
-            "-==MYT Team Svr==-",
-            "[CN]SWAT4X COOP Server",
-            "-==MYT World Svr==-",
-            "-==MYT Coop Pro Svr==-",
-            "-==MYT Coop Svr==-",
-            "WWW.EPiCS.TOP",
-        ]),
+        (
+            "DE",
+            [
+                "-==MYT Team Svr==-",
+                "[CN]SWAT4X COOP Server",
+                "-==MYT World Svr==-",
+                "-==MYT Coop Pro Svr==-",
+                "-==MYT Coop Svr==-",
+                "WWW.EPiCS.TOP",
+            ],
+        ),
+        (
+            "de",
+            [
+                "-==MYT Team Svr==-",
+                "[CN]SWAT4X COOP Server",
+                "-==MYT World Svr==-",
+                "-==MYT Coop Pro Svr==-",
+                "-==MYT Coop Svr==-",
+                "WWW.EPiCS.TOP",
+            ],
+        ),
         ("US", ["Frosty's Playhouse TSS - VIP", "Frosty's Playhouse TSS - BS"]),
         ("us", ["Frosty's Playhouse TSS - VIP", "Frosty's Playhouse TSS - BS"]),
         ("CY", []),
@@ -359,43 +365,73 @@ def test_search_servers_by_country(api_client, country, names):
     "search_q, names",
     # fmt: off
     [
-        ("myt", [
-            "-==MYT Team Svr==-",
-            "-==MYT World Svr==-",
-            "-==MYT Coop Pro Svr==-",
-            "-==MYT Coop Svr==-",
-        ]),
-        ("myt team svr", [
-            "-==MYT Team Svr==-",
-        ]),
-        ("myt svr", [
-            "-==MYT Team Svr==-",
-            "-==MYT World Svr==-",
-            "-==MYT Coop Svr==-",
-            "-==MYT Coop Pro Svr==-",
-        ]),
-        ("myt coop", [
-            "-==MYT Coop Svr==-",
-            "-==MYT Coop Pro Svr==-",
-        ]),
-        ("sog", [
-            "Sog-team.co.uk Pro!",
-        ]),
-        ("sog team", [
-            "Sog-team.co.uk Pro!",
-        ]),
-        ("sog-team.co.uk", [
-            "Sog-team.co.uk Pro!",
-        ]),
-        ("sog pro", [
-            "Sog-team.co.uk Pro!",
-        ]),
-        ("epics", [
-            "WWW.EPiCS.TOP",
-        ]),
-        ("epics top", [
-            "WWW.EPiCS.TOP",
-        ]),
+        (
+            "myt",
+            [
+                "-==MYT Team Svr==-",
+                "-==MYT World Svr==-",
+                "-==MYT Coop Pro Svr==-",
+                "-==MYT Coop Svr==-",
+            ],
+        ),
+        (
+            "myt team svr",
+            [
+                "-==MYT Team Svr==-",
+            ],
+        ),
+        (
+            "myt svr",
+            [
+                "-==MYT Team Svr==-",
+                "-==MYT World Svr==-",
+                "-==MYT Coop Svr==-",
+                "-==MYT Coop Pro Svr==-",
+            ],
+        ),
+        (
+            "myt coop",
+            [
+                "-==MYT Coop Svr==-",
+                "-==MYT Coop Pro Svr==-",
+            ],
+        ),
+        (
+            "sog",
+            [
+                "Sog-team.co.uk Pro!",
+            ],
+        ),
+        (
+            "sog team",
+            [
+                "Sog-team.co.uk Pro!",
+            ],
+        ),
+        (
+            "sog-team.co.uk",
+            [
+                "Sog-team.co.uk Pro!",
+            ],
+        ),
+        (
+            "sog pro",
+            [
+                "Sog-team.co.uk Pro!",
+            ],
+        ),
+        (
+            "epics",
+            [
+                "WWW.EPiCS.TOP",
+            ],
+        ),
+        (
+            "epics top",
+            [
+                "WWW.EPiCS.TOP",
+            ],
+        ),
         ("wm", []),
     ],
     # fmt: on
@@ -414,18 +450,26 @@ def test_search_servers_by_name(api_client, django_assert_max_num_queries, searc
     # fmt: off
     [
         ("myt", "us", []),
-        ("myt", "de", [
-            "-==MYT Team Svr==-",
-            "-==MYT World Svr==-",
-            "-==MYT Coop Pro Svr==-",
-            "-==MYT Coop Svr==-",
-        ]),
+        (
+            "myt",
+            "de",
+            [
+                "-==MYT Team Svr==-",
+                "-==MYT World Svr==-",
+                "-==MYT Coop Pro Svr==-",
+                "-==MYT Coop Svr==-",
+            ],
+        ),
         ("coop", "gb", []),
-        ("coop", "de", [
-            "[CN]SWAT4X COOP Server",
-            "-==MYT Coop Pro Svr==-",
-            "-==MYT Coop Svr==-",
-        ]),
+        (
+            "coop",
+            "de",
+            [
+                "[CN]SWAT4X COOP Server",
+                "-==MYT Coop Pro Svr==-",
+                "-==MYT Coop Svr==-",
+            ],
+        ),
     ],
     # fmt: on
 )
@@ -444,19 +488,28 @@ def test_search_servers_by_name_and_country(
     # fmt: off
     [
         ("myt team", ["-==MYT Team Svr==-"]),
-        ("myt svr", [
-            "-==MYT Team Svr==-",
-            "-==MYT World Svr==-",
-            "-==MYT Coop Svr==-",
-            "-==MYT Coop Pro Svr==-",
-        ]),
-        ("myt coop", [
-            "-==MYT Coop Svr==-",
-            "-==MYT Coop Pro Svr==-",
-        ]),
-        ("myt pro", [
-            "-==MYT Coop Pro Svr==-",
-        ]),
+        (
+            "myt svr",
+            [
+                "-==MYT Team Svr==-",
+                "-==MYT World Svr==-",
+                "-==MYT Coop Svr==-",
+                "-==MYT Coop Pro Svr==-",
+            ],
+        ),
+        (
+            "myt coop",
+            [
+                "-==MYT Coop Svr==-",
+                "-==MYT Coop Pro Svr==-",
+            ],
+        ),
+        (
+            "myt pro",
+            [
+                "-==MYT Coop Pro Svr==-",
+            ],
+        ),
     ],
     # fmt: on
 )

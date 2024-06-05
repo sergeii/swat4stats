@@ -154,7 +154,7 @@ class Game(models.Model):
     outcome_legacy = models.SmallIntegerField(db_column="outcome", default=0)
     gametype = EnumField(db_column="gametype_enum", enum_type="gametype_enum")
     gametype_legacy = models.SmallIntegerField(db_column="gametype")
-    map = models.ForeignKey("Map", on_delete=models.PROTECT)  # noqa: A003
+    map = models.ForeignKey("Map", on_delete=models.PROTECT)
     player_num = models.SmallIntegerField(default=0)
     score_swat = models.SmallIntegerField(default=0)
     score_sus = models.SmallIntegerField(default=0)
@@ -251,7 +251,7 @@ class Loadout(models.Model):
 
 
 class Weapon(models.Model):
-    id = models.BigAutoField("ID", primary_key=True)  # noqa: A003
+    id = models.BigAutoField("ID", primary_key=True)
     player = models.ForeignKey(
         "Player", on_delete=models.CASCADE, related_name="weapons", related_query_name="weapon"
     )
@@ -268,7 +268,7 @@ class Weapon(models.Model):
     _grenade_weapons: ClassVar[set[str]] = set(Equipment.grenades())
 
     def __str__(self) -> str:
-        return f"{self.name} of player {self.player_id} ({self.pk})"
+        return f"id={self.pk} name={self.name} player={self.player_id}"
 
     @cached_property
     def is_grenade_weapon(self) -> bool:
@@ -451,7 +451,7 @@ class Player(models.Model):
 
 
 class Objective(models.Model):
-    id = models.BigAutoField("ID", primary_key=True)  # noqa: A003
+    id = models.BigAutoField("ID", primary_key=True)
     game = models.ForeignKey("Game", on_delete=models.CASCADE)
     name = EnumField(db_column="name_enum", enum_type="objective_enum")
     name_legacy = models.SmallIntegerField(db_column="name")
@@ -466,7 +466,7 @@ class Objective(models.Model):
 
 
 class Procedure(models.Model):
-    id = models.BigAutoField("ID", primary_key=True)  # noqa: A003
+    id = models.BigAutoField("ID", primary_key=True)
     game = models.ForeignKey("Game", on_delete=models.CASCADE)
     name = EnumField(db_column="name_enum", enum_type="procedure_enum")
     name_legacy = models.SmallIntegerField(db_column="name")
@@ -534,7 +534,7 @@ class Stats(models.Model):
         abstract = True
 
 
-class PlayerStats(Stats):
+class PlayerStats(Stats):  # noqa: DJ008
     # FIXME: set not null
     category = EnumField(db_column="category_enum", enum_type="stats_category_enum", null=True)
     category_legacy = models.SmallIntegerField(db_column="category")
@@ -559,8 +559,8 @@ class PlayerStats(Stats):
     unique_db_fields: ClassVar[list[str]] = ["year", "category_legacy", "profile_id"]
 
 
-class MapStats(Stats):
-    map = models.ForeignKey("Map", on_delete=models.CASCADE)  # noqa: A003
+class MapStats(Stats):  # noqa: DJ008
+    map = models.ForeignKey("Map", on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (
@@ -574,7 +574,7 @@ class MapStats(Stats):
     unique_db_fields: ClassVar[list[str]] = ["year", "category", "profile_id", "map_id"]
 
 
-class GametypeStats(Stats):
+class GametypeStats(Stats):  # noqa: DJ008
     gametype = EnumField(enum_type="gametype_enum")
 
     class Meta:
@@ -589,8 +589,10 @@ class GametypeStats(Stats):
     unique_db_fields: ClassVar[list[str]] = ["year", "category", "profile_id", "gametype"]
 
 
-class ServerStats(Stats):
+class ServerStats(Stats):  # noqa: DJ008
     server = models.ForeignKey("Server", on_delete=models.CASCADE)
+
+    objects = ServerStatsManager()
 
     class Meta:
         unique_together = (
@@ -600,13 +602,11 @@ class ServerStats(Stats):
             "server",
         )
 
-    objects = ServerStatsManager()
-
     grouping_fields: ClassVar[list[str]] = ["category", "server_id"]
     unique_db_fields: ClassVar[list[str]] = ["year", "category", "profile_id", "server_id"]
 
 
-class WeaponStats(Stats):
+class WeaponStats(Stats):  # noqa: DJ008
     weapon = EnumField(enum_type="equipment_enum")
 
     class Meta:

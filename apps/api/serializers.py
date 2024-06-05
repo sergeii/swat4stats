@@ -67,7 +67,7 @@ class ServerFilterSerializer(serializers.Serializer):
 class StatusPlayerSerializer(serializers.Serializer):
     default_coop_status = coop_status_encoded[1]
 
-    id = serializers.IntegerField()  # noqa: A003
+    id = serializers.IntegerField()
     name = serializers.CharField()
     ping = serializers.IntegerField()
     score = serializers.IntegerField()
@@ -492,7 +492,7 @@ class GameBaseSerializer(serializers.ModelSerializer):
     gametype = serializers.SerializerMethodField()
     gametype_short = serializers.SerializerMethodField()
     gametype_slug = serializers.SerializerMethodField()
-    map = MapSerializer()  # noqa: A003
+    map = MapSerializer()
     server = ServerBaseSerializer()
 
     gametype_to_short_mapping: ClassVar[dict[str, str]] = {
@@ -535,7 +535,7 @@ class GameBaseSerializer(serializers.ModelSerializer):
 
 
 class GameNeighborsSerializer(serializers.Serializer):
-    next = GameBaseSerializer()  # noqa: A003
+    next = GameBaseSerializer()
     prev = GameBaseSerializer()
 
 
