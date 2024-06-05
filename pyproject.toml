@@ -138,6 +138,9 @@ ignore-variadic-names = true
 [tool.ruff.lint.isort]
 force-sort-within-sections = false
 
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
 [tool.mypy]
 disable_error_code = "misc"
 python_version = "3.11"
