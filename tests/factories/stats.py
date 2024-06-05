@@ -30,7 +30,7 @@ class ServerStatsFactory(AbstractStatsFactory):
 
 
 class MapStatsFactory(AbstractStatsFactory):
-    map = factory.SubFactory(MapFactory)  # noqa: A003
+    map = factory.SubFactory(MapFactory)
 
     class Meta:
         model = MapStats

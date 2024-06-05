@@ -2,7 +2,6 @@
 [![License: MIT][license-img]][license]
 [![Powered by Python][python-img]][python]
 [![Made with Django][django-img]][django]
-[![Code style: black][black-img]][black]
 [![Ruff][ruff-img]][ruff]
 [![codecov][codecov-img]][codecov]
 [![ci][ci-img]][ci]
@@ -90,9 +89,6 @@ Released under the [MIT License](LICENSE.txt).
 
 [django-img]: https://img.shields.io/badge/django-4.2-blue.svg
 [django]: https://docs.djangoproject.com/en/4.2/
-
-[black-img]: https://img.shields.io/badge/code%20style-black-000000.svg
-[black]: https://github.com/psf/black
 
 [ruff-img]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
 [ruff]: https://github.com/astral-sh/ruff

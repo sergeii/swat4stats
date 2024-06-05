@@ -46,7 +46,7 @@ def test_add_server_not_available(db, api_client, udp_server):
     assert response.status_code == 400
     assert (
         str(response.data["non_field_errors"][0])
-        == "Ensure the server is running at port %s" % join_port
+        == f"Ensure the server is running at port {join_port}"
     )
     assert not Server.objects.count()
 

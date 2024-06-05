@@ -323,4 +323,4 @@ class GamePlayerHighlight:
 @dataclass
 class GameNeighbors:
     prev: Optional["Game"] = None
-    next: Optional["Game"] = None  # noqa: A003
+    next: Optional["Game"] = None

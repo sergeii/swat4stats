@@ -77,9 +77,10 @@ def test_motd_random_leaderboard(db, names, client):
     for i, name in enumerate(names[7:]):
         PlayerStatsFactory(category="arrests", year=2021, position=i + 1, profile__name=name)
 
-    with freeze_timezone_now(datetime(2021, 5, 29, 12, 17, 1, tzinfo=UTC)), mock.patch.object(
-        motd_views, "choice"
-    ) as choice_mock:
+    with (
+        freeze_timezone_now(datetime(2021, 5, 29, 12, 17, 1, tzinfo=UTC)),
+        mock.patch.object(motd_views, "choice") as choice_mock,
+    ):
         choice_mock.return_value = "arrests"
         response = client.get("/api/motd/leaderboard/")
         assert response.status_code == 200

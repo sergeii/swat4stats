@@ -86,8 +86,9 @@ def test_env_log_level(value, default, expected):
 
 
 def test_env_log_level_validate():
-    with mock.patch.dict(os.environ, {"SETTINGS_LOG_LEVEL": "info"}), pytest.raises(
-        ValueError, match='"info" is not a valid logging level'
+    with (
+        mock.patch.dict(os.environ, {"SETTINGS_LOG_LEVEL": "info"}),
+        pytest.raises(ValueError, match='"info" is not a valid logging level'),
     ):
         env_log_level("SETTINGS_LOG_LEVEL", "ERROR")
 

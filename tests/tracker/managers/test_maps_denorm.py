@@ -162,7 +162,7 @@ def test_update_ratings_ok(
 
 @pytest.mark.django_db(databases=["default", "replica"])
 def test_update_ratings_no_games(
-    django_assert_num_queries: Callable[[int], AbstractContextManager]
+    django_assert_num_queries: Callable[[int], AbstractContextManager],
 ) -> None:
     now = timezone.now()
 

@@ -79,7 +79,7 @@ class GameFactory(factory.django.DjangoModelFactory):
     gametype = "VIP Escort"
     gametype_legacy = 1
     outcome = "swat_vip_escape"
-    map = factory.SubFactory(MapFactory)  # noqa: A003
+    map = factory.SubFactory(MapFactory)
     server = factory.SubFactory(ServerFactory)
     player_num = 16
 

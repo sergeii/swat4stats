@@ -15,7 +15,7 @@ def with_timeout(timeout, callback=None):
         async def wrapper(*args, **kwargs):
             try:
                 result = await asyncio.wait_for(coro(*args, **kwargs), timeout)
-            except asyncio.TimeoutError as exc:
+            except TimeoutError as exc:
                 if isinstance(callback, Exception):
                     raise callback from exc
                 if callable(callback):
@@ -68,8 +68,7 @@ class Task(ABC):
             await self.complete(result)
 
     @abstractmethod
-    async def start(self) -> None:
-        ...
+    async def start(self) -> None: ...
 
     async def complete(self, result: Any) -> None:
         if not self._callback:

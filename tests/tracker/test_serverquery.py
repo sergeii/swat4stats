@@ -115,12 +115,12 @@ def test_adminmod_serverquery_is_supported(the_udp_server):
         b"\\statusresponse\\0\\hostname\\[C=FF0000][c=33CCCC]>|S[C=FFFFFF]S|<[c=ffff00]Arg[C=ffffff]en[c=33CCCC]tina\xae[c=ff0000]-By FNXgaming.com"  # noqa: E501
         b"\\numplayers\\10\\maxplayers\\16\\gametype\\Barricaded Suspects\\gamevariant\\SWAT 4\\"
         b"mapname\\A-Bomb Nightclub\\hostport\\10780\\password\\0\\gamever\\1.0\\statsenabled\\0\\swatwon\\2\\suspectswon\\0"  # noqa: E501
-        b"\\round\\3\\numrounds\\3\\player_0\\darwinn\\player_1\\kyle\\player_2\\super\\player_3\\\xab|FAL|cucuso\\player_4\\"  # noqa: E501
-        b"||AT||Lp!\\player_5\\Diejack1\\player_6\\Player1232\\player_7\\Mojojojo\\player_8\\DrLemonn\\player_9\\elmatap\\score_0\\4\\eof\\",  # noqa: E501
-        b"\\statusresponse\\1\\score_1\\2\\score_2\\1\\score_3\\10\\score_4\\14\\score_5\\-3\\score_6\\11\\score_7\\25\\score_8\\18\\score_9\\5\\"  # noqa: E501
-        b"ping_0\\67\\ping_1\\184\\ping_2\\265\\ping_3\\255\\ping_4\\54\\ping_5\\218\\ping_6\\208\\ping_7\\136\\ping_8\\70\\ping_9\\64\\team_0\\0"  # noqa: E501
-        b"\\team_1\\0\\team_2\\1\\team_3\\0\\team_4\\1\\team_5\\0\\team_6\\1\\team_7\\1\\team_8\\0\\team_9\\0\\kills_0\\4\\kills_1\\2\\kills_2\\1"  # noqa: E501
-        b"\\kills_3\\5\\kills_4\\14\\kills_5\\3\\kills_6\\6\\kills_7\\10\\kills_8\\8\\kills_9\\6\\tkills_5\\2\\tkills_9\\2\\deaths_0\\6\\deaths_1\\9"  # noqa: E501
+        b"\\round\\3\\numrounds\\3\\player_0\\darwinn\\player_1\\kyle\\player_2\\super\\player_3\\\xab|FAL|cucuso\\player_4\\"
+        b"||AT||Lp!\\player_5\\Diejack1\\player_6\\Player1232\\player_7\\Mojojojo\\player_8\\DrLemonn\\player_9\\elmatap\\score_0\\4\\eof\\",
+        b"\\statusresponse\\1\\score_1\\2\\score_2\\1\\score_3\\10\\score_4\\14\\score_5\\-3\\score_6\\11\\score_7\\25\\score_8\\18\\score_9\\5\\"
+        b"ping_0\\67\\ping_1\\184\\ping_2\\265\\ping_3\\255\\ping_4\\54\\ping_5\\218\\ping_6\\208\\ping_7\\136\\ping_8\\70\\ping_9\\64\\team_0\\0"
+        b"\\team_1\\0\\team_2\\1\\team_3\\0\\team_4\\1\\team_5\\0\\team_6\\1\\team_7\\1\\team_8\\0\\team_9\\0\\kills_0\\4\\kills_1\\2\\kills_2\\1"
+        b"\\kills_3\\5\\kills_4\\14\\kills_5\\3\\kills_6\\6\\kills_7\\10\\kills_8\\8\\kills_9\\6\\tkills_5\\2\\tkills_9\\2\\deaths_0\\6\\deaths_1\\9"
         b"\\deaths_2\\4\\deaths_3\\4\\deaths_4\\8\\deaths_5\\4\\deaths_6\\7\\eof\\",
         b"\\statusresponse\\2\\deaths_7\\5\\deaths_8\\7\\deaths_9\\4"
         b"\\arrests_3\\1\\arrests_6\\1\\arrests_7\\3\\arrests_8\\2\\arrests_9"

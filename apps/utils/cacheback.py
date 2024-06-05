@@ -17,7 +17,7 @@ class UniversalDecoratorFunctionJob(FunctionJob):
     def key(self, fn, *args, **kwargs):
         return super().key(fn.__name__, *args, **kwargs)
 
-    def hash(self, value):  # noqa: A003
+    def hash(self, value):
         if not isinstance(value, list | tuple):
             value = [value]
         return ":".join(str(val) for val in value)
