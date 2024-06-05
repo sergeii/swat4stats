@@ -84,8 +84,8 @@ Released under the [MIT License](LICENSE.txt).
 [license-img]: https://img.shields.io/badge/License-MIT-yellow.svg
 [license]: https://opensource.org/licenses/MIT
 
-[python-img]: https://img.shields.io/badge/python-3.11-blue.svg
-[python]: https://www.python.org/downloads/release/python-3110/
+[python-img]: https://img.shields.io/badge/python-3.12-blue.svg
+[python]: https://www.python.org/downloads/release/python-3123/
 
 [django-img]: https://img.shields.io/badge/django-4.2-blue.svg
 [django]: https://docs.djangoproject.com/en/4.2/

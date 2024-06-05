@@ -138,17 +138,6 @@ files = [
 tests = ["mypy (>=0.800)", "pytest", "pytest-asyncio"]
 
 [[package]]
-name = "async-timeout"
-version = "4.0.3"
-description = "Timeout context manager for asyncio programs"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "async-timeout-4.0.3.tar.gz", hash = "sha256:4640d96be84d82d02ed59ea2b7105a0f7b33abe8703703cd0ab0bf87c427522f"},
-    {file = "async_timeout-4.0.3-py3-none-any.whl", hash = "sha256:7405140ff1230c310e51dc27b3145b9092d659ce68ff733fb0cefe3ee42be028"},
-]
-
-[[package]]
 name = "attrs"
 version = "23.2.0"
 description = "Classes Without Boilerplate"
@@ -403,17 +392,17 @@ toml = ["tomli"]
 
 [[package]]
 name = "django"
-version = "4.2.13"
+version = "5.0.6"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 files = [
-    {file = "Django-4.2.13-py3-none-any.whl", hash = "sha256:a17fcba2aad3fc7d46fdb23215095dbbd64e6174bf4589171e732b18b07e426a"},
-    {file = "Django-4.2.13.tar.gz", hash = "sha256:837e3cf1f6c31347a1396a3f6b65688f2b4bb4a11c580dcb628b5afe527b68a5"},
+    {file = "Django-5.0.6-py3-none-any.whl", hash = "sha256:8363ac062bb4ef7c3f12d078f6fa5d154031d129a15170a1066412af49d30905"},
+    {file = "Django-5.0.6.tar.gz", hash = "sha256:ff1b61005004e476e0aeea47c7f79b85864c70124030e95146315396f1e7951f"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.6.0,<4"
+asgiref = ">=3.7.0,<4"
 sqlparse = ">=0.3.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
@@ -539,30 +528,6 @@ dnssec = ["cryptography (>=2.6)"]
 doh = ["requests", "requests-toolbelt"]
 idna = ["idna (>=2.1)"]
 trio = ["sniffio (>=1.1)", "trio (>=0.14.0)"]
-
-[[package]]
-name = "drf-yasg"
-version = "1.21.7"
-description = "Automated generation of real Swagger/OpenAPI 2.0 schemas from Django Rest Framework code."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "drf-yasg-1.21.7.tar.gz", hash = "sha256:4c3b93068b3dfca6969ab111155e4dd6f7b2d680b98778de8fd460b7837bdb0d"},
-    {file = "drf_yasg-1.21.7-py3-none-any.whl", hash = "sha256:f85642072c35e684356475781b7ecf5d218fff2c6185c040664dd49f0a4be181"},
-]
-
-[package.dependencies]
-django = ">=2.2.16"
-djangorestframework = ">=3.10.3"
-inflection = ">=0.3.1"
-packaging = ">=21.0"
-pytz = ">=2021.1"
-pyyaml = ">=5.1"
-uritemplate = ">=3.0.0"
-
-[package.extras]
-coreapi = ["coreapi (>=2.3.3)", "coreschema (>=0.0.4)"]
-validation = ["swagger-spec-validator (>=2.1.0)"]
 
 [[package]]
 name = "factory-boy"
@@ -691,17 +656,6 @@ python-versions = ">=3.5"
 files = [
     {file = "idna-3.7-py3-none-any.whl", hash = "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"},
     {file = "idna-3.7.tar.gz", hash = "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc"},
-]
-
-[[package]]
-name = "inflection"
-version = "0.5.1"
-description = "A port of Ruby on Rails inflector to Python"
-optional = false
-python-versions = ">=3.5"
-files = [
-    {file = "inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2"},
-    {file = "inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417"},
 ]
 
 [[package]]
@@ -1249,55 +1203,6 @@ files = [
 ]
 
 [[package]]
-name = "pyyaml"
-version = "6.0.1"
-description = "YAML parser and emitter for Python"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "PyYAML-6.0.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d858aa552c999bc8a8d57426ed01e40bef403cd8ccdd0fc5f6f04a00414cac2a"},
-    {file = "PyYAML-6.0.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:fd66fc5d0da6d9815ba2cebeb4205f95818ff4b79c3ebe268e75d961704af52f"},
-    {file = "PyYAML-6.0.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:69b023b2b4daa7548bcfbd4aa3da05b3a74b772db9e23b982788168117739938"},
-    {file = "PyYAML-6.0.1-cp310-cp310-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:81e0b275a9ecc9c0c0c07b4b90ba548307583c125f54d5b6946cfee6360c733d"},
-    {file = "PyYAML-6.0.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ba336e390cd8e4d1739f42dfe9bb83a3cc2e80f567d8805e11b46f4a943f5515"},
-    {file = "PyYAML-6.0.1-cp310-cp310-win32.whl", hash = "sha256:bd4af7373a854424dabd882decdc5579653d7868b8fb26dc7d0e99f823aa5924"},
-    {file = "PyYAML-6.0.1-cp310-cp310-win_amd64.whl", hash = "sha256:fd1592b3fdf65fff2ad0004b5e363300ef59ced41c2e6b3a99d4089fa8c5435d"},
-    {file = "PyYAML-6.0.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:6965a7bc3cf88e5a1c3bd2e0b5c22f8d677dc88a455344035f03399034eb3007"},
-    {file = "PyYAML-6.0.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:f003ed9ad21d6a4713f0a9b5a7a0a79e08dd0f221aff4525a2be4c346ee60aab"},
-    {file = "PyYAML-6.0.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:42f8152b8dbc4fe7d96729ec2b99c7097d656dc1213a3229ca5383f973a5ed6d"},
-    {file = "PyYAML-6.0.1-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:062582fca9fabdd2c8b54a3ef1c978d786e0f6b3a1510e0ac93ef59e0ddae2bc"},
-    {file = "PyYAML-6.0.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d2b04aac4d386b172d5b9692e2d2da8de7bfb6c387fa4f801fbf6fb2e6ba4673"},
-    {file = "PyYAML-6.0.1-cp311-cp311-win32.whl", hash = "sha256:1635fd110e8d85d55237ab316b5b011de701ea0f29d07611174a1b42f1444741"},
-    {file = "PyYAML-6.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:bf07ee2fef7014951eeb99f56f39c9bb4af143d8aa3c21b1677805985307da34"},
-    {file = "PyYAML-6.0.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:50550eb667afee136e9a77d6dc71ae76a44df8b3e51e41b77f6de2932bfe0f47"},
-    {file = "PyYAML-6.0.1-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1fe35611261b29bd1de0070f0b2f47cb6ff71fa6595c077e42bd0c419fa27b98"},
-    {file = "PyYAML-6.0.1-cp36-cp36m-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:704219a11b772aea0d8ecd7058d0082713c3562b4e271b849ad7dc4a5c90c13c"},
-    {file = "PyYAML-6.0.1-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:afd7e57eddb1a54f0f1a974bc4391af8bcce0b444685d936840f125cf046d5bd"},
-    {file = "PyYAML-6.0.1-cp36-cp36m-win32.whl", hash = "sha256:fca0e3a251908a499833aa292323f32437106001d436eca0e6e7833256674585"},
-    {file = "PyYAML-6.0.1-cp36-cp36m-win_amd64.whl", hash = "sha256:f22ac1c3cac4dbc50079e965eba2c1058622631e526bd9afd45fedd49ba781fa"},
-    {file = "PyYAML-6.0.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:b1275ad35a5d18c62a7220633c913e1b42d44b46ee12554e5fd39c70a243d6a3"},
-    {file = "PyYAML-6.0.1-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:18aeb1bf9a78867dc38b259769503436b7c72f7a1f1f4c93ff9a17de54319b27"},
-    {file = "PyYAML-6.0.1-cp37-cp37m-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:596106435fa6ad000c2991a98fa58eeb8656ef2325d7e158344fb33864ed87e3"},
-    {file = "PyYAML-6.0.1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:baa90d3f661d43131ca170712d903e6295d1f7a0f595074f151c0aed377c9b9c"},
-    {file = "PyYAML-6.0.1-cp37-cp37m-win32.whl", hash = "sha256:9046c58c4395dff28dd494285c82ba00b546adfc7ef001486fbf0324bc174fba"},
-    {file = "PyYAML-6.0.1-cp37-cp37m-win_amd64.whl", hash = "sha256:4fb147e7a67ef577a588a0e2c17b6db51dda102c71de36f8549b6816a96e1867"},
-    {file = "PyYAML-6.0.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:1d4c7e777c441b20e32f52bd377e0c409713e8bb1386e1099c2415f26e479595"},
-    {file = "PyYAML-6.0.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a0cd17c15d3bb3fa06978b4e8958dcdc6e0174ccea823003a106c7d4d7899ac5"},
-    {file = "PyYAML-6.0.1-cp38-cp38-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:28c119d996beec18c05208a8bd78cbe4007878c6dd15091efb73a30e90539696"},
-    {file = "PyYAML-6.0.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7e07cbde391ba96ab58e532ff4803f79c4129397514e1413a7dc761ccd755735"},
-    {file = "PyYAML-6.0.1-cp38-cp38-win32.whl", hash = "sha256:184c5108a2aca3c5b3d3bf9395d50893a7ab82a38004c8f61c258d4428e80206"},
-    {file = "PyYAML-6.0.1-cp38-cp38-win_amd64.whl", hash = "sha256:1e2722cc9fbb45d9b87631ac70924c11d3a401b2d7f410cc0e3bbf249f2dca62"},
-    {file = "PyYAML-6.0.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:9eb6caa9a297fc2c2fb8862bc5370d0303ddba53ba97e71f08023b6cd73d16a8"},
-    {file = "PyYAML-6.0.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:c8098ddcc2a85b61647b2590f825f3db38891662cfc2fc776415143f599bb859"},
-    {file = "PyYAML-6.0.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5773183b6446b2c99bb77e77595dd486303b4faab2b086e7b17bc6bef28865f6"},
-    {file = "PyYAML-6.0.1-cp39-cp39-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:b786eecbdf8499b9ca1d697215862083bd6d2a99965554781d0d8d1ad31e13a0"},
-    {file = "PyYAML-6.0.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bc1bf2925a1ecd43da378f4db9e4f799775d6367bdb94671027b73b393a7c42c"},
-    {file = "PyYAML-6.0.1-cp39-cp39-win32.whl", hash = "sha256:faca3bdcf85b2fc05d06ff3fbc1f83e1391b3e724afa3feba7d13eeab355484c"},
-    {file = "PyYAML-6.0.1-cp39-cp39-win_amd64.whl", hash = "sha256:510c9deebc5c0225e8c96813043e62b680ba2f9c50a08d3724c7f28a747d1486"},
-    {file = "PyYAML-6.0.1.tar.gz", hash = "sha256:bfdf460b1736c775f2ba9f6a92bca30bc2095067b8a9d77876d1fad6cc3b4a43"},
-]
-
-[[package]]
 name = "redis"
 version = "5.0.4"
 description = "Python client for Redis database and key-value store"
@@ -1307,9 +1212,6 @@ files = [
     {file = "redis-5.0.4-py3-none-any.whl", hash = "sha256:7adc2835c7a9b5033b7ad8f8918d09b7344188228809c98df07af226d39dec91"},
     {file = "redis-5.0.4.tar.gz", hash = "sha256:ec31f2ed9675cc54c21ba854cfe0462e6faf1d83c8ce5944709db8a4700b9c61"},
 ]
-
-[package.dependencies]
-async-timeout = {version = ">=4.0.3", markers = "python_full_version < \"3.11.3\""}
 
 [package.extras]
 hiredis = ["hiredis (>=1.0.0)"]
@@ -1440,17 +1342,6 @@ files = [
 ]
 
 [[package]]
-name = "uritemplate"
-version = "4.1.1"
-description = "Implementation of RFC 6570 URI Templates"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "uritemplate-4.1.1-py2.py3-none-any.whl", hash = "sha256:830c08b8d99bdd312ea4ead05994a38e8936266f84b9a7878232db50b044e02e"},
-    {file = "uritemplate-4.1.1.tar.gz", hash = "sha256:4346edfc5c3b79f694bccd6d6099a322bbeb628dbf2cd86eea55a456ce5124f0"},
-]
-
-[[package]]
 name = "urllib3"
 version = "2.2.1"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -1469,12 +1360,12 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "uwsgi"
-version = "2.0.21"
+version = "2.0.26"
 description = "The uWSGI server"
 optional = false
 python-versions = "*"
 files = [
-    {file = "uwsgi-2.0.21.tar.gz", hash = "sha256:35a30d83791329429bc04fe44183ce4ab512fcf6968070a7bfba42fc5a0552a9"},
+    {file = "uwsgi-2.0.26.tar.gz", hash = "sha256:86e6bfcd4dc20529665f5b7777193cdc48622fb2c59f0a7f1e3dc32b3882e7f9"},
 ]
 
 [[package]]
@@ -1643,5 +1534,5 @@ multidict = ">=4.0"
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.11"
-content-hash = "1205235527b29bed56cfa17d5725b116676c8ce76015c21e015835ee1e02c1c3"
+python-versions = "^3.12,<3.13"
+content-hash = "52b22a912d6a25306332e92cb63d7a96d35490af90f796ec751e5e6fc9f13526"

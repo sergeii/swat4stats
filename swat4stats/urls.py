@@ -10,7 +10,6 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers
 
-from apps.api.docs import DocsSchemaView
 from apps.api.views import (
     ArticleViewSet,
     GameViewSet,
@@ -45,8 +44,6 @@ api_router.register("data-popular-mapnames", PopularMapsViewSet, basename="popul
 api_router.register("data-popular-servers", PopularServersViewSet, basename="popular-servers")
 
 api_urls = [
-    path("docs<format>/", DocsSchemaView.without_ui(cache_timeout=0), name="schema-json"),
-    path("docs/", DocsSchemaView.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
     path("search/players/", SearchPlayersView.as_view()),
     path("search/servers/", SearchServersView.as_view()),
     path(r"", include(api_router.urls)),
