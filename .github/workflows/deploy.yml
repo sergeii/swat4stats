@@ -12,19 +12,22 @@ jobs:
   deploy:
     runs-on: swat4stats-arc-runner-set
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Install Helm
         uses: azure/setup-helm@v4
 
       - name: Install release
-        run: >
+        run: >-
           helm upgrade
-            --install
-            --debug
-            --atomic
-            --namespace=swat4stats
-            --set image.tag=${{ inputs.release_tag }}
-            --set image.pullSecrets[0].name=swat4stats-registry-creds
-            --set envFromSecrets[0].name=swat4stats-secrets
+          --install
+          --debug
+          --atomic
+          --namespace=swat4stats
+          --set image.tag=${{ inputs.release_tag }}
+          --set image.pullSecrets[0].name=swat4stats-registry-creds
+          --set envFromSecrets[0].name=swat4stats-secrets
           swat4stats-core
           deployments/charts/swat4stats
         env:
