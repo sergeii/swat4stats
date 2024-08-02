@@ -155,3 +155,16 @@ disable_error_code = "var-annotated, has-type, arg-type"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 check_untyped_defs = false
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "apps/*/migrations/*",
+    "tests/*",
+    "apps/*/translation.py",
+]
+
+[tool.coverage.report]
+include = [
+    "apps/*",
+]
