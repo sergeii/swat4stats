@@ -1,16 +1,15 @@
 name: deploy
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Release tag"
-        type: string
-        required: true
+  workflow_run:
+    workflows: [release]
+    branches: [main]
+    types: [completed]
 
 jobs:
   deploy:
     runs-on: swat4stats-arc-runner-set
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.jobs.publish.outputs.release_tag != '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,7 +24,7 @@ jobs:
           --debug
           --atomic
           --namespace=swat4stats
-          --set image.tag=${{ inputs.release_tag }}
+          --set image.tag=${{ github.event.workflow_run.jobs.publish.outputs.release_tag }}
           --set image.pullSecrets[0].name=swat4stats-registry-creds
           --set envFromSecrets[0].name=swat4stats-secrets
           swat4stats-core

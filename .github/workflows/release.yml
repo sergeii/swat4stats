@@ -54,6 +54,8 @@ jobs:
       - prepare
       - poetry
     if: needs.prepare.outputs.new_tag != ''
+    outputs:
+      release_tag: ${{ needs.prepare.outputs.new_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
