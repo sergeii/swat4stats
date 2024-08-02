@@ -1,4 +1,4 @@
-FROM python:3.12.3-slim
+FROM python:3.12.4-slim
 
 ENV PIP_NO_CACHE_DIR on
 ENV PIP_DISABLE_PIP_VERSION_CHECK on

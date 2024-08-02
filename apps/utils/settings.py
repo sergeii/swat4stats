@@ -9,9 +9,7 @@ def env(name: str, default: Any) -> Any:
 
 def env_bool(name: str, *, default: bool) -> bool:
     if value := os.environ.get(name):
-        if value[0].lower() in ("y", "t", "1"):
-            return True
-        return False
+        return value[0].lower() in ("y", "t", "1")
     return default
 
 
