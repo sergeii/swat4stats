@@ -54,8 +54,6 @@ jobs:
       - prepare
       - poetry
     if: needs.prepare.outputs.new_tag != ''
-    outputs:
-      release_tag: ${{ needs.prepare.outputs.new_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -102,3 +100,33 @@ jobs:
           tag: ${{ needs.prepare.outputs.new_tag }}
           name: Release ${{ needs.prepare.outputs.new_tag }}
           body: ${{ needs.prepare.outputs.changelog }}
+
+  deploy:
+    runs-on: swat4stats-arc-runner-set
+    needs:
+      - prepare
+      - publish
+    if: needs.prepare.outputs.new_tag != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Install release
+        run: >-
+          helm upgrade
+          --install
+          --debug
+          --atomic
+          --namespace=swat4stats
+          --set image.tag=${{ needs.prepare.outputs.new_tag }}
+          --set image.pullSecrets[0].name=swat4stats-registry-creds
+          --set envFromSecrets[0].name=swat4stats-secrets
+          swat4stats-core
+          deployments/charts/swat4stats
+        env:
+          HELM_KUBEAPISERVER: ${{ secrets.HELM_KUBEAPISERVER }}
+          HELM_KUBEINSECURE_SKIP_TLS_VERIFY: 1
+          HELM_KUBETOKEN: ${{ secrets.HELM_KUBETOKEN }}
