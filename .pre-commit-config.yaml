@@ -3,10 +3,9 @@ default_language_version:
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v1.17.0
+    rev: v3.28.0
     hooks:
       - id: commitizen
-        stages: [commit-msg]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

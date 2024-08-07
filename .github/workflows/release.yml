@@ -102,7 +102,7 @@ jobs:
           body: ${{ needs.prepare.outputs.changelog }}
 
   deploy:
-    runs-on: swat4stats-arc-runner-set
+    runs-on: swat4stats-core-runner
     needs:
       - prepare
       - publish
