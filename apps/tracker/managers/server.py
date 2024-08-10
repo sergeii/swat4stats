@@ -411,7 +411,7 @@ class ServerManager(models.Manager):
             try:
                 status = serverquery_schema(data_or_exc)
             except voluptuous.Invalid as exc:
-                logger.exception("failed to validate %s: %s (%s)", server, exc, data_or_exc)
+                logger.exception("failed to validate %s: %s", server, data_or_exc)
                 # status is no longer valid, override with the exception
                 with_errors.append((server, exc))
                 continue
@@ -473,13 +473,12 @@ class ServerManager(models.Manager):
                 continue
             try:
                 status = serverquery_schema(resp_or_exc)
-            except voluptuous.Invalid as exc:
+            except voluptuous.Invalid:
                 logger.exception(
-                    "failed to validate data from %s:%s: %s due to %s",
+                    "failed to validate data from %s:%s: %s",
                     server_ip,
                     server_port,
                     resp_or_exc,
-                    exc,
                 )
                 continue
 
@@ -526,8 +525,8 @@ class ServerManager(models.Manager):
 
             try:
                 parser = import_string(parser_import_path)
-            except ImportError as exc:
-                logger.exception("failed to import parser %s: %s", parser_import_path, exc)
+            except ImportError:
+                logger.exception("failed to import parser %s", parser_import_path)
                 continue
 
             tasks.append(
@@ -646,19 +645,21 @@ class ServerManager(models.Manager):
 
         for (server_ip, server_port), query_ports in probed_query_ports.items():
             # we are interested in either GS1 or AdminMod's ServerQuery ports
-            query_ports = sorted(
-                query_ports, key=lambda item: (item["is_gs1"], item["is_am"]), reverse=True
+            query_ports_sorted = sorted(
+                query_ports,
+                key=lambda item: (item["is_gs1"], item["is_am"]),
+                reverse=True,
             )
-            preferred_status_port = query_ports[0]["port"]
+            preferred_status_port = query_ports_sorted[0]["port"]
 
             logger.debug(
                 "discovered %d ports for %s:%s: %s",
-                len(query_ports),
+                len(query_ports_sorted),
                 server_ip,
                 server_port,
                 concat_it(
                     f'{item["port"]} [GS1={item["is_gs1"]}, AM={item["is_am"]}]'
-                    for item in query_ports
+                    for item in query_ports_sorted
                 ),
             )
 

@@ -1,3 +1,4 @@
+# ruff: noqa: ARG002
 from django.db.models import TextField
 from django.utils.translation import gettext_lazy as _
 

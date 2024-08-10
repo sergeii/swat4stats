@@ -28,7 +28,7 @@ def env_log_level(name: str, default: str, not_lower: int | None = None) -> str:
 
     if not isinstance(level_int, int):
         err_msg = f'"{value}" is not a valid logging level'
-        raise ValueError(err_msg)
+        raise TypeError(err_msg)
 
     if not_lower is not None and level_int < not_lower:
         return logging.getLevelName(not_lower)

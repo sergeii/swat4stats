@@ -1,6 +1,6 @@
 import urllib.parse
-import xml.etree.ElementTree as ET
 from datetime import datetime
+from xml.etree import ElementTree
 
 from pytz import UTC
 
@@ -18,7 +18,7 @@ def test_sitemap_xml(db, client):
     assert resp.status_code == 200
     assert resp.headers["Content-Type"] == "application/xml"
 
-    root = ET.fromstring(resp.content)
+    root = ElementTree.fromstring(resp.content)
     urls = [c[0].text for c in root]
     sitemaps = {urllib.parse.urlparse(u).path for u in urls}
     assert sitemaps == {
@@ -38,7 +38,7 @@ def test_sitemap_servers_xml(db, client, site, django_assert_max_num_queries):
     assert resp.status_code == 200
     assert resp.headers["Content-Type"] == "application/xml"
 
-    root = ET.fromstring(resp.content)
+    root = ElementTree.fromstring(resp.content)
     urls = [c[0].text for c in root]
     assert urls == [f"http://{site.domain}/servers/{s.address}/" for s in servers]
 
@@ -58,6 +58,6 @@ def test_sitemap_players_xml(db, client, site, django_assert_max_num_queries):
     assert resp.status_code == 200
     assert resp.headers["Content-Type"] == "application/xml"
 
-    root = ET.fromstring(resp.content)
+    root = ElementTree.fromstring(resp.content)
     urls = {c[0].text for c in root}
     assert urls == {f"http://{site.domain}/player/{p.name}/{p.id}/" for p in profiles}

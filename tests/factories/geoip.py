@@ -45,9 +45,9 @@ class ISPFactory(factory.django.DjangoModelFactory):
 
 class IPFactory(factory.django.DjangoModelFactory):
     isp = factory.SubFactory(ISPFactory)
-    range_from = factory.LazyAttribute(lambda o: int(IPv4Address("127.0.0.1")))
+    range_from = factory.LazyAttribute(lambda _: int(IPv4Address("127.0.0.1")))
     range_to = factory.LazyAttribute(
-        lambda o: int(IPv4Address("127.0.0.1") + random.randint(1, 65534))
+        lambda _: int(IPv4Address("127.0.0.1") + random.randint(1, 65534))
     )
 
     class Meta:

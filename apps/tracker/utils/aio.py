@@ -60,7 +60,7 @@ class Task(ABC):
     async def execute(self) -> None:
         try:
             result = await self.start()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.info("failed to complete task %s due to %s: %s", self, type(exc).__name__, exc)
             await self.fail(exc)
         else:

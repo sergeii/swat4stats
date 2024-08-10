@@ -32,7 +32,7 @@ class ServerDiscoveryTask(aio.Task):
         async with new_session as session, session.get(self.url, headers=headers) as response:
             logger.debug("connected to %s: %s", self.url, response.status)
 
-            if not 200 <= response.status <= 299:
+            if not 200 <= response.status <= 299:  # noqa: PLR2004
                 raise ServerDiscoveryError(f"invalid response status {response.status}")
 
             response_body = await response.read()

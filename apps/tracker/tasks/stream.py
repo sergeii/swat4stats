@@ -42,7 +42,7 @@ def process_game_data(
     except GameAlreadySavedError:
         pass
     except Exception as exc:
-        logger.exception("failed to create game due to %s", exc, extra={"data": {"data": data}})
+        logger.exception("failed to create game", extra={"data": {"data": data}})
         self.retry(exc=exc)
     else:
         game_data_saved.send_robust(sender=None, data=data, server=server, game=game)

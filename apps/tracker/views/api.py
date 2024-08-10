@@ -88,10 +88,9 @@ def require_julia_schema(schema: Callable, schema_error_message: str | None = No
                 case "application/json":
                     try:
                         decoded_body = json.loads(request_body)
-                    except (TypeError, ValueError) as e:
+                    except (TypeError, ValueError):
                         logger.exception(
-                            "failed to parse json request due to %s",
-                            e,
+                            "failed to parse json request",
                             extra={"data": {"request": request, "body": request_body}},
                         )
                         return APIResponse.from_error(schema_error_message)
@@ -111,10 +110,9 @@ def require_julia_schema(schema: Callable, schema_error_message: str | None = No
             try:
                 # validate the request data with the specified schema
                 request_data = schema(decoded_body)
-            except Invalid as e:
+            except Invalid:
                 logger.exception(
-                    "failed to parse game data data due to %s",
-                    e,
+                    "failed to parse game data data",
                     extra={"data": {"request": request, "body": request_body}},
                 )
                 return APIResponse.from_error(schema_error_message)

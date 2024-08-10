@@ -1,3 +1,4 @@
+# ruff: noqa: SLF001
 import logging
 from collections import defaultdict
 from datetime import datetime
@@ -327,7 +328,7 @@ class PlayerQuerySet(models.QuerySet):
         # turn a list of grouped items
         # into a dictionary mapping grouping keys to the items
         for grouped_item in grouped_items:
-            grouped_item = self._finalize_aggregates(grouped_item)
+            grouped_item = self._finalize_aggregates(grouped_item)  # noqa: PLW2901
             grouping_key = grouped_item.pop(group_by)
             result[grouping_key] = grouped_item
 
@@ -348,7 +349,7 @@ class PlayerQuerySet(models.QuerySet):
         # strip prefixed keys
         for key, value in aggregated_items.items():
             if key.startswith("_"):
-                key = key[1:]
+                key = key[1:]  # noqa: PLW2901
             items[key] = value
         return items
 

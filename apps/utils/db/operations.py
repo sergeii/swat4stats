@@ -1,3 +1,4 @@
+# ruff: noqa: ARG002
 from django.db.migrations.operations.base import Operation
 
 

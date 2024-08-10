@@ -108,12 +108,15 @@ class Server(models.Model):
 
         :raises django.core.exceptions.ValidationError: If port is invalid
         """
+        validation_error = ValidationError(_("Port number must be between 1 and 65535 inclusive."))
+
         try:
             self.port = int(self.port)
-            if not (1 <= self.port <= 65535):
-                raise AssertionError
-        except (ValueError, AssertionError):
-            raise ValidationError(_("Port number must be between 1 and 65535 inclusive."))
+        except ValueError:
+            raise validation_error
+
+        if not (1 <= self.port <= 65535):  # noqa: PLR2004
+            raise validation_error
 
 
 class Map(models.Model):

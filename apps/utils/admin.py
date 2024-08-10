@@ -1,3 +1,4 @@
+# ruff: noqa: SLF001
 from django.db.models import Model
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join

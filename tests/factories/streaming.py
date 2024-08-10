@@ -297,7 +297,7 @@ class ObjectiveGameDataFactory(factory.Factory):
 
 class ProcedureGameDataFactory(factory.Factory):
     name = fuzzy.FuzzyChoice(procedures_encoded)
-    status = factory.LazyAttribute(lambda obj: f"{random.randint(1, 10)}/{random.randint(10, 15)}")
+    status = factory.LazyAttribute(lambda _: f"{random.randint(1, 10)}/{random.randint(10, 15)}")
     score = fuzzy.FuzzyInteger(-5, 25)
 
     class Meta:
@@ -308,7 +308,7 @@ class ServerGameDataFactory(factory.Factory):
     tag = fuzzy.FuzzyText(length=6)
     version = fuzzy.FuzzyChoice(["1.0", "1.0.0", "1.0.1", "1.2.0"])
     port = fuzzy.FuzzyInteger(1000, 30000)
-    timestamp = factory.LazyAttribute(lambda o: int(timestamp()))
+    timestamp = factory.LazyAttribute(lambda _: int(timestamp()))
     gamever = "1.1"
     hostname = "Swat4 Server"
     mapname = 4

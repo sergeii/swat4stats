@@ -1,4 +1,4 @@
-# ruff: noqa: E501, RUF001
+# ruff: noqa: E501, RUF001, SLF001
 from typing import Any, TypeVar
 
 from voluptuous import REMOVE_EXTRA, All, Boolean, Coerce, In, Maybe, Optional, Range, Schema

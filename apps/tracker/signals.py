@@ -17,14 +17,22 @@ failed_servers_detected = Signal()  # providing_args=['servers']
 
 @receiver(post_save, sender=Server)
 @transaction.atomic(savepoint=False)
-def delay_update_server_country(sender: Any, instance: Server, **kwargs: Any) -> None:
+def delay_update_server_country(
+    sender: Any,  # noqa: ARG001
+    instance: Server,
+    **_: Any,
+) -> None:
     from apps.tracker.tasks import update_server_country
 
     transaction.on_commit(lambda: update_server_country.delay(instance.pk))
 
 
 @receiver(live_servers_detected)
-def update_live_servers_hostnames(sender: Any, servers: dict[Server, dict], **kwargs: Any) -> None:
+def update_live_servers_hostnames(
+    sender: Any,  # noqa: ARG001
+    servers: dict[Server, dict],
+    **_: Any,
+) -> None:
     new_hostnames_for_servers = []
 
     for server, status in servers.items():
@@ -48,7 +56,11 @@ def update_live_servers_hostnames(sender: Any, servers: dict[Server, dict], **kw
 
 
 @receiver(live_servers_detected)
-def reset_server_failure_count(sender: Any, servers: list[Server], **kwargs: Any) -> None:
+def reset_server_failure_count(
+    sender: Any,  # noqa: ARG001
+    servers: list[Server],
+    **_: Any,
+) -> None:
     server_ids = [server.pk for server in servers]
 
     if updated_cnt := Server.objects.reset_query_failures(*server_ids, listed=True):
@@ -56,7 +68,11 @@ def reset_server_failure_count(sender: Any, servers: list[Server], **kwargs: Any
 
 
 @receiver(failed_servers_detected)
-def inc_failures_for_failed_servers(sender: Any, servers: list[Server], **kwargs: Any) -> None:
+def inc_failures_for_failed_servers(
+    sender: Any,  # noqa: ARG001
+    servers: list[Server],
+    **_: Any,
+) -> None:
     failed_server_ids = [server.pk for server in servers]
 
     if updated_cnt := Server.objects.increment_query_failures(*failed_server_ids):
@@ -69,7 +85,11 @@ def inc_failures_for_failed_servers(sender: Any, servers: list[Server], **kwargs
 
 @receiver(game_data_saved)
 def relist_streaming_server(
-    sender: Any, data: dict[str, Any], server: Server, game: Game, **kwargs: Any
+    sender: Any,  # noqa: ARG001
+    data: dict[str, Any],  # noqa: ARG001
+    server: Server,
+    game: Game,  # noqa: ARG001
+    **_: Any,
 ) -> None:
     if server.listed:
         logger.debug("streaming server %s (%s) is already listed", server, server.pk)
@@ -85,7 +105,11 @@ def relist_streaming_server(
 
 @receiver(game_data_saved)
 def change_hostname_for_streaming_server(
-    sender: Any, data: dict[str, Any], server: Server, game: Game, **kwargs: Any
+    sender: Any,  # noqa: ARG001
+    data: dict[str, Any],
+    server: Server,
+    game: Game,  # noqa: ARG001
+    **_: Any,
 ) -> None:
     server_hostname = server.hostname
     # check whether the hostname has changed for this server
@@ -120,7 +144,7 @@ def change_hostname_for_streaming_server(
 
 @receiver(game_data_saved)
 @transaction.atomic(savepoint=False)
-def delay_game_related_stats_tasks(sender: Any, game: Game, **kwargs: Any) -> None:
+def delay_game_related_stats_tasks(sender: Any, game: Game, **kwargs: Any) -> None:  # noqa: ARG001
     from apps.tracker.tasks import update_map_games, update_profile_games, update_server_games
 
     transaction.on_commit(lambda: update_profile_games.delay(game.pk))

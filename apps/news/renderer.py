@@ -50,7 +50,7 @@ class HtmlRenderer(BaseRenderer):
     @classmethod
     def render(cls, value: str) -> str:
         value = bleach.clean(value, tags=cls.ALLOWED_TAGS, attributes=cls.ALLOWED_ATTRIBUTES)
-        return mark_safe(value)
+        return mark_safe(value)  # noqa: S308
 
 
 class MarkdownRenderer(HtmlRenderer):

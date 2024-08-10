@@ -10,13 +10,16 @@ re_port = r"\d{1,5}"
 
 
 def plain_ip_port(content: bytes) -> list[tuple[str, str]]:
-    re_pattern = re.compile(rf"\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b", flags=re.M)
+    re_pattern = re.compile(rf"\b(?P<addr>{re_ipv4}):(?P<port>{re_port})\b", flags=re.MULTILINE)
     html = content.decode(errors="ignore")
     return re_pattern.findall(html)
 
 
 def html_ip_port(content: bytes) -> list[tuple[str, str]]:
-    re_pattern = re.compile(rf"\b(?P<addr>{re_ipv4})[^:]*:[^\d]*(?P<port>{re_port})\b", flags=re.M)
+    re_pattern = re.compile(
+        rf"\b(?P<addr>{re_ipv4})[^:]*:[^\d]*(?P<port>{re_port})\b",
+        flags=re.MULTILINE,
+    )
     html = content.decode(errors="ignore")
     return re_pattern.findall(html)
 
@@ -25,7 +28,7 @@ def csv_two_columns(content: bytes) -> list[tuple[str, str]]:
     addresses = []
     csv_reader = csv.reader(io.StringIO(content.decode("utf-8")))
     for row in csv_reader:
-        if len(row) < 2:
+        if len(row) < 2:  # noqa: PLR2004
             continue
         addresses.append((row[0], row[1]))
     return addresses
