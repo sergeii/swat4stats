@@ -18,6 +18,11 @@ updates:
       - sergeii
     commit-message:
       prefix: "feat"
+    groups:
+      dockerfile:
+        applies-to: version-updates
+        patterns:
+          - python
   - package-ecosystem: pip
     directory: "/"
     schedule:
@@ -26,14 +31,13 @@ updates:
       - sergeii
     commit-message:
       prefix: "feat"
-      include: "scope"
     groups:
-      production-dependencies:
+      dependencies:
         applies-to: version-updates
         dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
-      development-dependencies:
+      dev-dependencies:
         applies-to: version-updates
         dependency-type: "development"
