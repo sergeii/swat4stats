@@ -70,51 +70,25 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = [
-    "F",        # pyflakes
-    "E",        # pycodestyle Error
-    "W",        # pycodestyle Warning
-    "C90",      # mccabe
-    "I",        # isort
-    "N",        # pep8-naming
-    "UP",       # pyupgrade
-    "YTT",      # flake8-2020
-    "ASYNC",    # flake8-async
-    "BLE",      # flake8-blind-except
-    "FBT",      # flake8-boolean-trap
-    "B",        # flake8-bugbear
-    "A",        # flake8-builtins
-    "C4",       # flake8-comprehensions
-    "DTZ",      # flake8-datetimez
-    "T10",      # flake8-debugger
-    "DJ",       # flake8-django
-    "EM",       # flake8-errmsg
-    "FA",       # flake8-future-annotations
-    "ISC",      # flake8-implicit-str-concat
-    "G",        # flake8-logging-format
-    "INP",      # flake8-no-pep420
-    "PIE",      # flake8-pie
-    "T20",      # flake8-print
-    "PT",       # flake8-pytest-style
-    "Q",        # flake8-quotes
-    "RSE",      # flake8-raise
-    "RET",      # flake8-return
-    "SLOT",     # flake8-slots
-    "SIM",      # flake8-simplify
-    "TID",      # flake8-tidy-imports
-    "TCH",      # flake8-type-checking
-    "INT",      # flake8-gettext
-    "PTH",      # flake8-use-pathlib
-    "ERA",      # eradicate
-    "PGH",      # pygrep-hooks
-    "PERF",     # perflint
-    "RUF",      # ruff
-]
+select = ["ALL"]
 ignore = [
+    "D",        # pydocstyle
+    "ANN",      # flake8-annotations
+    "CPY",      # flake8-copyright
+    "TD",       # flake8-todos
+    "FIX",      # flake8-fixme
+    "PD",       # pandas-vet
+    "NPY",      # NumPy-specific rules
+    "FAST",     # FastAPI
+    "AIR",      # Airflow
+    "DOC",      # pydoclint
+
+    "COM812",   # Trailing comma missing
+    "TRY003",   # Avoid specifying long messages outside the exception class
+    "TRY400",   # Use `logging.exception` instead of `logging.error`
+    "S311",     # Standard pseudo-random generators are not suitable for cryptographic purposes
     "ISC001",   # The following rules may cause conflicts when used with the formatter: `ISC001`
-    "N817",     # CamelCase `ElementTree` imported as acronym `ET`
     "B904" ,    # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None`
-    "BLE001",   # Do not catch blind exception: `Exception`
     "EM101",    # Exception must not use a string literal, assign to variable first
     "EM102",    # Exception must not use an f-string literal, assign to variable first
     "DJ001",    # Avoid using `null=True` on string-based fields such as CharField
@@ -124,8 +98,9 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
-"apps/*/migrations/*.py" = ["E501", "RUF012"]
+"apps/*/migrations/*.py" = ["ARG001", "E501", "RUF012"]
 "tests/factories/*.py" = ["N805", "RUF012"]
+"tests/**.py" = ["ARG001", "ARG002", "PLR0913", "PLR0915", "PLR2004", "S101", "S104", "S314", "S324"]
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"

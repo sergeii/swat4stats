@@ -33,10 +33,10 @@ class IPInline(admin.TabularInline):
     readonly_fields = fields
     extra = 0
 
-    def has_add_permission(self, request: HttpRequest, obj: IP | None = None) -> bool:
+    def has_add_permission(self, request: HttpRequest, obj: IP | None = None) -> bool:  # noqa: ARG002
         return False
 
-    def has_delete_permission(self, request: HttpRequest, obj: IP | None = None) -> bool:
+    def has_delete_permission(self, request: HttpRequest, obj: IP | None = None) -> bool:  # noqa: ARG002
         return False
 
 
@@ -56,5 +56,5 @@ class ISPAdmin(admin.ModelAdmin):
     def admin_count(self, obj: ISP) -> int:
         return obj.ip_count
 
-    def has_delete_permission(self, request: HttpRequest, obj: ISP | None = None) -> bool:
+    def has_delete_permission(self, request: HttpRequest, obj: ISP | None = None) -> bool:  # noqa: ARG002
         return False

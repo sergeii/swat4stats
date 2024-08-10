@@ -30,7 +30,7 @@ class HealthcheckStatus(StrEnum):
 
 
 class HealthcheckView(View):
-    def get(self, request: HttpRequest) -> JsonResponse:
+    def get(self, _: HttpRequest) -> JsonResponse:
         checks: dict[Healthcheck, HealthcheckStatus] = {
             Healthcheck.database: self._check_database(),
             Healthcheck.redis: self._check_redis(),
@@ -44,8 +44,8 @@ class HealthcheckView(View):
     def _check_database(self) -> HealthcheckStatus:
         try:
             is_master = self._check_connected_to_master()
-        except Exception as e:
-            logger.exception("failed to check database due to %s", e)
+        except Exception:
+            logger.exception("failed to check database")
             return HealthcheckStatus.failure
 
         match is_master:
@@ -63,8 +63,8 @@ class HealthcheckView(View):
     def _check_redis(self) -> HealthcheckStatus:
         try:
             self._check_redis_rw()
-        except Exception as e:
-            logger.exception("failed to check redis due to %s", e)
+        except Exception:
+            logger.exception("failed to check redis")
             return HealthcheckStatus.failure
         return HealthcheckStatus.ok
 

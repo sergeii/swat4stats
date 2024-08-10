@@ -130,7 +130,7 @@ class MotdLeaderboardForm(MotdBaseForm):
 class APIMotdLeaderboardView(TemplateView):
     template_name = "tracker/api/motd/leaderboard.html"
 
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+    def get(self, _: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         req = dict(self.request.GET.dict(), **kwargs)
         form = MotdLeaderboardForm(data=req)
 

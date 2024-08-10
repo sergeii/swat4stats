@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 def ratio(
-    dividend: int | float,
-    divisor: int | float,
-    min_dividend: int | float | None = None,
-    min_divisor: int | float | None = None,
+    dividend: float,
+    divisor: float,
+    min_dividend: float | None = None,
+    min_divisor: float | None = None,
 ) -> float:
     if min_dividend is not None and dividend is not None and dividend < min_dividend:
         return 0.0
@@ -35,8 +35,9 @@ def ratio(
 
 def force_clean_name(name: str) -> str:
     """Return a name free of SWAT text tags and leading/trailing whitespace."""
+    pattern = re.compile(r"(\[[\\/]?[cub]\]|\[c[^\w][^\[\]]*?\])", flags=re.IGNORECASE)
     while True:
-        if not (match := re.search(r"(\[[\\/]?[cub]\]|\[c[^\w][^\[\]]*?\])", name, flags=re.I)):
+        if not (match := pattern.search(name)):
             break
         name = name.replace(match.group(1), "")
     return name.strip()
@@ -53,7 +54,7 @@ def force_valid_name(name: str, ip_address: str) -> str:
     """
     if not name:
         numeric_ip = force_bytes(str(int(IPv4Address(ip_address))))
-        return f"_{hashlib.sha1(numeric_ip).hexdigest()[8:16]}"
+        return f"_{hashlib.sha1(numeric_ip).hexdigest()[8:16]}"  # noqa: S324
     return name
 
 
@@ -69,11 +70,11 @@ def format_name(name: str) -> str:
         r"\[c[^\w]([a-f0-9]{6})\](.*?)(?=\[c[^\w]([a-f0-9]{6})\]|\[\\c\]|$)",
         r'<span style="color:#\1;">\2</span>',
         name,
-        flags=re.I,
+        flags=re.IGNORECASE,
     )
     # remove [b], [\b], [u], [\u], [\c] tags
-    name = re.sub(r"\[(?:\\)?[buc]\]", "", name, flags=re.I)
-    return html.mark_safe(name)
+    name = re.sub(r"\[(?:\\)?[buc]\]", "", name, flags=re.IGNORECASE)
+    return html.mark_safe(name)  # noqa: S308
 
 
 def iterate_years(start_date: date, end_date: date) -> Iterator[date]:

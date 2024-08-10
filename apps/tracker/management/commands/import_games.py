@@ -18,13 +18,11 @@ class Command(BaseCommand):
         factory = RequestFactory()
         with Path.open(path) as f:
             for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                request = factory.post(
-                    "/stream/",
-                    data=line,
-                    content_type="application/x-www-form-urlencoded",
-                    REAL_REMOTE_ADDR="127.0.0.1",
-                )
-                csrf_exempt(DataStreamView.as_view())(request)
+                if normalized_line := line.strip():
+                    request = factory.post(
+                        "/stream/",
+                        data=normalized_line,
+                        content_type="application/x-www-form-urlencoded",
+                        REAL_REMOTE_ADDR="127.0.0.1",
+                    )
+                    csrf_exempt(DataStreamView.as_view())(request)

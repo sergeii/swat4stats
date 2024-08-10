@@ -10,7 +10,7 @@ from tests.factories.tracker import MapFactory, ProfileFactory, ServerFactory
 class AbstractStatsFactory(factory.django.DjangoModelFactory):
     category = fuzzy.FuzzyChoice(["score", "kills", "deaths", "teamkills", "suicides"])
     profile = factory.SubFactory(ProfileFactory)
-    year = factory.LazyAttribute(lambda o: timezone.now().year)
+    year = factory.LazyAttribute(lambda _: timezone.now().year)
     points = fuzzy.FuzzyFloat(-1000, 1000)
     position = None
 

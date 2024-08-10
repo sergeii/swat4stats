@@ -43,7 +43,9 @@ def is_name_popular(name: str) -> bool:
     if len(name) < settings.TRACKER_MIN_NAME_LEN:
         return True
 
-    return any(re.search(pattern, name, re.I) for pattern in settings.TRACKER_POPULAR_NAMES)
+    return any(
+        re.search(pattern, name, re.IGNORECASE) for pattern in settings.TRACKER_POPULAR_NAMES
+    )
 
 
 class ProfileQuerySet(models.QuerySet):

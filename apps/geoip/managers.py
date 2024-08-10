@@ -90,7 +90,7 @@ class ISPManager(models.Manager):
         # if unable to obtain acceptable IP range for this address, then do a whois lookup
         try:
             network_data = self._query_ip_address(ip_address)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "unable to query whois for %s due to %s(%s)",
                 ip_address,
@@ -199,9 +199,8 @@ class ISPManager(models.Manager):
     def _pick_proper_cidr_from_list(self, ip_address: IPv4Address, cidr: str) -> IPv4Network:
         ip_address_obj = IPv4Address(ip_address)
         for cidr_v4 in cidr.split(","):
-            cidr_v4 = cidr_v4.strip()
-            if cidr_v4:
-                cidr_obj = IPv4Network(cidr_v4)
+            if normalized_cidr_v4 := cidr_v4.strip():
+                cidr_obj = IPv4Network(normalized_cidr_v4)
                 if ip_address_obj in cidr_obj:
                     return cidr_obj
         raise ValueError("cidr list does not contain required range")

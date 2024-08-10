@@ -35,7 +35,7 @@ class ServerFactory(factory.django.DjangoModelFactory):
         django_get_or_create = ("ip", "port")
 
     ip = "127.0.0.100"
-    port = factory.LazyAttribute(lambda o: random.randint(10000, 65535))
+    port = factory.LazyAttribute(lambda _: random.randint(10000, 65535))
     hostname = "Swat4 Server"
     hostname_clean = factory.LazyAttribute(
         lambda o: force_clean_name(o.hostname) if o.hostname else None

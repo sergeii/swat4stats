@@ -1,3 +1,4 @@
+# ruff: noqa: SLF001
 import logging
 from typing import Any, ClassVar
 
@@ -24,13 +25,17 @@ class IsMergedListFilter(admin.SimpleListFilter):
     title = _("Merged")
     parameter_name = "is_merged"
 
-    def lookups(self, request: HttpRequest, model_admin: admin.ModelAdmin) -> list[tuple[str, str]]:
+    def lookups(
+        self,
+        request: HttpRequest,  # noqa: ARG002
+        model_admin: admin.ModelAdmin,  # noqa: ARG002
+    ) -> list[tuple[str, str]]:
         return [
             ("1", _("Yes")),
             ("0", _("No")),
         ]
 
-    def queryset(self, request: HttpRequest, queryset: QuerySet) -> QuerySet:
+    def queryset(self, request: HttpRequest, queryset: QuerySet) -> QuerySet:  # noqa: ARG002
         match self.value():
             case "1":
                 return queryset.filter(merged_into__isnull=False)
@@ -199,7 +204,7 @@ class ServerAdmin(admin.ModelAdmin):
         except (TypeError, ValueError):
             return None
 
-        if not (0 < maybe_valid_port <= 65535):
+        if not (0 < maybe_valid_port <= 65535):  # noqa: PLR2004
             return None
 
         return maybe_ip, maybe_valid_port
@@ -210,7 +215,7 @@ class ServerAdmin(admin.ModelAdmin):
     ) -> HttpResponseRedirect | None:
         ids = list(queryset.values_list("pk", flat=True))
 
-        if len(ids) < 2:
+        if len(ids) < 2:  # noqa: PLR2004
             self.message_user(request, _("Select at least two servers"), level=messages.ERROR)
             return None
 
@@ -227,8 +232,8 @@ class ServerAdmin(admin.ModelAdmin):
 
         try:
             server_ids = [int(server_id) for server_id in server_ids_comma.split(",")]
-        except ValueError as exc:
-            logger.exception("unable to patse server ids %s due to %s", server_ids_comma, exc)
+        except ValueError:
+            logger.exception("unable to patse server ids %s", server_ids_comma)
             return HttpResponseRedirect(return_url)
 
         # fmt: off

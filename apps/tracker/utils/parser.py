@@ -88,7 +88,7 @@ class JuliaQueryString(dict):
                     # if the explicit listkey token is present ("[]"),
                     # wrap the value into a list
                     if matched.group("listkey"):
-                        value = [value]
+                        value = [value]  # noqa: PLW2901
                     self.set_complex_key_item(self, key_components, value)
         return self
 

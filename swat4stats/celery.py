@@ -17,7 +17,7 @@ class Queue(StrEnum):
 
 
 @setup_logging.connect
-def configure_logging(sender: Any | None = None, **kwargs: Any) -> None:
+def configure_logging(sender: Any | None = None, **kwargs: Any) -> None:  # noqa: ARG001
     """
     Stop celery from hijacking loggers.
     https://github.com/celery/celery/issues/1867

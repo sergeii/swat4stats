@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class APIWhoisView(generic.View):
     template_name = "tracker/api/whois/{command}.html"
 
-    def get(self, request: HttpRequest, whois_args: dict[str, str]) -> HttpResponse:
+    def get(self, _: HttpRequest, whois_args: dict[str, str]) -> HttpResponse:
         try:
             messages = self.handle(whois_args)
         except APIError as exc:
@@ -67,7 +67,7 @@ class APIWhoisView(generic.View):
 
         try:
             name, ip = arg.split("\t", maxsplit=1)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error("invalid whois args %s: %s", arg, exc)
             raise APIError(
                 _("%(arg)s is not a valid argument for the whois command") % {"arg": arg}

@@ -24,7 +24,7 @@ schema_error_message = _(
 
 @method_decorator(require_julia_schema(schema.game_schema, schema_error_message), name="post")
 class DataStreamView(generic.View):
-    def get(self, request: HttpRequest) -> HttpResponse:
+    def get(self, _: HttpRequest) -> HttpResponse:
         return HttpResponseRedirect("/")
 
     def post(self, request: HttpRequest, game_data: dict[str, Any]) -> HttpResponse:
