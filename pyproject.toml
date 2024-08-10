@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12,<3.13"
-Django = "5.0.8"
+Django = "5.1"
 celery = "5.4.0"
 bleach = "6.1.0"
 pytz = "2024.1"
