@@ -912,15 +912,29 @@ class Migration(migrations.Migration):
                 name="tracker_player_host_ip_id_desc",
             ),
         ),
-        migrations.AlterIndexTogether(
-            name="player",
-            index_together={
-                ("alias", "kills"),
-                ("alias", "kill_streak"),
-                ("alias", "arrests"),
-                ("alias", "arrest_streak"),
-                ("alias", "score"),
-            },
+        migrations.AddIndex(
+            model_name="player",
+            index=models.Index(fields=["alias", "score"], name="tracker_pla_alias_i_e6a0cf_idx"),
+        ),
+        migrations.AddIndex(
+            model_name="player",
+            index=models.Index(fields=["alias", "kills"], name="tracker_pla_alias_i_6578aa_idx"),
+        ),
+        migrations.AddIndex(
+            model_name="player",
+            index=models.Index(fields=["alias", "arrests"], name="tracker_pla_alias_i_e175f1_idx"),
+        ),
+        migrations.AddIndex(
+            model_name="player",
+            index=models.Index(
+                fields=["alias", "kill_streak"], name="tracker_pla_alias_i_18e07c_idx"
+            ),
+        ),
+        migrations.AddIndex(
+            model_name="player",
+            index=models.Index(
+                fields=["alias", "arrest_streak"], name="tracker_pla_alias_i_762c36_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
             name="mapstats",
@@ -957,8 +971,8 @@ class Migration(migrations.Migration):
                 name="tracker_alias_upper_name_isp_id",
             ),
         ),
-        migrations.AlterIndexTogether(
-            name="alias",
-            index_together={("name", "isp")},
+        migrations.AddIndex(
+            model_name="alias",
+            index=models.Index(fields=["name", "isp"], name="tracker_ali_name_15fe57_idx"),
         ),
     ]

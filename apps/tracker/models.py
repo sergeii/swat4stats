@@ -298,8 +298,8 @@ class Alias(models.Model):
     objects = AliasManager.from_queryset(AliasQuerySet)()
 
     class Meta:
-        index_together = (("name", "isp"),)
         indexes: ClassVar[list[models.Index]] = [
+            models.Index(fields=["name", "isp"]),
             models.Index(Upper("name"), F("isp_id"), name="tracker_alias_upper_name_isp_id"),
         ]
 
@@ -360,19 +360,17 @@ class Player(models.Model):
 
     class Meta:
         indexes: ClassVar[list[models.Index]] = [
+            models.Index(fields=["alias", "score"]),
+            models.Index(fields=["alias", "kills"]),
+            models.Index(fields=["alias", "arrests"]),
+            models.Index(fields=["alias", "kill_streak"]),
+            models.Index(fields=["alias", "arrest_streak"]),
             models.Index(
                 Func(F("ip"), function="host"),
                 F("id").desc(),
                 name="tracker_player_host_ip_id_desc",
             ),
         ]
-        index_together = (
-            ("alias", "score"),
-            ("alias", "kills"),
-            ("alias", "arrests"),
-            ("alias", "kill_streak"),
-            ("alias", "arrest_streak"),
-        )
 
     def __str__(self) -> str:
         return f"{self.name}, {self.ip}"

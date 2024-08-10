@@ -35,7 +35,7 @@ However, if needed, you can modify these variables later for a more personalized
 
 Run the development server stack:
 ```shell
-docker-compose up
+docker compose up
 ```
 This will start the development server on port 8000.
 
@@ -45,12 +45,12 @@ These are exposed on your machine as well.
 
 Apply the migrations:
 ```shell
-docker-compose exec runserver python manage.py migrate
+docker compose exec runserver python manage.py migrate
 ```
 
 If you wish, you can also set up a user with this command:
 ```shell
-docker-compose exec runserver python manage.py createuser your-cool-username --email=yours@domain.tld --password=strong --superuser
+docker compose exec runserver python manage.py createuser your-cool-username --email=yours@domain.tld --password=strong --superuser
 ```
 
 Once done, you'll be able to access the development server at `localhost:8000`.
