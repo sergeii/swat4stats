@@ -8,6 +8,10 @@ updates:
       - sergeii
     commit-message:
       prefix: "chore"
+    groups:
+      actions:
+        applies-to: version-updates
+        dependency-type: "production"
   - package-ecosystem: "docker"
     directories:
       - "dockerfile/dev"
