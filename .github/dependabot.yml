@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - sergeii
+    commit-message:
+      prefix: "chore"
+  - package-ecosystem: "docker"
+    directories:
+      - "dockerfile/dev"
+      - "dockerfile/prod"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - sergeii
+    commit-message:
+      prefix: "feat"
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - sergeii
+    commit-message:
+      prefix: "feat"
+      include: "scope"
+    groups:
+      production-dependencies:
+        applies-to: version-updates
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        applies-to: version-updates
+        dependency-type: "development"
