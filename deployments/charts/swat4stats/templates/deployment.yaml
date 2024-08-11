@@ -70,6 +70,8 @@ spec:
             httpGet:
               path: /-/healthy
               port: exporter
+          resources:
+            {{- toYaml .Values.uwsgiExporter.resources | nindent 12 }}
         {{- end }}
         - name: {{ include "swat4stats-core.podname" (set . "Name" "uwsgi") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -270,4 +272,6 @@ spec:
             httpGet:
               path: /health
               port: exporter
+          resources:
+            {{- toYaml .resources | nindent 12 }}
 {{ end -}}

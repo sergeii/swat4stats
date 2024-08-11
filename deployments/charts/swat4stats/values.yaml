@@ -84,6 +84,13 @@ uwsgiExporter:
     pullSecrets: ""
     tag: "v1.3.0"
     sha: "7770355b87055b7d6c516a830e5cb1fc2c3e692f265b6d1656df0bccb9456155"
+  resources:
+     limits:
+       cpu: 50m
+       memory: 100Mi
+     requests:
+       cpu: 50m
+       memory: 100Mi
 
 celeryExporter:
   enabled: true
@@ -95,6 +102,13 @@ celeryExporter:
     pullSecrets: ""
     tag: "0.10.7"
     sha: "ed26c17ab276318d2823105e543ddf3763ba2095feef0f1f5c66c667f16f5cc3"
+  resources:
+     limits:
+       cpu: 100m
+       memory: 300Mi
+     requests:
+       cpu: 100m
+       memory: 300Mi
 
 staticfiles:
   port: 10080
@@ -103,13 +117,13 @@ staticfiles:
     repository: nginx
     pullPolicy: IfNotPresent
     tag: ""
-  resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+  resources:
+     limits:
+       cpu: 50m
+       memory: 50Mi
+     requests:
+       cpu: 50m
+       memory: 50Mi
 
 service:
   name: swat4stats-core
