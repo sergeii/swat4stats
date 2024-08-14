@@ -7,7 +7,7 @@ image:
 uwsgi:
   port: 9090
   targetPort: 9090
-  replicas: 4
+  replicas: 6
   terminationGracePeriodSeconds: 10
   env:
     UWSGI_CHDIR: /app/src
@@ -29,6 +29,7 @@ uwsgi:
     UWSGI_STATS_HTTP: "true"
     UWSGI_STRICT: "true"
     UWSGI_WORKERS: 1
+    UWSGI_THREADS: 4
     UWSGI_UID: 10001
     UWSGI_VIRTUALENV: /app/.venv
     UWSGI_WORKER_RELOAD_MERCY: 10
