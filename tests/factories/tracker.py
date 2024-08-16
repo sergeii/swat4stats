@@ -2,6 +2,7 @@ import random
 
 import factory
 from django.db.models.signals import post_save
+from django.utils.text import slugify
 from django_redis import get_redis_connection
 from factory import fuzzy
 
@@ -65,6 +66,7 @@ class ListedServerFactory(ServerFactory):
 
 class MapFactory(factory.django.DjangoModelFactory):
     name = fuzzy.FuzzyChoice(choices=list(mapnames_encoded.values()))
+    slug = factory.LazyAttribute(lambda o: slugify(o.name))
 
     class Meta:
         django_get_or_create = ("name",)

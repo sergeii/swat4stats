@@ -1,9 +1,14 @@
+from collections.abc import Callable
 from datetime import datetime, timedelta
+from typing import Any
+from unittest import mock
 
 import pytest
 import pytz
+from django.http import HttpResponse
 from django.test import Client
 from django.utils.timezone import now
+from mypy_extensions import Arg, KwArg
 from pytz import UTC
 
 from apps.tracker.models import Game, Map, Player, Profile, Server
@@ -14,6 +19,7 @@ from tests.factories.streaming import (
     ObjectiveGameDataFactory,
     PlayerGameDataFactory,
     ProcedureGameDataFactory,
+    ServerGameData,
     ServerGameDataFactory,
     SimplePlayerGameDataFactory,
     WeaponGameDataFactory,
@@ -27,14 +33,21 @@ from tests.factories.tracker import (
     ServerFactory,
 )
 
+PostGameDataT = Callable[[Arg(ServerGameData, "game_data"), KwArg(str)], HttpResponse]
+
+
+@pytest.fixture(autouse=True)
+def _use_db(db: None) -> None:
+    pass
+
 
 @pytest.fixture
-def test_server(db):
+def test_server() -> Server:
     return ServerFactory(ip="127.0.0.1", port=10480)
 
 
 @pytest.fixture
-def test_game_data(db):
+def test_game_data() -> ServerGameData:
     return ServerGameDataFactory(
         tag="foobar",
         port=10480,
@@ -45,42 +58,54 @@ def test_game_data(db):
 
 
 @pytest.fixture
-def post_game_data(client):
-    default_client = client
-
-    def poster(game_data, *, client=None, **headers):
-        client = client or default_client
+def post_game_data(client: Client) -> PostGameDataT:
+    def poster(game_data: ServerGameData, **headers: str) -> HttpResponse:
         return client.post(
-            "/stream/", game_data.to_json(), content_type="application/json", **headers
+            "/stream/",
+            game_data.to_json(),
+            content_type="application/json",
+            **headers,
         )
 
     return poster
 
 
-def assert_success_code(response):
+def assert_success_code(response: HttpResponse) -> None:
     assert response.content.decode()[0] == "0"
 
 
-def assert_error_code(response):
+def assert_error_code(response: HttpResponse) -> None:
     assert response.content.decode()[0] == "1"
 
 
-def test_get_redirects_to_main(db, client):
+def test_get_redirects_to_main(client: Client) -> None:
     response = client.get("/stream/")
     assert response.status_code == 302
     assert response.url == "/"
 
 
-def test_stream_endpoint_method_bypasses_csrf_check(db, test_game_data, post_game_data):
+def test_stream_endpoint_method_bypasses_csrf_check(
+    test_game_data: ServerGameData,
+    post_game_data: PostGameDataT,
+) -> None:
     client = Client(enforce_csrf_checks=True, HTTP_X_REAL_IP="127.0.0.1")
-    response = post_game_data(test_game_data, client=client)
+    response = client.post(
+        "/stream/",
+        test_game_data.to_json(),
+        content_type="application/json",
+    )
     assert response.status_code == 200
 
 
 @freeze_timezone_now(datetime(2023, 8, 11, 18, 44, 11, tzinfo=pytz.UTC))
 @pytest.mark.parametrize("server_exists", [True, False])
 @pytest.mark.parametrize("map_exists", [True, False])
-def test_post_game_data(now_mock, db, post_game_data, server_exists, map_exists):
+def test_post_game_data(
+    now_mock: mock.Mock,
+    post_game_data: PostGameDataT,
+    server_exists: bool,
+    map_exists: bool,
+) -> None:
     if server_exists:
         ServerFactory(
             ip="127.0.0.1",
@@ -196,12 +221,14 @@ def test_post_game_data(now_mock, db, post_game_data, server_exists, map_exists)
 
     # map is created/updated
     taronne = Map.objects.get(name="Children of Taronne Tenement")
+    assert taronne.slug == "children-of-taronne-tenement"
 
     game = Game.objects.get()
     assert game.tag == "foobar"
     assert game.server == server
     assert game.gametype == "VIP Escort"
     assert game.map.name == "Children of Taronne Tenement"
+    assert game.map.slug == "children-of-taronne-tenement"
     assert game.mapname == 2
     assert game.outcome == "swat_vip_escape"
     assert game.time == 500
@@ -307,7 +334,10 @@ def test_post_game_data(now_mock, db, post_game_data, server_exists, map_exists)
     assert player3.weapons.count() == 1
 
 
-def test_post_game_data_with_players(db, whois_mock, post_game_data):
+def test_post_game_data_with_players(
+    whois_mock: mock.Mock,
+    post_game_data: PostGameDataT,
+) -> None:
     whois_mock.side_effect = [
         {"nets": [{"description": "MekISP", "country": "nl", "cidr": "12.12.0.0/16"}]},
         {"nets": [{"cidr": "256.0.0.0/64"}]},
@@ -517,7 +547,9 @@ def test_post_game_data_with_players(db, whois_mock, post_game_data):
     assert player.alias.isp == player_isp_alias.isp
 
 
-def test_post_data_to_enabled_server(db, post_game_data):
+def test_post_data_to_enabled_server(
+    post_game_data: PostGameDataT,
+) -> None:
     server = ServerFactory(ip="127.0.0.1", port=11111, enabled=True)
     response = post_game_data(ServerGameDataFactory(tag="foobar", port=11111))
     assert_success_code(response)
@@ -526,14 +558,19 @@ def test_post_data_to_enabled_server(db, post_game_data):
     assert game.tag == "foobar"
 
 
-def test_post_data_to_disabled_server_error(db, post_game_data):
+def test_post_data_to_disabled_server_error(
+    post_game_data: PostGameDataT,
+) -> None:
     ServerFactory(enabled=False, ip="127.0.0.1", port=11111)
     response = post_game_data(ServerGameDataFactory(port=11111))
     assert_error_code(response)
     assert Game.objects.count() == 0
 
 
-def test_posting_data_makes_unlisted_server_relisted(db, test_game_data, post_game_data):
+def test_posting_data_makes_unlisted_server_relisted(
+    test_game_data: ServerGameData,
+    post_game_data: PostGameDataT,
+) -> None:
     server = ServerFactory(ip="127.0.0.1", port=10480, enabled=True, listed=False)
     post_game_data(test_game_data)
     server.refresh_from_db()
@@ -541,7 +578,9 @@ def test_posting_data_makes_unlisted_server_relisted(db, test_game_data, post_ga
     assert server.version == "9.9.9"
 
 
-def test_posting_duplicate_game_is_accepted(db, post_game_data):
+def test_posting_duplicate_game_is_accepted(
+    post_game_data: PostGameDataT,
+) -> None:
     game_123 = GameFactory(tag="123")
     game_data = ServerGameDataFactory(tag="123", with_players_count=3)
     response = post_game_data(game_data)
@@ -560,23 +599,28 @@ def test_posting_duplicate_game_is_accepted(db, post_game_data):
 
 
 @pytest.mark.parametrize(
-    "mapname, legacy_name, expected_name",
+    "mapname, legacy_name, expected_name, expected_slug",
     [
-        (1, 1, "Brewer County Courthouse"),
-        ("-1", -1, "Unknown Map"),
-        ("Unknown Map v2", -1, "Unknown Map v2"),
-        (1000, -1, "1000"),
+        (1, 1, "Brewer County Courthouse", "brewer-county-courthouse"),
+        ("-1", -1, "Unknown Map", "unknown-map"),
+        ("Unknown Map v2", -1, "Unknown Map v2", "unknown-map-v2"),
+        (1000, -1, "1000", "1000"),
     ],
 )
 def test_schema_supports_map_numbers_and_names(
-    db, post_game_data, mapname, legacy_name, expected_name
-):
+    post_game_data: PostGameDataT,
+    mapname: str,
+    legacy_name: int,
+    expected_name: str,
+    expected_slug: str,
+) -> None:
     game_data = ServerGameDataFactory(mapname=mapname)
     response = post_game_data(game_data)
     assert_success_code(response)
 
     game = Game.objects.get(tag=game_data["tag"])
     assert game.map.name == expected_name
+    assert game.map.slug == expected_slug
     assert game.mapname == legacy_name
 
 
@@ -589,8 +633,11 @@ def test_schema_supports_map_numbers_and_names(
     ],
 )
 def test_schema_supports_gametype_numbers_and_names(
-    db, post_game_data, gametype, legacy_name, expected_name
-):
+    post_game_data: PostGameDataT,
+    gametype: str | int,
+    legacy_name: int,
+    expected_name: str,
+) -> None:
     game_data = ServerGameDataFactory(gametype=gametype)
     response = post_game_data(game_data)
     assert_success_code(response)
@@ -600,7 +647,9 @@ def test_schema_supports_gametype_numbers_and_names(
     assert game.gametype_legacy == legacy_name
 
 
-def test_schema_validates_unknown_gametype(db, post_game_data):
+def test_schema_validates_unknown_gametype(
+    post_game_data: PostGameDataT,
+) -> None:
     game_data = ServerGameDataFactory(gametype="Unknown Gametype")
     response = post_game_data(game_data)
     assert_error_code(response)
@@ -608,7 +657,10 @@ def test_schema_validates_unknown_gametype(db, post_game_data):
 
 
 @pytest.mark.parametrize("gamename", [0, 1, "SWAT 4", "SWAT 4X"])
-def test_schema_supports_gamename_numbers_and_names(db, post_game_data, gamename):
+def test_schema_supports_gamename_numbers_and_names(
+    post_game_data: PostGameDataT,
+    gamename: str | int,
+) -> None:
     game_data = ServerGameDataFactory(gamename=gamename)
     response = post_game_data(game_data)
     assert_success_code(response)
@@ -616,14 +668,19 @@ def test_schema_supports_gamename_numbers_and_names(db, post_game_data, gamename
 
 
 @pytest.mark.parametrize("gamename", [-1, 2, "SWAT", "SWAT X"])
-def test_schema_validates_unknown_gamename(db, post_game_data, gamename):
+def test_schema_validates_unknown_gamename(
+    post_game_data: PostGameDataT,
+    gamename: str | int,
+) -> None:
     game_data = ServerGameDataFactory(gamename=gamename)
     response = post_game_data(game_data)
     assert_error_code(response)
     assert Game.objects.filter(tag=game_data["tag"]).count() == 0
 
 
-def test_stream_endpoint_supports_both_encoded_and_literal_values(db, post_game_data):
+def test_stream_endpoint_supports_both_encoded_and_literal_values(
+    post_game_data: PostGameDataT,
+) -> None:
     for mapname, expected_id, expected_name in [
         (1, 1, "Brewer County Courthouse"),
         ("-1", -1, "Unknown Map"),
@@ -661,7 +718,9 @@ def test_stream_endpoint_supports_both_encoded_and_literal_values(db, post_game_
         assert Game.objects.filter(tag=game_data["tag"]).count() == 0
 
 
-def test_post_game_data_updates_player_profiles(db, post_game_data):
+def test_post_game_data_updates_player_profiles(
+    post_game_data: PostGameDataT,
+) -> None:
     game3 = GameFactory()
     game4 = GameFactory()
     profile1 = AliasFactory(name="Hodor", isp=ISPFactory(ip="1.1.1.0/24")).profile
@@ -730,7 +789,10 @@ def test_post_game_data_updates_player_profiles(db, post_game_data):
     assert profile4.last_seen_at == game_time
 
 
-def test_post_barricaded_suspects_game(db, post_game_data, test_server):
+def test_post_barricaded_suspects_game(
+    post_game_data: PostGameDataT,
+    test_server: Server,
+) -> None:
     game_data = ServerGameDataFactory(
         port=10480,
         gametype="Barricaded Suspects",
@@ -745,6 +807,7 @@ def test_post_barricaded_suspects_game(db, post_game_data, test_server):
     game = Game.objects.get()
     assert game.server == test_server
     assert game.map.name == "-EXP- Drug Lab"
+    assert game.map.slug == "exp-drug-lab"
     assert game.mapname == 18
     assert game.gametype == "Barricaded Suspects"
     assert game.gametype_legacy == 0
@@ -753,7 +816,10 @@ def test_post_barricaded_suspects_game(db, post_game_data, test_server):
     assert game.player_set.count() == 3
 
 
-def test_post_rapid_deployment_game(db, post_game_data, test_server):
+def test_post_rapid_deployment_game(
+    post_game_data: PostGameDataT,
+    test_server: Server,
+) -> None:
     game_data = ServerGameDataFactory(
         port=10480,
         gametype=2,
@@ -787,7 +853,10 @@ def test_post_rapid_deployment_game(db, post_game_data, test_server):
     assert game.player_set.filter(team="suspects").count() == 3
 
 
-def test_post_vip_escort_game(db, post_game_data, test_server):
+def test_post_vip_escort_game(
+    post_game_data: PostGameDataT,
+    test_server: Server,
+) -> None:
     game_data = ServerGameDataFactory(
         port=10480,
         gametype="VIP Escort",
@@ -817,7 +886,10 @@ def test_post_vip_escort_game(db, post_game_data, test_server):
     assert game.player_set.get(alias__name="Baz", team="suspects", vip_kills_invalid=1)
 
 
-def test_post_coop_game(db, post_game_data, test_server):
+def test_post_coop_game(
+    post_game_data: PostGameDataT,
+    test_server: Server,
+) -> None:
     game_data = ServerGameDataFactory(
         port=10480,
         gametype="CO-OP",
@@ -954,7 +1026,10 @@ def test_post_coop_game(db, post_game_data, test_server):
     assert player3.weapons.count() == 0
 
 
-def test_post_smash_and_grab_game(db, post_game_data, test_server):
+def test_post_smash_and_grab_game(
+    post_game_data: PostGameDataT,
+    test_server: Server,
+) -> None:
     game_data = ServerGameDataFactory(
         port=10480,
         gametype="4",
@@ -1009,11 +1084,14 @@ def test_post_smash_and_grab_game(db, post_game_data, test_server):
         {"coop_procedures": [{"0": 0, "1": "1/1"}, {"0": 10, "1": "120/150"}]},
     ],
 )
-def test_post_good_stream_data(db, game_data, post_game_data):
-    game_data = ServerGameDataFactory(**game_data)
-    response = post_game_data(game_data)
+def test_post_good_stream_data(
+    game_data: dict[str, Any],
+    post_game_data: PostGameDataT,
+) -> None:
+    game_data_obj = ServerGameDataFactory(**game_data)
+    response = post_game_data(game_data_obj)
     assert_success_code(response)
-    assert Game.objects.get(tag=game_data["tag"])
+    assert Game.objects.get(tag=game_data_obj["tag"])
 
 
 @pytest.mark.parametrize(
@@ -1034,9 +1112,12 @@ def test_post_good_stream_data(db, game_data, post_game_data):
         {"coop_objectives": [{"0": "invalid"}]},
     ],
 )
-def test_malformed_stream_data(db, game_data, post_game_data):
-    game_data = ServerGameDataFactory(**game_data)
-    response = post_game_data(game_data)
+def test_malformed_stream_data(
+    game_data: dict[str, Any],
+    post_game_data: PostGameDataT,
+) -> None:
+    game_data_obj = ServerGameDataFactory(**game_data)
+    response = post_game_data(game_data_obj)
     assert_error_code(response)
     assert Game.objects.count() == 0
 
@@ -1049,7 +1130,11 @@ def test_malformed_stream_data(db, game_data, post_game_data):
         (lambda game: game.to_json(), "application/json"),
     ],
 )
-def test_various_data_forms_are_accepted(db, data_encoder, content_type, client):
+def test_various_data_forms_are_accepted(
+    data_encoder: Callable[[ServerGameData], str],
+    content_type: str,
+    client: Client,
+) -> None:
     ISPFactory(country="un", ip="127.0.0.0/24")
     game_data = ServerGameDataFactory(
         tag="foobar",
@@ -1086,7 +1171,12 @@ def test_various_data_forms_are_accepted(db, data_encoder, content_type, client)
         ("111.222.111.222", 10480, None),
     ],
 )
-def test_pick_correct_from_multiple_servers(db, post_game_data, stream_ip, stream_port, server_id):
+def test_pick_correct_from_multiple_servers(
+    post_game_data: PostGameDataT,
+    stream_ip: str,
+    stream_port: int,
+    server_id: int | None,
+) -> None:
     default_server_10480 = ServerFactory(ip="127.0.0.1", port=10480)
     server_10480 = ServerFactory(ip="51.15.152.220", port=10480)
     server_11480 = ServerFactory(ip="51.15.152.220", port=11480)
