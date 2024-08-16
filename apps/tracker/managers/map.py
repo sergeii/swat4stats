@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db import models, transaction
 from django.db.models import Count, F, Q
 from django.utils import timezone
+from django.utils.text import slugify
 
 if TYPE_CHECKING:
     from apps.tracker.models import Game, Map
@@ -16,7 +17,12 @@ logger = logging.getLogger(__name__)
 
 class MapManager(models.Manager):
     def obtain_for(self, name: str) -> "Map":
-        obj, _ = self.get_or_create(name=name)
+        obj, _ = self.get_or_create(
+            name=name,
+            defaults={
+                "slug": slugify(name),
+            },
+        )
         return obj
 
     def update_game_stats_with_game(self, game: "Game") -> None:

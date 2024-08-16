@@ -10,7 +10,6 @@ from django.db.models import F, Func, Q
 from django.db.models.functions import Upper
 from django.utils import timezone
 from django.utils.functional import cached_property
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from apps.tracker.entities import Equipment, GameNeighbors, GameType
@@ -121,6 +120,7 @@ class Server(models.Model):
 
 class Map(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    slug = models.CharField(max_length=255, null=True)
 
     game_count = models.PositiveIntegerField(default=0)
     first_game = models.ForeignKey("Game", related_name="+", null=True, on_delete=models.PROTECT)
@@ -135,10 +135,6 @@ class Map(models.Model):
 
     def __str__(self) -> str:
         return self.name
-
-    @cached_property
-    def slug(self) -> str:
-        return slugify(self.name)
 
     @cached_property
     def preview_picture(self) -> str:

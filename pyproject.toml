@@ -38,6 +38,7 @@ pytest-localserver = "0.8.1"
 pytest-cov = "5.0.0"
 pytest-repeat = "0.9.3"
 mypy = "1.11.1"
+types-pytz = "2024.1.0.20240417"
 ruff = "0.5.7"  # also update the version in github workflows and .pre-commit-config.yaml
 
 [build-system]
@@ -100,7 +101,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 [tool.ruff.lint.per-file-ignores]
 "apps/*/migrations/*.py" = ["ARG001", "E501", "RUF012"]
 "tests/factories/*.py" = ["N805", "RUF012"]
-"tests/**.py" = ["ARG001", "ARG002", "PLR0913", "PLR0915", "PLR2004", "S101", "S104", "S314", "S324"]
+"tests/**.py" = ["ARG001", "ARG002", "FBT001", "PLR0913", "PLR0915", "PLR2004", "S101", "S104", "S314", "S324"]
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
