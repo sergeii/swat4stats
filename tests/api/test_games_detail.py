@@ -1,8 +1,12 @@
+from collections.abc import Callable
 from datetime import datetime
 
 import pytest
+from pytest_django.fixtures import DjangoAssertNumQueries, SettingsWrapper
 from pytz import UTC
+from rest_framework.test import APIClient
 
+from apps.tracker.models import Loadout, Server
 from tests.factories.loadout import RandomLoadoutFactory
 from tests.factories.tracker import (
     GameFactory,
@@ -13,18 +17,37 @@ from tests.factories.tracker import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _use_db(db: None) -> None:
+    pass
+
+
 @pytest.fixture
-def server(db):
+def server() -> Server:
     return ServerFactory()
 
 
-def test_game_unknown_game_400(db, api_client):
+def test_game_unknown_game_400(api_client: APIClient) -> None:
     resp = api_client.get("/api/games/100500/")
     assert resp.status_code == 404
 
 
-def test_get_game_detail_versus(db, settings, django_assert_num_queries, api_client, server):
-    a_bomb = MapFactory(name="A-Bomb Nightclub")
+@pytest.mark.parametrize(
+    "briefing",
+    [
+        None,
+        "We're being called up for a rapid deployment at "
+        "an ongoing shots fired situation at the A-Bomb nightclub.",
+    ],
+)
+def test_get_game_detail_versus(
+    settings: SettingsWrapper,
+    django_assert_num_queries: DjangoAssertNumQueries,
+    api_client: APIClient,
+    server: Server,
+    briefing: str | None,
+) -> None:
+    a_bomb = MapFactory(name="A-Bomb Nightclub", briefing=briefing)
 
     game = GameFactory(
         gametype="VIP Escort",
@@ -81,8 +104,21 @@ def test_get_game_detail_versus(db, settings, django_assert_num_queries, api_cli
     )
 
 
-def test_get_game_detail_coop(db, django_assert_num_queries, api_client, server):
-    game_map = MapFactory(name="A-Bomb Nightclub")
+@pytest.mark.parametrize(
+    "briefing",
+    [
+        None,
+        "We're being called up for a rapid deployment at "
+        "an ongoing shots fired situation at the A-Bomb nightclub.",
+    ],
+)
+def test_get_game_detail_coop(
+    django_assert_num_queries: DjangoAssertNumQueries,
+    api_client: APIClient,
+    server: Server,
+    briefing: str | None,
+) -> None:
+    game_map = MapFactory(name="A-Bomb Nightclub", briefing=briefing)
     coop_game = GameFactory(
         gametype="CO-OP",
         map=game_map,
@@ -103,14 +139,12 @@ def test_get_game_detail_coop(db, django_assert_num_queries, api_client, server)
     assert resp.data["rules"].startswith(
         "Play single player missions with a group of up to five officers."
     )
-    assert resp.data["briefing"].startswith(
-        "We're being called up for a rapid deployment at an ongoing shots"
-    )
+    assert resp.data["briefing"] == briefing
 
 
 @pytest.mark.parametrize("team", ["swat", "suspects"])
 @pytest.mark.parametrize(
-    "loadout_factory, image",
+    "loadout_factory, image_fmt",
     [
         (
             lambda: RandomLoadoutFactory(head="Helmet", body="Light Armor"),
@@ -129,7 +163,13 @@ def test_get_game_detail_coop(db, django_assert_num_queries, api_client, server)
         (lambda: RandomLoadoutFactory(head="Light Armor", body="None"), "{team}.jpg"),
     ],
 )
-def test_get_game_detail_player_portrait(db, api_client, settings, team, loadout_factory, image):
+def test_get_game_detail_player_portrait(
+    api_client: APIClient,
+    settings: SettingsWrapper,
+    team: str,
+    loadout_factory: Callable[[], Loadout],
+    image_fmt: str,
+) -> None:
     game = GameFactory()
     PlayerFactory(dropped=False, team=team, game=game, loadout=loadout_factory())
 
@@ -137,7 +177,7 @@ def test_get_game_detail_player_portrait(db, api_client, settings, team, loadout
     assert resp.status_code == 200
     player = resp.data["players"][0]
 
-    filename = image.format(team=team)
+    filename = image_fmt.format(team=team)
     assert player["portrait_picture"] == f"{settings.STATIC_URL}images/portraits/{filename}"
 
 
@@ -152,7 +192,12 @@ def test_get_game_detail_player_portrait(db, api_client, settings, team, loadout
         lambda: RandomLoadoutFactory(head="None", body="None"),
     ],
 )
-def test_get_game_detail_player_vip_portrait(db, api_client, settings, team, loadout_factory):
+def test_get_game_detail_player_vip_portrait(
+    api_client: APIClient,
+    settings: SettingsWrapper,
+    team: str,
+    loadout_factory: Callable[[], Loadout],
+) -> None:
     game = GameFactory()
     PlayerFactory(dropped=False, vip=True, team=team, game=game, loadout=loadout_factory())
 
@@ -163,55 +208,40 @@ def test_get_game_detail_player_vip_portrait(db, api_client, settings, team, loa
     assert player["portrait_picture"] == f"{settings.STATIC_URL}images/portraits/vip.jpg"
 
 
-@pytest.mark.parametrize(
-    "map_name, map_image_name",
-    [
-        ("A-Bomb Nightclub", "a-bomb-nightclub.jpg"),
-        ("Brewer County Courthouse", "brewer-county-courthouse.jpg"),
-        ("St. Michael's Medical Center", "st-michaels-medical-center.jpg"),
-        ("-EXP- Department of Agriculture", "exp-department-of-agriculture.jpg"),
-        ("-EXP- Fresnal St. Station", "exp-fresnal-st-station.jpg"),
-        ("Some Unknown Map", "intro.jpg"),
-    ],
-)
-def test_get_game_map_picture(db, api_client, settings, map_name, map_image_name):
-    game = GameFactory(map__name=map_name)
+@pytest.mark.django_db()
+def test_get_game_map_picture(api_client: APIClient) -> None:
+    abomb = MapFactory(
+        name="A-Bomb Nightclub",
+        preview_picture="/static/images/maps/preview/a-bomb-nightclub.jpg",
+        background_picture="/static/images/maps/background/a-bomb-nightclub.jpg",
+    )
+    game = GameFactory(map=abomb)
 
     resp = api_client.get(f"/api/games/{game.pk}/")
     assert resp.status_code == 200
-    assert (
-        resp.data["map"]["preview_picture"]
-        == f"{settings.STATIC_URL}images/maps/preview/{map_image_name}"
-    )
+    assert resp.data["map"]["preview_picture"] == "/static/images/maps/preview/a-bomb-nightclub.jpg"
     assert (
         resp.data["map"]["background_picture"]
-        == f"{settings.STATIC_URL}images/maps/background/{map_image_name}"
+        == "/static/images/maps/background/a-bomb-nightclub.jpg"
     )
 
 
-@pytest.mark.parametrize(
-    "map_name, briefing_snippet",
-    [
-        ("A-Bomb Nightclub", "We're being called up for a rapid deployment"),
-        ("St. Michael's Medical Center", "Alright, men, we have an international incident"),
-        ("-EXP- Department of Agriculture", "Okay, quiet down and listen."),
-        ("-EXP- Fresnal St. Station", "The shit has really hit the fan."),
-        ("Some Unknown Map", None),
-    ],
-)
-def test_get_coop_game_map_briefing(db, api_client, map_name, briefing_snippet):
-    game_map = MapFactory(name=map_name)
-    coop_game = GameFactory(gametype="CO-OP", map=game_map)
+@pytest.mark.django_db()
+def test_get_game_map_no_picture(api_client: APIClient) -> None:
+    abomb = MapFactory(name="A-Bomb Nightclub")
+    game = GameFactory(map=abomb)
 
-    resp = api_client.get(f"/api/games/{coop_game.pk}/")
-
-    if briefing_snippet is None:
-        assert resp.data["briefing"] is None
-    else:
-        assert resp.data["briefing"].startswith(briefing_snippet)
+    resp = api_client.get(f"/api/games/{game.pk}/")
+    assert resp.status_code == 200
+    assert resp.data["map"]["preview_picture"] is None
+    assert resp.data["map"]["background_picture"] is None
 
 
-def test_get_game_detail_neighboring_games(db, django_assert_num_queries, api_client, server):
+def test_get_game_detail_neighboring_games(
+    django_assert_num_queries: DjangoAssertNumQueries,
+    api_client: APIClient,
+    server: Server,
+) -> None:
     brewer = MapFactory(name="Brewer County Courthouse")
     northside = MapFactory(name="Northside Vending")
 

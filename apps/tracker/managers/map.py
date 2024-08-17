@@ -50,6 +50,8 @@ class MapManager(models.Manager):
             .values_list("pk", flat=True)
         )
 
+        logger.info("updating details for %d maps", len(map_ids_to_update))
+
         for map_ids in iterate_list(map_ids_to_update, size=chunk_size):
             maps_to_update_qs = self.filter(pk__in=map_ids).only("slug")
 
