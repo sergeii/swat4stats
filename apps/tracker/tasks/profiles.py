@@ -2,9 +2,11 @@ import logging
 import random
 
 from apps.tracker.models import Profile
+from apps.utils.misc import iterate_queryset
 from swat4stats.celery import Queue, app
 
 __all__ = [
+    "denorm_profile_names",
     "update_player_preferences",
     "update_player_preferences_for_profile",
 ]
@@ -33,3 +35,11 @@ def update_player_preferences_for_profile(profile_pk: int) -> None:
     profile = Profile.objects.get(pk=profile_pk)
     logger.info("updating preferences for %s", profile)
     Profile.objects.update_preferences_for_profile(profile)
+
+
+@app.task(name="denorm_profile_names", queue=Queue.default.value)
+def denorm_profile_names(chunk_size: int = 1000) -> None:
+    profiles_with_ids = Profile.objects.require_denorm_names().using("replica")
+    for chunk in iterate_queryset(profiles_with_ids, fields=["pk"], chunk_size=chunk_size):
+        profile_ids = [profile["pk"] for profile in chunk]
+        Profile.objects.denorm_alias_names(*profile_ids)

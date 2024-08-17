@@ -1,7 +1,7 @@
 import logging
-import os
 from enum import StrEnum, auto
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.http import HttpRequest, JsonResponse
@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 def status(_: HttpRequest) -> JsonResponse:
     return JsonResponse(
         {
-            "version": os.environ.get("GIT_RELEASE_VER"),
-            "commit": os.environ.get("GIT_RELEASE_SHA"),
+            "version": settings.GIT_RELEASE_VER,
+            "commit": settings.GIT_RELEASE_SHA,
         }
     )
 

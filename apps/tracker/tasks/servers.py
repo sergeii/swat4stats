@@ -13,6 +13,7 @@ __all__ = [
     "refresh_listed_servers",
     "unlist_failed_servers",
     "update_server_country",
+    "update_server_ratings",
     "merge_servers",
     "merge_server_stats",
 ]
@@ -98,6 +99,11 @@ def update_server_country(server_id: int) -> None:
 
     logger.info("updating country to %s for server %s", isp.country, server_id)
     Server.objects.filter(pk=server_id).update(country=isp.country)
+
+
+@app.task(name="update_server_ratings", queue=Queue.default.value)
+def update_server_ratings() -> None:
+    Server.objects.update_ratings()
 
 
 @app.task(queue=Queue.heavy.value)

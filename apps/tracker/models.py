@@ -28,7 +28,6 @@ from apps.tracker.managers import (
     StatsManager,
 )
 from apps.tracker.managers.alias import AliasQuerySet
-from apps.tracker.utils.game import map_background_picture
 from apps.tracker.utils.misc import force_clean_name, ratio
 from apps.utils.db.fields import EnumField
 
@@ -131,18 +130,16 @@ class Map(models.Model):
     rating = models.IntegerField(null=True, blank=True)
     rating_updated_at = models.DateTimeField(null=True, blank=True)
 
+    preview_picture = models.TextField(null=True)
+    background_picture = models.TextField(null=True)
+    briefing = models.TextField(null=True)
+    details_updated_at = models.DateTimeField(null=True)
+    details_updated_for_version = models.CharField(max_length=40, null=True)
+
     objects = MapManager()
 
     def __str__(self) -> str:
         return self.name
-
-    @cached_property
-    def preview_picture(self) -> str:
-        return map_background_picture(self.name, style="preview")
-
-    @cached_property
-    def background_picture(self) -> str:
-        return map_background_picture(self.name, style="background")
 
 
 class Game(models.Model):
