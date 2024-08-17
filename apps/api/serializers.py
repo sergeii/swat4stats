@@ -588,7 +588,7 @@ class GameSerializer(GameBaseSerializer):
 
     def get_briefing(self, obj: Game) -> str | None:
         if obj.gametype in (GameType.co_op, GameType.co_op_qmm):
-            return map_briefing_text(obj.map.name)
+            return obj.map.briefing
         return None
 
     def get_coop_rank(self, obj: Game) -> str | None:

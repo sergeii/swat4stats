@@ -1,4 +1,5 @@
 import logging
+import os
 import warnings
 from datetime import timedelta
 from pathlib import Path
@@ -21,6 +22,9 @@ REDIS_DB = {
     "default": int(env("SETTINGS_REDIS_CACHE_DB", 1)),
     "cacheback": int(env("SETTINGS_REDIS_CACHE_DB", 1)),
 }
+
+GIT_RELEASE_VER = os.environ.get("GIT_RELEASE_VER")
+GIT_RELEASE_SHA = os.environ.get("GIT_RELEASE_SHA")
 
 EMAIL_BACKENDS = {
     "console": "django.core.mail.backends.console.EmailBackend",
@@ -150,7 +154,12 @@ SILENCED_SYSTEM_CHECKS = [
     "models.E034",  # The index name 'X' cannot be longer than 30 characters.
 ]
 
-STATICFILES_STORAGE = "apps.utils.staticfiles.ManifestStaticFilesStorage"
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
@@ -358,6 +367,13 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour="*/6", minute="30"),
         "options": {
             "expires": 2 * 60 * 60,
+        },
+    },
+    "update_map_details": {
+        "task": "update_map_details",
+        "schedule": crontab(hour="*", minute="45"),
+        "options": {
+            "expires": 50 * 60,
         },
     },
     "update_map_ratings": {
