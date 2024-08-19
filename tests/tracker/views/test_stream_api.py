@@ -813,6 +813,8 @@ def test_post_barricaded_suspects_game(
     assert game.gametype_legacy == 0
     assert game.outcome == "swat_bs"
     assert game.outcome_legacy == 1
+    assert game.coop_score == 0
+    assert game.coop_rank is None
     assert game.player_set.count() == 3
 
 
@@ -842,6 +844,8 @@ def test_post_rapid_deployment_game(
     assert game.gametype_legacy == 2
     assert game.outcome == "sus_rd"
     assert game.outcome_legacy == 4
+    assert game.coop_score == 0
+    assert game.coop_rank is None
     assert game.rd_bombs_defused == 4
     assert game.rd_bombs_total == 5
     assert game.player_set.count() == 5
@@ -878,6 +882,8 @@ def test_post_vip_escort_game(
     assert game.gametype_legacy == 1
     assert game.outcome == "swat_vip_bad_kill"
     assert game.outcome_legacy == 8
+    assert game.coop_score == 0
+    assert game.coop_rank is None
     assert game.player_set.count() == 4
 
     assert game.player_set.get(alias__name="Foo", team="swat", vip_rescues=2)
@@ -974,6 +980,7 @@ def test_post_coop_game(
     assert game.outcome_legacy == 10
     assert game.is_coop_game
     assert game.coop_score == -47
+    assert game.coop_rank == "Menace"
 
     assert game.objective_set.count() == 3
     assert game.objective_set.get(name="Neutralize Alice Jenkins", status="Failed")
@@ -1026,6 +1033,48 @@ def test_post_coop_game(
     assert player3.weapons.count() == 0
 
 
+@pytest.mark.parametrize(
+    "procedure_scores, expected_score, expected_rank",
+    [
+        ([0], 0, "Menace"),
+        ([0, 1, -1], 0, "Menace"),
+        ([-40, -1, 0], -41, "Menace"),
+        ([34, 2, -1, -1], 34, "Vigilante"),
+        ([35, 0], 35, "Washout"),
+        ([45, 2, 2], 49, "Washout"),
+        ([79, 1], 80, "Sergeant"),
+        ([95, 4], 99, "Inspector"),
+        ([99, 1], 100, "Chief Inspector"),
+        ([100], 100, "Chief Inspector"),
+        ([100, 15, 30], 100, "Chief Inspector"),
+    ],
+)
+def test_coop_score_rank_calculated_for_coop_game(
+    post_game_data: PostGameDataT,
+    test_server: Server,
+    procedure_scores: list[int],
+    expected_score: int,
+    expected_rank: str,
+) -> None:
+    game_data = ServerGameDataFactory(
+        gametype="CO-OP",
+        coop_procedures=[ProcedureGameDataFactory(score=score) for score in procedure_scores],
+        coop_objectives=[
+            ObjectiveGameDataFactory(name=10, status=2),
+        ],
+        players=[
+            PlayerGameDataFactory(),
+        ],
+    )
+    response = post_game_data(game_data)
+    assert_success_code(response)
+
+    game = Game.objects.get()
+    assert game.is_coop_game
+    assert game.coop_score == expected_score
+    assert game.coop_rank == expected_rank
+
+
 def test_post_smash_and_grab_game(
     post_game_data: PostGameDataT,
     test_server: Server,
@@ -1052,6 +1101,8 @@ def test_post_smash_and_grab_game(
     assert game.map.name == "-EXP- Stetchkov Warehouse"
     assert game.outcome == "sus_sg"
     assert game.outcome_legacy == 13
+    assert game.coop_score == 0
+    assert game.coop_rank is None
     assert game.player_set.count() == 3
 
     assert game.player_set.get(alias__name="Foo", team="swat")

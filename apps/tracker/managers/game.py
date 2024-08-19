@@ -1,11 +1,18 @@
 import logging
+import math
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.db import IntegrityError, models, transaction
 from django.utils.translation import gettext_lazy as _
 
-from apps.tracker.entities import GameNeighbors, GamePlayerHighlight, GameTopFieldPlayer
+from apps.tracker.entities import (
+    CoopRank,
+    GameNeighbors,
+    GamePlayerHighlight,
+    GameTopFieldPlayer,
+    GameType,
+)
 from apps.tracker.exceptions import GameAlreadySavedError
 from apps.tracker.schema import (
     coop_status_reversed,
@@ -53,9 +60,27 @@ class GameManager(models.Manager):
     highlights_weapon_min_kills = 5
     highlights_weapon_min_accuracy = 20
 
+    coop_min_score_for_rank: ClassVar[list[tuple[int, CoopRank]]] = [
+        (100, CoopRank.chief_inspector),
+        (95, CoopRank.inspector),
+        (90, CoopRank.captain),
+        (85, CoopRank.lieutenant),
+        (80, CoopRank.sergeant),
+        (75, CoopRank.patrol_officer),
+        (70, CoopRank.reserve_officer),
+        (60, CoopRank.non_sworn_officer),
+        (50, CoopRank.recruit),
+        (35, CoopRank.washout),
+        (20, CoopRank.vigilante),
+        (-math.inf, CoopRank.menace),
+    ]
+
     @transaction.atomic
     def create_game(
-        self, server: "Server", data: dict[str, Any], date_finished: datetime
+        self,
+        server: "Server",
+        data: dict[str, Any],
+        date_finished: datetime,
     ) -> "Game":
         """
         Attempt to create using data that was received from a game server.
@@ -67,11 +92,15 @@ class GameManager(models.Manager):
         """
         from apps.tracker.models import Map
 
-        # manually calculate the coop score based on procedures' scores
-        if coop_procedures := data.get("coop_procedures"):
-            coop_score = min(100, sum(proc["score"] for proc in coop_procedures))
+        gametype = GameType(data["gametype"])
+        coop_procedures = data.get("coop_procedures")
+
+        if gametype.is_coop():
+            coop_score = self._calculate_coop_score_for_procedures(coop_procedures)
+            coop_rank = self.calculate_coop_rank_for_score(coop_score)
         else:
             coop_score = 0
+            coop_rank = None
 
         logger.info("creating game with id %s from server %s", data["tag"], server)
         try:
@@ -80,7 +109,7 @@ class GameManager(models.Manager):
                     server=server,
                     tag=data["tag"],
                     date_finished=date_finished,
-                    gametype=data["gametype"],
+                    gametype=gametype,
                     gametype_legacy=gametypes_reversed[data["gametype"]],
                     map=Map.objects.obtain_for(data["mapname"]),
                     mapname=mapnames_reversed.get(data["mapname"], -1),
@@ -95,6 +124,7 @@ class GameManager(models.Manager):
                     rd_bombs_defused=data["bombs_defused"],
                     rd_bombs_total=data["bombs_total"],
                     coop_score=coop_score,
+                    coop_rank=coop_rank,
                 )
         except IntegrityError as exc:
             logger.info("game with tag %s is already saved (%s)", data["tag"], exc)
@@ -109,6 +139,18 @@ class GameManager(models.Manager):
             self._create_game_players(game, players)
 
         return game
+
+    def _calculate_coop_score_for_procedures(self, procedures: list[dict[str, int]] | None) -> int:
+        if procedures:
+            return min(100, sum(proc["score"] for proc in procedures))
+        return 0
+
+    @classmethod
+    def calculate_coop_rank_for_score(cls, score: int) -> CoopRank | None:
+        for min_score, rank in cls.coop_min_score_for_rank:
+            if score >= min_score:
+                return rank
+        return None
 
     def _create_game_procedures(self, game: "Game", procedures: list[dict[str, str]]) -> None:
         """Process COOP mission procedures"""
