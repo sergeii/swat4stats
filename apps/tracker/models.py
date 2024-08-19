@@ -159,6 +159,7 @@ class Game(models.Model):
     rd_bombs_defused = models.SmallIntegerField(default=0)
     rd_bombs_total = models.SmallIntegerField(default=0)
     coop_score = models.SmallIntegerField(default=0)
+    coop_rank = EnumField(enum_type="coop_rank_enum", null=True)
     date_finished = models.DateTimeField(default=timezone.now)
 
     # pending removal

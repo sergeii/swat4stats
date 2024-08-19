@@ -19,9 +19,16 @@ class GameType(StrEnum):
     co_op = "CO-OP"
     co_op_qmm = "CO-OP QMM"
 
+    def is_coop(self) -> bool:
+        return self in GameType.coop_modes()
+
     @classmethod
     def versus_modes(cls) -> tuple["GameType", ...]:
         return cls.barricaded_suspects, cls.rapid_deployment, cls.vip_escort, cls.smash_and_grab
+
+    @classmethod
+    def coop_modes(cls) -> tuple["GameType", ...]:
+        return cls.co_op, cls.co_op_qmm
 
 
 class GameName(StrEnum):
@@ -62,6 +69,21 @@ class CoopProcedure(StrEnum):
     failed_to_apprehend_fleeing_suspect = "Failed to apprehend fleeing suspect."
     report_status_to_toc = "Report status to TOC"
     all_evidence_secured = "All evidence secured"
+
+
+class CoopRank(StrEnum):
+    chief_inspector = "Chief Inspector"
+    inspector = "Inspector"
+    captain = "Captain"
+    lieutenant = "Lieutenant"
+    sergeant = "Sergeant"
+    patrol_officer = "Patrol Officer"
+    reserve_officer = "Reserve Officer"
+    non_sworn_officer = "Non-sworn Officer"
+    recruit = "Recruit"
+    washout = "Washout"
+    vigilante = "Vigilante"
+    menace = "Menace"
 
 
 class GameOutcome(StrEnum):

@@ -138,7 +138,7 @@ class MapManager(models.Manager):
         return {m.pk: idx for idx, m in enumerate(maps_sorted_by_rating, start=1)}
 
     @transaction.atomic
-    def denorm_game_stats(self, *maps) -> None:
+    def denorm_game_stats(self, *maps: "Map") -> None:
         from apps.tracker.models import Game
 
         map_ids = [m.pk for m in maps]
