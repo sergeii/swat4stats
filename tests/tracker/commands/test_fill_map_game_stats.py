@@ -7,7 +7,10 @@ from tests.factories.tracker import GameFactory, MapFactory
 
 @pytest.mark.django_db(databases=["default", "replica"])
 def test_fill_map_game_stats(django_assert_num_queries):
-    map1, map2, map3, map4 = MapFactory.create_batch(4)
+    map1 = MapFactory(name="A-Bomb Nightclub")
+    map2 = MapFactory(name="Brewer County Courthouse")
+    map3 = MapFactory(name="Northside Vending")
+    map4 = MapFactory(name="Fairfax Residence")
 
     game1, game2, game3 = GameFactory.create_batch(3, map=map1)
     game4, game5 = GameFactory.create_batch(2, map=map2)
