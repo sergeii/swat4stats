@@ -35,9 +35,13 @@ def fill_coop_ranks(chunk_size: int) -> None:
             total,
         )
 
-        games_to_update = Game.objects.filter(
-            pk__in=game_ids, gametype=GameType.co_op, coop_rank__isnull=True
-        ).only("coop_score")
+        # fmt: off
+        games_to_update = (
+            Game.objects
+            .filter(pk__in=game_ids, gametype=GameType.co_op, coop_rank__isnull=True)
+            .only("coop_score")
+        )
+        # fmt: on
         for game_to_update in games_to_update:
             coop_rank = Game.objects.calculate_coop_rank_for_score(game_to_update.coop_score)
             game_to_update.coop_rank = coop_rank
