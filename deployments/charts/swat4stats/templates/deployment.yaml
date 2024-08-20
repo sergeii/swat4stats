@@ -121,9 +121,6 @@ spec:
     "--max-tasks-per-child" .maxTasks
     "--events"
     "--pidfile="
-    "--without-gossip"
-    "--without-mingle"
-    "--without-heartbeat"
 }}
 ---
 

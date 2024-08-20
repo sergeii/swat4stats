@@ -101,7 +101,7 @@ celeryExporter:
     repository: danihodovic/celery-exporter
     pullPolicy: IfNotPresent
     pullSecrets: ""
-    tag: "0.10.7"
+    tag: "0.10.8"
     sha: "ed26c17ab276318d2823105e543ddf3763ba2095feef0f1f5c66c667f16f5cc3"
   resources:
      limits:
