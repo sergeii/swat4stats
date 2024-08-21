@@ -546,7 +546,6 @@ class GameSerializer(GameBaseSerializer):
     procedures = ProcedureSerializer(many=True, source="procedure_set")
     rules = serializers.SerializerMethodField()
     briefing = serializers.SerializerMethodField()
-    coop_rank = serializers.SerializerMethodField()
 
     class Meta(GameBaseSerializer.Meta):
         fields = (
@@ -568,21 +567,6 @@ class GameSerializer(GameBaseSerializer):
         )
         read_only_fields: tuple[str, ...] = fields
 
-    coop_ranks: ClassVar[dict[int, str]] = {
-        100: _("Chief Inspector"),
-        95: _("Inspector"),
-        90: _("Captain"),
-        85: _("Lieutenant"),
-        80: _("Sergeant"),
-        75: _("Patrol Officer"),
-        70: _("Reserve Officer"),
-        60: _("Non-sworn Officer"),
-        50: _("Recruit"),
-        35: _("Washout"),
-        20: _("Vigilante"),
-    }
-    coop_rank_default = _("Menace")
-
     def get_rules(self, obj: Game) -> str | None:
         return gametype_rules_text(obj.gametype)
 
@@ -590,16 +574,6 @@ class GameSerializer(GameBaseSerializer):
         if obj.gametype in (GameType.co_op, GameType.co_op_qmm):
             return obj.map.briefing
         return None
-
-    def get_coop_rank(self, obj: Game) -> str | None:
-        if obj.gametype not in (GameType.co_op, GameType.co_op_qmm):
-            return None
-
-        for min_score, title in self.coop_ranks.items():
-            if obj.coop_score >= min_score:
-                return title
-
-        return self.coop_rank_default
 
 
 class GamePlayerHighlightSerializer(serializers.Serializer):

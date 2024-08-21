@@ -6,6 +6,7 @@ from pytest_django.fixtures import DjangoAssertNumQueries, SettingsWrapper
 from pytz import UTC
 from rest_framework.test import APIClient
 
+from apps.tracker.entities import CoopRank
 from apps.tracker.models import Loadout, Server
 from tests.factories.loadout import RandomLoadoutFactory
 from tests.factories.tracker import (
@@ -125,6 +126,7 @@ def test_get_game_detail_coop(
         server=server,
         date_finished=datetime(2017, 1, 1, tzinfo=UTC),
         coop_score=77,
+        coop_rank=CoopRank.patrol_officer,
     )
     PlayerFactory.create_batch(7, dropped=False, game=coop_game)
 
