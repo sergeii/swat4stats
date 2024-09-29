@@ -13,7 +13,6 @@ from rest_framework import routers
 from apps.api.views import (
     ArticleViewSet,
     GameViewSet,
-    PopularMapsViewSet,
     PopularServersViewSet,
     SearchPlayersView,
     SearchServersView,
@@ -40,7 +39,6 @@ api_router.register("servers", ServerViewSet)
 api_router.register("games", GameViewSet)
 api_router.register("articles", ArticleViewSet)
 api_router.register("server-leaderboard", ServerLeaderboardViewSet)
-api_router.register("data-popular-mapnames", PopularMapsViewSet, basename="popular-mapnames")
 api_router.register("data-popular-servers", PopularServersViewSet, basename="popular-servers")
 
 api_urls = [
