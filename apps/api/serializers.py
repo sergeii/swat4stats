@@ -6,13 +6,11 @@ from urllib.parse import quote as urlquote
 import voluptuous
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
-from django.utils.safestring import SafeString
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from apps.news.models import Article
 from apps.tracker.entities import CoopStatus, GameType
 from apps.tracker.models import (
     Game,
@@ -34,24 +32,11 @@ from apps.tracker.utils.game import (
     map_briefing_text,
 )
 from apps.tracker.utils.geo import country
-from apps.tracker.utils.misc import force_clean_name, format_name, html
+from apps.tracker.utils.misc import force_clean_name, format_name
 
 logger = logging.getLogger(__name__)
 
 port_validators = [MinValueValidator(1), MaxValueValidator(65535)]
-
-
-class NewsArticleSerializer(serializers.ModelSerializer):
-    html = serializers.SerializerMethodField()
-
-    class Meta:
-        fields = ("id", "title", "html", "signature", "date_published")
-        model = Article
-
-    def get_html(self, obj: Article) -> str:
-        if isinstance(obj.rendered, SafeString):
-            return obj.rendered
-        return html.escape(obj.rendered)
 
 
 class ServerFilterSerializer(serializers.Serializer):

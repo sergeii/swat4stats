@@ -11,7 +11,6 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers
 
 from apps.api.views import (
-    ArticleViewSet,
     GameViewSet,
     PopularServersViewSet,
     SearchPlayersView,
@@ -37,7 +36,6 @@ sitemaps = {
 api_router = routers.DefaultRouter()
 api_router.register("servers", ServerViewSet)
 api_router.register("games", GameViewSet)
-api_router.register("articles", ArticleViewSet)
 api_router.register("server-leaderboard", ServerLeaderboardViewSet)
 api_router.register("data-popular-servers", PopularServersViewSet, basename="popular-servers")
 
