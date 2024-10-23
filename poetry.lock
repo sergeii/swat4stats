@@ -428,6 +428,17 @@ files = [
 toml = ["tomli"]
 
 [[package]]
+name = "defusedxml"
+version = "0.7.1"
+description = "XML bomb protection for Python stdlib modules"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+files = [
+    {file = "defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"},
+    {file = "defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69"},
+]
+
+[[package]]
 name = "django"
 version = "5.1.2"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
@@ -709,17 +720,18 @@ files = [
 
 [[package]]
 name = "ipwhois"
-version = "1.2.0"
+version = "1.3.0"
 description = "Retrieve and parse whois data for IPv4 and IPv6 addresses."
 optional = false
 python-versions = "*"
 files = [
-    {file = "ipwhois-1.2.0-py2.py3-none-any.whl", hash = "sha256:9f14dfafb5d9eb7c7f56ab34cfad9868b5e453ab4161a90d69fb714fe712056a"},
-    {file = "ipwhois-1.2.0.tar.gz", hash = "sha256:831e3fef3b8041201a048e9456e3b80f45c6c8b7174f34ed211f66b596c84bbe"},
+    {file = "ipwhois-1.3.0-py2.py3-none-any.whl", hash = "sha256:ad2cd7e7b8c81044fc8829bb4357bce6088c654a20f51f5d234fe6a99e0fbf90"},
+    {file = "ipwhois-1.3.0.tar.gz", hash = "sha256:11d59784b6350210c33e12301cc50cd1ebfbb0b12a7b0f97916e11d6661c4d5d"},
 ]
 
 [package.dependencies]
-dnspython = "<=2.0.0"
+defusedxml = "*"
+dnspython = "*"
 
 [[package]]
 name = "kombu"
@@ -1291,13 +1303,13 @@ files = [
 
 [[package]]
 name = "sentry-sdk"
-version = "2.16.0"
+version = "2.17.0"
 description = "Python client for Sentry (https://sentry.io)"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "sentry_sdk-2.16.0-py2.py3-none-any.whl", hash = "sha256:49139c31ebcd398f4f6396b18910610a0c1602f6e67083240c33019d1f6aa30c"},
-    {file = "sentry_sdk-2.16.0.tar.gz", hash = "sha256:90f733b32e15dfc1999e6b7aca67a38688a567329de4d6e184154a73f96c6892"},
+    {file = "sentry_sdk-2.17.0-py2.py3-none-any.whl", hash = "sha256:625955884b862cc58748920f9e21efdfb8e0d4f98cca4ab0d3918576d5b606ad"},
+    {file = "sentry_sdk-2.17.0.tar.gz", hash = "sha256:dd0a05352b78ffeacced73a94e86f38b32e2eae15fff5f30ca5abb568a72eacf"},
 ]
 
 [package.dependencies]
@@ -1596,4 +1608,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12,<3.13"
-content-hash = "283ce011f16689e7ef3c536e17eb6e580b3cb5d76226fbf8c38853f19436ae93"
+content-hash = "5782596ffe0a3c49f24994d6ef36763ecf552af0cc8803eb86d01afe5d106cda"
