@@ -9,7 +9,7 @@ from apps.tracker.models import Map
 from tests.factories.tracker import GameFactory, MapFactory
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_update_game_stats_for_map_for_existing() -> None:
     abomb = MapFactory(name="A-Bomb Nightclub")
     brewer = MapFactory(name="Brewer County Courthouse")
@@ -50,7 +50,7 @@ def test_update_game_stats_for_map_for_existing() -> None:
     assert brewer.latest_game_played_at == game5.date_finished
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_update_game_stats_for_map_from_scratch() -> None:
     abomb = MapFactory(name="A-Bomb Nightclub")
     brewer = MapFactory(name="Brewer County Courthouse")

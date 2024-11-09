@@ -25,6 +25,9 @@ updates:
     groups:
       dockerfile:
         applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - python
   - package-ecosystem: pip

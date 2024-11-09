@@ -106,6 +106,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
 fixture-parentheses = false
+mark-parentheses = false
 
 [tool.ruff.lint.flake8-unused-arguments]
 ignore-variadic-names = true

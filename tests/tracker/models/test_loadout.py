@@ -20,7 +20,7 @@ fields = [
 ]
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_obtain_loadout():
     empty_loadout = Loadout.objects.obtain()
     for slot in fields:
@@ -64,7 +64,7 @@ def test_obtain_loadout():
         LoadoutFactory(primary="m4")
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_duplicate_loadout():
     loadout_kwargs = {slot: "None" for slot in fields}
     loadout_kwargs["primary"] = "9mm SMG"
