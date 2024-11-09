@@ -52,7 +52,7 @@ services:
       - POSTGRES_DB=swat4stats
       - LANG=en_US.UTF-8
       - LC_ALL=en_US.UTF-8
-    image: postgres:16.1
+    image: postgres:16.4
     ports:
       - "5432:5432"
     tmpfs:

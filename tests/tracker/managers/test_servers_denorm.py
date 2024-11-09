@@ -13,7 +13,7 @@ from apps.utils.test import freeze_timezone_now
 from tests.factories.tracker import GameFactory, ServerFactory
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_denorm_game_stats_for_servers() -> None:
     server1, server2, server3, server4, server5 = ServerFactory.create_batch(5)
 
@@ -73,7 +73,7 @@ def test_denorm_game_stats_for_servers() -> None:
     assert server5.latest_game_played_at is None
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_update_existing_game_stats_for_server() -> None:
     server1, server2 = ServerFactory.create_batch(2)
 
@@ -113,7 +113,7 @@ def test_update_existing_game_stats_for_server() -> None:
     assert server2.latest_game_played_at == game5.date_finished
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_update_game_stats_for_server_from_scratch() -> None:
     server = ServerFactory()
     game1, game2 = GameFactory.create_batch(2, server=server)

@@ -210,7 +210,7 @@ def test_get_game_detail_player_vip_portrait(
     assert player["portrait_picture"] == f"{settings.STATIC_URL}images/portraits/vip.jpg"
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_get_game_map_picture(api_client: APIClient) -> None:
     abomb = MapFactory(
         name="A-Bomb Nightclub",
@@ -228,7 +228,7 @@ def test_get_game_map_picture(api_client: APIClient) -> None:
     )
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_get_game_map_no_picture(api_client: APIClient) -> None:
     abomb = MapFactory(name="A-Bomb Nightclub")
     game = GameFactory(map=abomb)
