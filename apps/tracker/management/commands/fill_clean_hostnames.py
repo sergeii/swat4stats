@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def fill_clean_hostnames() -> None:
     servers_with_ids = list(
         Server.objects.using("replica")
-        .filter(~(Q(hostname__isnull=True) | Q(hostname="")), Q(hostname_clean__isnull=True))
+        .filter(~Q(hostname__isnull=True) & Q(hostname_clean__isnull=True))
         .values_list("pk", flat=True)
     )
     for server_ids in iterate_list(servers_with_ids, size=1000):

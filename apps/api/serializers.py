@@ -290,6 +290,7 @@ class ServerCreateSerializer(ServerFullSerializer):
                 "failures": 0,
                 "status": validated_status,
                 "hostname": validated_status["hostname"],
+                "hostname_clean": force_clean_name(validated_status["hostname"]),
             }
         )
 

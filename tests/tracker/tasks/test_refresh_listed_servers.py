@@ -27,6 +27,7 @@ from tests.factories.tracker import ServerFactory
     [
         ("New Hostname", "New Hostname"),
         ("[C=FFFFFF][b][u]Fancy Hostname[/u][/b][/C]", "Fancy Hostname"),
+        ("", ""),
     ],
 )
 def test_hostname_is_updated_for_active_servers(

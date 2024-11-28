@@ -28,13 +28,13 @@ def test_fill_clean_hostnames(now_mock, db, django_assert_num_queries):
         hostname_clean=None,
         hostname_updated_at=None,
     )
-    empty = ServerFactory(hostname="", hostname_clean=None, hostname_updated_at=None)
+    empty_str = ServerFactory(hostname="", hostname_clean=None, hostname_updated_at=None)
     null = ServerFactory(hostname=None, hostname_clean=None, hostname_updated_at=None)
 
     with django_assert_num_queries(6):
         call_command("fill_clean_hostnames")
 
-    for server in [myt, sef, sog, empty, null]:
+    for server in [myt, sef, sog, empty_str, null]:
         server.refresh_from_db()
 
     assert myt.hostname_clean == "-==MYT Team Svr==-"
@@ -47,8 +47,10 @@ def test_fill_clean_hostnames(now_mock, db, django_assert_num_queries):
     assert sog.hostname_clean == "Sog-team.co.uk Pro!"
     assert sog.hostname_updated_at == now
 
+    # server with empty hostname should also have an empty clean hostname
+    assert empty_str.hostname_clean == ""
+    assert empty_str.hostname_updated_at == now
+
     # these servers have no hostname, so they should not be updated
-    assert empty.hostname_clean is None
-    assert empty.hostname_updated_at is None
     assert null.hostname_clean is None
     assert null.hostname_updated_at is None
