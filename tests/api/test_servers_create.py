@@ -1,15 +1,25 @@
+import pytest
+
 from apps.tracker.models import Server
 from tests.factories.geoip import ISPFactory
 from tests.factories.query import PlayerQueryFactory, ServerQueryFactory
 from tests.factories.tracker import ServerFactory
 
 
-def test_add_server_flow(db, api_client, udp_server):
+@pytest.mark.parametrize(
+    "server_name, expected_clean_name",
+    [
+        ("Swat4 Server", "Swat4 Server"),
+        ("[b]Swat4 Server[/b]", "Swat4 Server"),
+        ("", ""),
+    ],
+)
+def test_add_server_flow(db, api_client, udp_server, server_name, expected_clean_name):
     server_ip, server_port = udp_server.server_address
     ISPFactory(country="uk", ip=server_ip)
     udp_server.responses.append(
         ServerQueryFactory(
-            hostname="Swat4 Server",
+            hostname=server_name,
             hostport=server_port - 1,
             players=PlayerQueryFactory.create_batch(16),
         ).as_gamespy()
@@ -20,13 +30,14 @@ def test_add_server_flow(db, api_client, udp_server):
     assert response.status_code == 201
     assert response.data["ip"] == server_ip
     assert response.data["port"] == server_port - 1
-    assert response.data["hostname"] == "Swat4 Server"
+    assert response.data["hostname"] == server_name
     assert response.data["country"] is None
     assert "status" not in response
 
     server = Server.objects.get(ip=server_ip, port=server_port - 1)
     assert server.status_port == server_port
-    assert server.hostname == "Swat4 Server"
+    assert server.hostname == server_name
+    assert server.hostname_clean == expected_clean_name
     assert server.country == "uk"
     assert server.listed
     assert server.enabled

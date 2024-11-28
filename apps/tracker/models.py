@@ -79,6 +79,15 @@ class Server(models.Model):
                 Func(F("ip"), function="host"), F("port"), name="tracker_server_host_ip_port"
             ),
         ]
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.CheckConstraint(
+                check=(
+                    Q(hostname__isnull=True, hostname_clean__isnull=True)
+                    | Q(hostname__isnull=False, hostname_clean__isnull=False)
+                ),
+                name="tracker_server_clean_hostname_null_consistency_check",
+            )
+        ]
 
     def __str__(self) -> str:
         return self.name
