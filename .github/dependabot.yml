@@ -26,10 +26,14 @@ updates:
       dockerfile:
         applies-to: version-updates
         update-types:
-          - "minor"
           - "patch"
         patterns:
           - python
+    ignore:
+      - dependency-name: python
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
   - package-ecosystem: pip
     directory: "/"
     schedule:
