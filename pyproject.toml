@@ -29,7 +29,7 @@ django-redis = "5.4.0"
 sentry-sdk = "2.19.2"
 
 [tool.poetry.group.dev.dependencies]
-coverage = "7.6.9"
+coverage = "7.6.10"
 Faker = "33.1.0"
 factory-boy = "3.3.1"
 pytest = "8.3.4"
@@ -37,7 +37,7 @@ pytest-django = "4.9.0"
 pytest-localserver = "0.9.0.post0"
 pytest-cov = "6.0.0"
 pytest-repeat = "0.9.3"
-mypy = "1.14.0"
+mypy = "1.14.1"
 types-pytz = "2024.2.0.20241221"
 ruff = "0.8.4"  # also update the version in github workflows and .pre-commit-config.yaml
 
