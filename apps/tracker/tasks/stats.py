@@ -7,10 +7,10 @@ from apps.tracker.models import Profile
 from swat4stats.celery import Queue, app
 
 __all__ = [
+    "settle_annual_player_positions",
+    "update_player_positions",
     "update_player_stats",
     "update_player_stats_for_profile",
-    "update_player_positions",
-    "settle_annual_player_positions",
 ]
 
 logger = logging.getLogger(__name__)

@@ -8,9 +8,9 @@ from apps.utils.misc import iterate_queryset
 from swat4stats.celery import Queue, app
 
 __all__ = [
+    "SearchVectorModel",
     "update_search_vector",
     "update_search_vector_for_model",
-    "SearchVectorModel",
 ]
 
 logger = logging.getLogger(__name__)

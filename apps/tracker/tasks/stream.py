@@ -12,9 +12,9 @@ from swat4stats.celery import Queue, app
 
 __all__ = [
     "process_game_data",
+    "update_map_games",
     "update_profile_games",
     "update_server_games",
-    "update_map_games",
 ]
 
 logger = logging.getLogger(__name__)

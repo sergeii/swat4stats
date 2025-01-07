@@ -5,6 +5,7 @@ description = "Source code to swat4stats.com backend"
 authors = ["Sergei Khoroshilov <kh.sergei@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12,<3.13"
@@ -30,7 +31,7 @@ sentry-sdk = "2.19.2"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "7.6.10"
-Faker = "33.1.0"
+Faker = "33.3.0"
 factory-boy = "3.3.1"
 pytest = "8.3.4"
 pytest-django = "4.9.0"
@@ -39,7 +40,7 @@ pytest-cov = "6.0.0"
 pytest-repeat = "0.9.3"
 mypy = "1.14.1"
 types-pytz = "2024.2.0.20241221"
-ruff = "0.8.4"  # also update the version in github workflows and .pre-commit-config.yaml
+ruff = "0.8.6"  # also update the version in github workflows and .pre-commit-config.yaml
 
 [build-system]
 requires = ["poetry-core"]
