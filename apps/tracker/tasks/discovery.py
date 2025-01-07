@@ -4,8 +4,8 @@ from apps.tracker.models import Server
 from swat4stats.celery import Queue, app
 
 __all__ = [
-    "discover_published_servers",
     "discover_good_query_ports",
+    "discover_published_servers",
 ]
 
 logger = logging.getLogger(__name__)

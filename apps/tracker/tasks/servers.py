@@ -10,12 +10,12 @@ from apps.utils.misc import concat_it
 from swat4stats.celery import Queue, app
 
 __all__ = [
+    "merge_server_stats",
+    "merge_servers",
     "refresh_listed_servers",
     "unlist_failed_servers",
     "update_server_country",
     "update_server_ratings",
-    "merge_servers",
-    "merge_server_stats",
 ]
 
 logger = logging.getLogger(__name__)
