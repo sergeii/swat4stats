@@ -658,7 +658,7 @@ class ServerManager(models.Manager):
                 server_ip,
                 server_port,
                 concat_it(
-                    f'{item["port"]} [GS1={item["is_gs1"]}, AM={item["is_am"]}]'
+                    f"{item['port']} [GS1={item['is_gs1']}, AM={item['is_am']}]"
                     for item in query_ports_sorted
                 ),
             )

@@ -84,11 +84,11 @@ Released under the [MIT License](LICENSE.txt).
 [license-img]: https://img.shields.io/badge/License-MIT-yellow.svg
 [license]: https://opensource.org/licenses/MIT
 
-[python-img]: https://img.shields.io/badge/python-3.12-blue.svg
-[python]: https://www.python.org/downloads/release/python-3127/
+[python-img]: https://img.shields.io/badge/python-3.13-blue.svg
+[python]: https://www.python.org/downloads/release/python-3131/
 
-[django-img]: https://img.shields.io/badge/django-4.2-blue.svg
-[django]: https://docs.djangoproject.com/en/4.2/
+[django-img]: https://img.shields.io/badge/django-5.1-blue.svg
+[django]: https://docs.djangoproject.com/en/5.1/
 
 [ruff-img]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
 [ruff]: https://github.com/astral-sh/ruff

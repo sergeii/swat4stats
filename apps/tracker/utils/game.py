@@ -15,12 +15,8 @@ def is_proper_armor(
 ) -> bool:
     match (head, body):
         case (
-            Equipment.helmet
-            | Equipment.gas_mask
-            | Equipment.night_vision_goggles,
-            Equipment.light_armor
-            | Equipment.heavy_armor
-            | Equipment.no_armor,
+            Equipment.helmet | Equipment.gas_mask | Equipment.night_vision_goggles,
+            Equipment.light_armor | Equipment.heavy_armor | Equipment.no_armor,
         ):
             return True
         case _:

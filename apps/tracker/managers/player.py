@@ -348,9 +348,7 @@ class PlayerQuerySet(models.QuerySet):
         items = {}
         # strip prefixed keys
         for key, value in aggregated_items.items():
-            if key.startswith("_"):
-                key = key[1:]  # noqa: PLW2901
-            items[key] = value
+            items[key.removeprefix("_")] = value
         return items
 
 

@@ -60,10 +60,10 @@ def test_motd_leaderboard(db, names, client, initial, limit, repeat, delay):
         for i in range(num_players):
             offset += 3
             if delay:
-                assert lines[offset] == f"{initial+i+1}\t{repeat}"
+                assert lines[offset] == f"{initial + i + 1}\t{repeat}"
             else:
                 assert lines[offset] == f"{initial}\t{repeat}"
-            assert lines[offset + 1] == f"#{i+1} - {names[i]}"
+            assert lines[offset + 1] == f"#{i + 1} - {names[i]}"
 
         offset += 3
         if delay:

@@ -8,7 +8,7 @@ readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.12,<3.13"
+python = "^3.13,<3.14"
 Django = "5.1.4"
 celery = "5.4.0"
 bleach = "6.2.0"
@@ -60,7 +60,7 @@ filterwarnings = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 exclude = [
     ".git",
     ".mypy_cache",
@@ -120,7 +120,7 @@ max-complexity = 10
 
 [tool.mypy]
 disable_error_code = "misc"
-python_version = "3.12"
+python_version = "3.13"
 check_untyped_defs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true

@@ -3,7 +3,7 @@ default_language_version:
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.30.0
+    rev: v4.1.0
     hooks:
       - id: commitizen
 
@@ -16,7 +16,7 @@ repos:
       - id: check-toml
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.9.1
     hooks:
       - id: ruff
         name: ruff-imports
@@ -30,7 +30,7 @@ repos:
     hooks:
       - id: mypy
         args:
-          - --python-version=3.12
+          - --python-version=3.13
           - --no-strict-optional
           - --ignore-missing-imports
           - --disallow-untyped-defs
