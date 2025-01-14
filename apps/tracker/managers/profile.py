@@ -1,3 +1,4 @@
+# ruff: noqa: A005
 import logging
 import re
 from datetime import datetime, timedelta
