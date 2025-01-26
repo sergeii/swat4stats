@@ -45,12 +45,20 @@ jobs:
       - name: Bump version in pyproject.toml
         run: "poetry version ${{ needs.prepare.outputs.new_version }}"
 
-      - name: Commit changes to pyproject.toml
+      - name: Bump version in Chart.yaml
+        uses: mikefarah/yq@v4.44.6
+        with:
+          cmd: >-
+            yq -i
+            '.appVersion = "${{ needs.prepare.outputs.new_version }}"'
+            deployments/charts/swat4stats/Chart.yaml
+
+      - name: Commit changes to pyproject.toml and Chart.yaml
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(poetry): bump version to ${{ needs.prepare.outputs.new_version }}"
           commit_options: "--no-verify --signoff"
-          file_pattern: pyproject.toml
+          file_pattern: "pyproject.toml deployments/**/Chart.yaml"
 
   publish:
     runs-on: ubuntu-latest
@@ -63,6 +71,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Login to Github Packages
         uses: docker/login-action@v3
@@ -96,6 +107,7 @@ jobs:
             git_release_sha=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
 
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
