@@ -53,8 +53,8 @@ celery:
 
 statsdExporter:
   enabled: true
-  port: 9117
-  targetPort: 9117
+  port: 9102
+  targetPort: 9102
   image:
     repository: prom/statsd-exporter
     pullPolicy: IfNotPresent
