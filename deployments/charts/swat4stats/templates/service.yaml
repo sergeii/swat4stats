@@ -3,17 +3,17 @@ kind: Service
 metadata:
   name: {{ .Values.service.name }}
   labels:
-    {{- include "swat4stats-core.labels" . | nindent 4 }}
+    {{- include "swat4stats.labels" (dict "context" $) | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.uwsgi.port }}
-      targetPort: {{ .Values.uwsgi.targetPort }}
+    - port: {{ .Values.gunicorn.port }}
+      targetPort: {{ .Values.gunicorn.targetPort }}
       protocol: TCP
-      name: uwsgi
+      name: gunicorn
     - port: {{ .Values.staticfiles.port }}
       targetPort: {{ .Values.staticfiles.targetPort }}
       protocol: TCP
       name: staticfiles
   selector:
-    {{- include "swat4stats-core.selectorLabels" (set $ "Backend" "uwsgi") | nindent 4 }}
+    {{- include "swat4stats.selectorLabels" (dict "componentName" "gunicorn" "context" $) | nindent 4 }}

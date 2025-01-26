@@ -4,7 +4,7 @@ image:
   pullSecrets: ""
   tag: ""
 
-uwsgi:
+gunicorn:
   port: 9090
   targetPort: 9090
   replicas: 6
@@ -113,7 +113,7 @@ envFromSecrets: []
 readinessProbe:
   httpGet:
     path: /info/
-    port: uwsgi
+    port: gunicorn
     httpHeaders:
       - name: Host
         value: swat4stats.com
@@ -125,7 +125,7 @@ readinessProbe:
 livenessProbe:
   httpGet:
     path: /healthcheck/
-    port: uwsgi
+    port: gunicorn
     httpHeaders:
       - name: Host
         value: swat4stats.com

@@ -1,9 +1,11 @@
+{{- $migrateJobName := include "swat4stats.componentName" (dict "name" "migrate" "context" $) -}}
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "swat4stats-core.podname" (set . "Name" "migrate") }}
+  name: {{ $migrateJobName }}
   labels:
-    {{- include "swat4stats-core.labels" . | nindent 4 }}
+    {{- include "swat4stats.labels" (dict "context" $) | nindent 4 }}
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
@@ -16,7 +18,7 @@ spec:
           {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: {{ include "swat4stats-core.podname" (set . "Name" "migrate") }}
+      - name: {{ $migrateJobName }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["python", "manage.py", "migrate", "--noinput"]
