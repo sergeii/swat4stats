@@ -6,13 +6,13 @@ ARG _work_user_id=10001
 
 FROM python:3.13.1-slim
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONIOENCODING UTF-8
-ENV PIP_NO_CACHE_DIR false
-ENV PIP_DISABLE_PIP_VERSION_CHECK on
-ENV LANG en_US.UTF-8
-ENV POETRY_VIRTUALENVS_IN_PROJECT true
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONIOENCODING=UTF-8
+ENV PIP_NO_CACHE_DIR=false
+ENV PIP_DISABLE_PIP_VERSION_CHECK=on
+ENV LANG=en_US.UTF-8
+ENV POETRY_VIRTUALENVS_IN_PROJECT=true
 
 RUN apt update \
   && apt install -y --no-install-recommends \
@@ -35,28 +35,27 @@ WORKDIR /app
 
 COPY --chown=builder:builder pip-poetry.txt /app/pip-poetry.txt
 RUN pip install --user --no-warn-script-location -r pip-poetry.txt
-ENV PATH /app/.venv/bin:/home/builder/.local/bin:$PATH
+ENV PATH="/app/.venv/bin:/home/builder/.local/bin:$PATH"
 
 COPY --chown=builder:builder pyproject.toml poetry.lock /app/
 RUN poetry install --no-interaction --without dev
 
 COPY --chown=builder:builder . /app/src
 
-ENV SETTINGS_SECRET_KEY stub
-ENV SETTINGS_STATIC_ROOT /app/static
+ENV SETTINGS_SECRET_KEY=stub
+ENV SETTINGS_STATIC_ROOT=/app/static
 
 # build django static
 WORKDIR /app/src
 RUN ./manage.py collectstatic --noinput
 
 ARG git_release_ver
-ENV GIT_RELEASE_VER $git_release_ver
+ENV GIT_RELEASE_VER=$git_release_ver
 ARG git_release_sha
-ENV GIT_RELEASE_SHA $git_release_sha
+ENV GIT_RELEASE_SHA=$git_release_sha
 
-ENV SENTRY_RELEASE $git_release_ver
+ENV SENTRY_RELEASE=$git_release_ver
 
 WORKDIR /app/src
 USER worker
-ENV TERM xterm
-CMD ["uwsgi"]
+CMD ["gunicorn", "-c", "swat4stats/gunicorn.py", "swat4stats.wsgi:application"]
