@@ -19,9 +19,9 @@ spec:
       labels:
         {{- include "swat4stats-core.selectorLabels" (set $ "Backend" "uwsgi") | nindent 8 }}
       annotations:
-      {{- if .Values.uwsgiExporter.enabled }}
+      {{- if .Values.statsdExporter.enabled }}
         prometheus.io/scrape: "true"
-        prometheus.io/port: "{{ .Values.uwsgiExporter.targetPort }}"
+        prometheus.io/port: "{{ .Values.statsdExporter.targetPort }}"
       {{- end }}
     spec:
       {{- with $.Values.image.pullSecrets }}
@@ -55,23 +55,22 @@ spec:
               subPath: staticfiles.conf
           resources:
             {{- toYaml .Values.staticfiles.resources | nindent 12 }}
-        {{- if .Values.uwsgiExporter.enabled }}
-        - name: {{ include "swat4stats-core.podname" (set . "Name" "uwsgi-exporter") }}
-          {{- with .Values.uwsgiExporter.image }}
+        {{- if .Values.statsdExporter.enabled }}
+        - name: {{ include "swat4stats-core.podname" (set . "Name" "statsd-exporter") }}
+          {{- with .Values.statsdExporter.image }}
           image: "{{ .repository }}:{{ .tag | default "latest" }}{{ if .sha }}@sha256:{{ .sha }}{{ end }}"
           imagePullPolicy: {{ .pullPolicy }}
           {{- end }}
-          args: ["--stats.uri", "http://localhost:1717"]
           ports:
             - name: exporter
-              containerPort: {{ .Values.uwsgiExporter.targetPort }}
+              containerPort: {{ .Values.statsdExporter.targetPort }}
               protocol: TCP
           livenessProbe:
             httpGet:
               path: /-/healthy
               port: exporter
           resources:
-            {{- toYaml .Values.uwsgiExporter.resources | nindent 12 }}
+            {{- toYaml .Values.statsdExporter.resources | nindent 12 }}
         {{- end }}
         - name: {{ include "swat4stats-core.podname" (set . "Name" "uwsgi") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
