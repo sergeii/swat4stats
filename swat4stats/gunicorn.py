@@ -1,9 +1,0 @@
-bind = "0.0.0.0:9090"
-workers = 1
-threads = 4
-timeout = 10
-loglevel = "info"
-errorlog = "-"
-accesslog = "-"
-capture_output = True
-statsd_host = "localhost:9125"
