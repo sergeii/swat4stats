@@ -63,6 +63,7 @@ spec:
           image: "{{ .repository }}:{{ .tag | default "latest" }}{{ if .sha }}@sha256:{{ .sha }}{{ end }}"
           imagePullPolicy: {{ .pullPolicy }}
           {{- end }}
+          args: [ "--stats.uri", "http://localhost:1717" ]
           ports:
             - name: exporter
               containerPort: {{ .Values.uwsgiExporter.targetPort }}
