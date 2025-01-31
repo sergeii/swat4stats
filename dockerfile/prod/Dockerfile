@@ -16,8 +16,12 @@ ENV POETRY_VIRTUALENVS_IN_PROJECT=true
 
 RUN apt update \
   && apt install -y --no-install-recommends \
-    build-essential \
     bash \
+    build-essential \
+    python3-dev \
+    libpython3-dev \
+    libssl-dev \
+    libffi-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ARG _build_user_id
@@ -58,4 +62,4 @@ ENV SENTRY_RELEASE=$git_release_ver
 
 WORKDIR /app/src
 USER worker
-CMD ["gunicorn", "-c", "swat4stats/gunicorn.py", "swat4stats.wsgi:application"]
+CMD ["uwsgi"]

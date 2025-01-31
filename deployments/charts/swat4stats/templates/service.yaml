@@ -7,13 +7,13 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.gunicorn.port }}
-      targetPort: {{ .Values.gunicorn.targetPort }}
+    - port: {{ .Values.uwsgi.port }}
+      targetPort: {{ .Values.uwsgi.targetPort }}
       protocol: TCP
-      name: gunicorn
+      name: uwsgi
     - port: {{ .Values.staticfiles.port }}
       targetPort: {{ .Values.staticfiles.targetPort }}
       protocol: TCP
       name: staticfiles
   selector:
-    {{- include "swat4stats.selectorLabels" (dict "componentName" "gunicorn" "context" $) | nindent 4 }}
+    {{- include "swat4stats.selectorLabels" (dict "componentName" "uwsgi" "context" $) | nindent 4 }}
