@@ -82,6 +82,10 @@ spec:
               containerPort: {{ .Values.uwsgi.targetPort }}
               protocol: TCP
           env:
+          {{- range $key, $val := .Values.uwsgi.env }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+          {{- end }}
           {{- range $key, $val := .Values.sharedEnv }}
             - name: {{ $key }}
               value: "{{ $val }}"
