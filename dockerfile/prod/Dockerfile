@@ -18,10 +18,6 @@ RUN apt update \
   && apt install -y --no-install-recommends \
     bash \
     build-essential \
-    python3-dev \
-    libpython3-dev \
-    libssl-dev \
-    libffi-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ARG _build_user_id
