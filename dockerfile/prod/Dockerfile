@@ -4,7 +4,7 @@ ARG git_release_sha="-"
 ARG _build_user_id=10000
 ARG _work_user_id=10001
 
-FROM python:3.13.1-slim
+FROM python:3.13.1
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -18,10 +18,6 @@ RUN apt update \
   && apt install -y --no-install-recommends \
     bash \
     build-essential \
-    python3-dev \
-    libpython3-dev \
-    libssl-dev \
-    libffi-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ARG _build_user_id
