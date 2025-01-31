@@ -34,6 +34,7 @@ USER builder
 WORKDIR /app
 
 COPY --chown=builder:builder pip-poetry.txt /app/pip-poetry.txt
+RUN pip install --upgrade pip
 RUN pip install --user --no-warn-script-location -r pip-poetry.txt
 ENV PATH="/app/.venv/bin:/home/builder/.local/bin:$PATH"
 
