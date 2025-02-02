@@ -65,7 +65,7 @@ class StatusPlayerSerializer(serializers.Serializer):
     deaths = serializers.IntegerField()
     arrests = serializers.IntegerField()
     arrested = serializers.IntegerField()
-    vip_escapes = serializers.IntegerField(source="vescaped")
+    vip_escapes = serializers.SerializerMethodField()
     vip_captures = serializers.IntegerField(source="arrestedvip")
     vip_rescues = serializers.IntegerField(source="unarrestedvip")
     vip_kills_valid = serializers.IntegerField(source="validvipkills")
@@ -84,9 +84,13 @@ class StatusPlayerSerializer(serializers.Serializer):
     def get_coop_status_slug(self, obj: dict[str, Any]) -> str:
         return slugify(obj.get("coop_status") or self.default_coop_status)
 
+    def get_vip_escapes(self, obj: dict[str, Any]) -> int:
+        return obj["vescaped"] if obj["vescaped"] > 0 else obj["vipescaped"]
+
     def get_special(self, obj: dict[str, Any]) -> int:
         return (
             obj["vescaped"]
+            + obj["vipescaped"]
             + obj["arrestedvip"]
             + obj["unarrestedvip"]
             + obj["bombsdiffused"]
