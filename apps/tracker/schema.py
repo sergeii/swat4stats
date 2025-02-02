@@ -788,6 +788,7 @@ serverquery_schema = Schema(
                 Optional("arrests", default=0): PositiveInt,
                 Optional("arrested", default=0): PositiveInt,
                 Optional("vescaped", default=0): PositiveInt,
+                Optional("vipescaped", default=0): PositiveInt,
                 Optional("arrestedvip", default=0): PositiveInt,
                 Optional("unarrestedvip", default=0): PositiveInt,
                 Optional("validvipkills", default=0): PositiveInt,

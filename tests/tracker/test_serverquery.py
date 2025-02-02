@@ -177,6 +177,7 @@ def test_gs1_serverquery_is_supported(the_udp_server):
     assert data["suspectsscore"] == "36"
     assert data["timeleft"] == "286"
     assert data["final"] == ""
+    assert data["players"][7]["vip"] == "1"
     assert data["players"][12]["score"] == "0"
     assert data["players"][3]["player"] == "Morgan"
     assert data["players"][12]["ping"] == "999"

@@ -1,5 +1,5 @@
 from apps.tracker.models import Server
-from tests.factories.query import ServerQueryFactory
+from tests.factories.query import PlayerQueryFactory, ServerQueryFactory
 from tests.factories.tracker import ServerFactory
 
 
@@ -84,3 +84,59 @@ def test_negative_timers_are_supported(db, udp_server):
     assert result["gametype"] == "VIP Escort"
     assert result["timeleft"] is None
     assert result["timespecial"] is None
+
+
+def test_vip_escapes_amv1_format_is_supported(db, udp_server):
+    server_ip, server_query_port = udp_server.server_address
+    server_join_port = server_query_port - 1
+    server = ServerFactory(ip=server_ip, port=server_join_port)
+
+    udp_server.responses.append(
+        ServerQueryFactory(
+            gametype="VIP Escort",
+            hostname="-==M-VIP Svr==-",
+            hostport=server_join_port,
+            players=[
+                PlayerQueryFactory(player="Spieler", vipescaped=1),
+            ],
+        ).as_gamespy()
+    )
+
+    status, errors = Server.objects.refresh_status(server)
+    assert len(status) == 1
+    assert len(errors) == 0
+
+    _, result = status[0]
+    assert result["hostname"] == "-==M-VIP Svr==-"
+    assert result["gametype"] == "VIP Escort"
+    assert result["players"][0]["name"] == "Spieler"
+    assert result["players"][0]["vipescaped"] == 1
+    assert result["players"][0]["vescaped"] == 0
+
+
+def test_vip_escapes_gs1_format_is_supported(db, udp_server):
+    server_ip, server_query_port = udp_server.server_address
+    server_join_port = server_query_port - 1
+    server = ServerFactory(ip=server_ip, port=server_join_port)
+
+    udp_server.responses.append(
+        ServerQueryFactory(
+            gametype="VIP Escort",
+            hostname="-==MYT Team Svr==-",
+            hostport=server_join_port,
+            players=[
+                PlayerQueryFactory(player="Jogador", vescaped=1),
+            ],
+        ).as_gamespy()
+    )
+
+    status, errors = Server.objects.refresh_status(server)
+    assert len(status) == 1
+    assert len(errors) == 0
+
+    _, result = status[0]
+    assert result["hostname"] == "-==MYT Team Svr==-"
+    assert result["gametype"] == "VIP Escort"
+    assert result["players"][0]["name"] == "Jogador"
+    assert result["players"][0]["vescaped"] == 1
+    assert result["players"][0]["vipescaped"] == 0
