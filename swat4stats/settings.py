@@ -212,7 +212,7 @@ DEFAULT_FROM_EMAIL = env("SETTINGS_DEFAULT_FROM_EMAIL", "noreply@swat4stats.com"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-if syslog_address := env("SETTINGS_SYSLOG_ADDRESS", None):
+if syslog_address := env("SETTINGS_LOGGING_SYSLOG_ADDRESS", None):
     syslog_host, syslog_port = syslog_address.split(":")
     default_logging_handler = {
         "level": "DEBUG",
@@ -235,7 +235,7 @@ if enable_stderr_logging := env_bool("SETTINGS_LOGGING_STDERR_ENABLED", default=
     }
 else:
     stderr_logging_handler = {
-        "level": "ERROR",
+        "level": "DEBUG",
         "class": "logging.NullHandler",
     }
 
@@ -265,22 +265,22 @@ LOGGING = {
             "handlers": ["default"],
         },
         "celery": {
-            "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO", logging.WARNING),
+            "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO"),
             "handlers": ["stderr"],
             "propagate": True,
         },
         "django.request": {
-            "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO", logging.WARNING),
+            "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO"),
             "handlers": ["stderr"],
             "propagate": True,
         },
         "django.db.backends": {
-            "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO", logging.WARNING),
+            "level": env_log_level("SETTINGS_LOG_LEVEL", "WARNING", logging.WARNING),
             "handlers": ["default"],
             "propagate": False,
         },
         "factory": {
-            "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO", logging.ERROR),
+            "level": env_log_level("SETTINGS_LOG_LEVEL", "ERROR", logging.ERROR),
             "handlers": ["default"],
             "propagate": False,
         },

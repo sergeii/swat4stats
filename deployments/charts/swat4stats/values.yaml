@@ -11,13 +11,12 @@ uwsgi:
   terminationGracePeriodSeconds: 10
   env:
     UWSGI_CHDIR: /app/src
-    UWSGI_DISABLE_LOGGING: "true"
     UWSGI_DISABLE_WRITE_EXCEPTION: "true"
     UWSGI_ENABLE_THREADS: "true"
     UWSGI_HARAKIRI: 10
     UWSGI_HARAKIRI_VERBOSE: "true"
     UWSGI_HTTP_SOCKET: 0.0.0.0:9090
-    UWSGI_LOGGER: "rsyslog:$(SETTINGS_SYSLOG_ADDRESS),app.swat4stats.uwsgi.error"
+    UWSGI_LOGGER: "rsyslog:$(SETTINGS_LOGGING_SYSLOG_ADDRESS),app.swat4stats.uwsgi.error"
     UWSGI_IGNORE_SIGPIPE: "true"
     UWSGI_IGNORE_WRITE_ERRORS: "true"
     UWSGI_MASTER: "true"
