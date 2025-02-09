@@ -227,6 +227,19 @@ else:
         "formatter": "simple",
     }
 
+if enable_stderr_logging := env_bool("SETTINGS_LOGGING_STDERR_ENABLED", default=False):
+    stderr_logging_handler = {
+        "level": "DEBUG",
+        "class": "logging.StreamHandler",
+        "formatter": "simple",
+    }
+else:
+    stderr_logging_handler = {
+        "level": "ERROR",
+        "class": "logging.NullHandler",
+    }
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -240,6 +253,7 @@ LOGGING = {
     },
     "handlers": {
         "default": default_logging_handler,
+        "stderr": stderr_logging_handler,
         "mail_admins": {
             "level": "ERROR",
             "class": "logging.NullHandler",
@@ -249,6 +263,16 @@ LOGGING = {
         "": {
             "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO"),
             "handlers": ["default"],
+        },
+        "celery": {
+            "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO", logging.WARNING),
+            "handlers": ["stderr"],
+            "propagate": True,
+        },
+        "django.request": {
+            "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO", logging.WARNING),
+            "handlers": ["stderr"],
+            "propagate": True,
         },
         "django.db.backends": {
             "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO", logging.WARNING),
