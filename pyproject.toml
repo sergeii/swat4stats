@@ -9,7 +9,7 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.13,<3.14"
-Django = "5.1.5"
+Django = "5.1.6"
 celery = "5.4.0"
 bleach = "6.2.0"
 pytz = "2025.1"
@@ -25,7 +25,7 @@ django-countries = "7.6.1"
 django-filter = "24.3"
 djangorestframework = "3.15.2"
 voluptuous = "0.15.2"
-aiohttp = "3.11.11"
+aiohttp = "3.11.12"
 django-redis = "5.4.0"
 sentry-sdk = "2.20.0"
 
