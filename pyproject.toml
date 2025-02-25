@@ -40,7 +40,7 @@ pytest-cov = "6.0.0"
 pytest-repeat = "0.9.3"
 mypy = "1.15.0"
 types-pytz = "2025.1.0.20250204"
-ruff = "0.9.6"  # also update the version in github workflows and .pre-commit-config.yaml
+ruff = "0.9.7"  # also update the version in github workflows and .pre-commit-config.yaml
 
 [build-system]
 requires = ["poetry-core"]
