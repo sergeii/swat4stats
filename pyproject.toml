@@ -34,13 +34,13 @@ coverage = "7.8.0"
 Faker = "37.1.0"
 factory-boy = "3.3.3"
 pytest = "8.3.5"
-pytest-django = "4.10.0"
+pytest-django = "4.11.1"
 pytest-localserver = "0.9.0.post0"
-pytest-cov = "6.0.0"
-pytest-repeat = "0.9.3"
+pytest-cov = "6.1.1"
+pytest-repeat = "0.9.4"
 mypy = "1.15.0"
 types-pytz = "2025.2.0.20250326"
-ruff = "0.11.2"  # also update the version in github workflows and .pre-commit-config.yaml
+ruff = "0.11.4"  # also update the version in github workflows and .pre-commit-config.yaml
 
 [build-system]
 requires = ["poetry-core"]
