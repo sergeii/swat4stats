@@ -10,7 +10,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.13,<3.14"
 Django = "5.1.8"
-celery = "5.4.0"
+celery = "5.5.1"
 bleach = "6.2.0"
 pytz = "2025.2"
 Markdown = "3.7"
@@ -25,9 +25,9 @@ django-countries = "7.6.1"
 django-filter = "25.1"
 djangorestframework = "3.16.0"
 voluptuous = "0.15.2"
-aiohttp = "3.11.14"
+aiohttp = "3.11.16"
 django-redis = "5.4.0"
-sentry-sdk = "2.25.0"
+sentry-sdk = "2.25.1"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "7.8.0"
