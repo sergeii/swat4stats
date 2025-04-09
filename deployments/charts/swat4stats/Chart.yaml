@@ -3,4 +3,4 @@ name: swat4stats-core
 description: Helm chart for deployment of swat4stats.com core
 type: application
 version: 0.2.0
-appVersion: "0.139.0"
+appVersion: "0.140.0"
