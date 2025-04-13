@@ -7,7 +7,7 @@ image:
 uwsgi:
   port: 9090
   targetPort: 9090
-  replicas: 6
+  replicas: 8
   terminationGracePeriodSeconds: 10
   env:
     UWSGI_CHDIR: /app/src
