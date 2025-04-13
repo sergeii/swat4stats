@@ -66,7 +66,7 @@ def test_obtain_loadout():
 
 @pytest.mark.django_db
 def test_duplicate_loadout():
-    loadout_kwargs = {slot: "None" for slot in fields}
+    loadout_kwargs = dict.fromkeys(fields, "None")
     loadout_kwargs["primary"] = "9mm SMG"
     assert Loadout.objects.create(**loadout_kwargs)
 
