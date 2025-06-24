@@ -13,7 +13,7 @@ Django = "5.2.3"
 celery = "5.5.3"
 bleach = "6.2.0"
 pytz = "2025.2"
-Markdown = "3.8"
+Markdown = "3.8.2"
 psycopg = {extras = ["binary"], version = "3.2.9"}
 redis = "6.2.0"
 uwsgi = "2.0.30"
