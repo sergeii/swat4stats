@@ -13,7 +13,7 @@ Django = "5.2.3"
 celery = "5.5.3"
 bleach = "6.2.0"
 pytz = "2025.2"
-Markdown = "3.8"
+Markdown = "3.8.2"
 psycopg = {extras = ["binary"], version = "3.2.9"}
 redis = "6.2.0"
 uwsgi = "2.0.30"
@@ -27,7 +27,7 @@ djangorestframework = "3.16.0"
 voluptuous = "0.15.2"
 aiohttp = "3.12.13"
 django-redis = "5.4.0"
-sentry-sdk = "2.30.0"
+sentry-sdk = "2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "7.9.1"
