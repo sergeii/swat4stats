@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "swat4stats"
-version = "0.157.0"
+version = "0.158.0"
 description = "Source code to swat4stats.com backend"
 authors = ["Sergei Khoroshilov <kh.sergei@gmail.com>"]
 license = "MIT"
