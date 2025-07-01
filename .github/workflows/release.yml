@@ -57,7 +57,7 @@ jobs:
             deployments/charts/swat4stats/Chart.yaml
 
       - name: Commit changes to pyproject.toml and Chart.yaml
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "chore(poetry): bump version to ${{ needs.prepare.outputs.new_version }}"
           commit_options: "--no-verify --signoff"
