@@ -27,7 +27,7 @@ djangorestframework = "3.16.0"
 voluptuous = "0.15.2"
 aiohttp = "3.12.13"
 django-redis = "6.0.0"
-sentry-sdk = "2.31.0"
+sentry-sdk = "2.32.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "7.9.1"
