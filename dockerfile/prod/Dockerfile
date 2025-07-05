@@ -6,13 +6,14 @@ ARG _work_user_id=10001
 
 FROM python:3.13.5-slim
 
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONIOENCODING=UTF-8
-ENV PIP_NO_CACHE_DIR=false
-ENV PIP_DISABLE_PIP_VERSION_CHECK=on
-ENV LANG=en_US.UTF-8
-ENV POETRY_VIRTUALENVS_IN_PROJECT=true
+ENV \
+  PYTHONUNBUFFERED=1 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONIOENCODING=UTF-8 \
+  PIP_NO_CACHE_DIR=false \
+  PIP_DISABLE_PIP_VERSION_CHECK=on \
+  LANG=en_US.UTF-8 \
+  POETRY_VIRTUALENVS_IN_PROJECT=true
 
 RUN apt update \
   && apt install -y --no-install-recommends \
@@ -50,11 +51,12 @@ WORKDIR /app/src
 RUN ./manage.py collectstatic --noinput
 
 ARG git_release_ver
-ENV GIT_RELEASE_VER=$git_release_ver
 ARG git_release_sha
-ENV GIT_RELEASE_SHA=$git_release_sha
 
-ENV SENTRY_RELEASE=$git_release_ver
+ENV \
+  GIT_RELEASE_VER=$git_release_ver \
+  GIT_RELEASE_SHA=$git_release_sha \
+  SENTRY_RELEASE=$git_release_ver
 
 WORKDIR /app/src
 USER worker
