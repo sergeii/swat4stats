@@ -556,7 +556,7 @@ weapon_reversed: dict[str, int] = {
 }
 
 
-def extract_names(encoded_names: dict[Any, T]) -> list[T]:
+def extract_names[T](encoded_names: dict[Any, T]) -> list[T]:
     return [name for _, name in sorted(encoded_names.items(), key=lambda item: int(item[0]))]
 
 

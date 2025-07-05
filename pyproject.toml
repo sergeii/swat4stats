@@ -9,7 +9,7 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.13,<3.14"
-Django = "5.2.3"
+Django = "5.2.4"
 celery = "5.5.3"
 bleach = "6.2.0"
 pytz = "2025.2"
@@ -30,7 +30,7 @@ django-redis = "6.0.0"
 sentry-sdk = "2.32.0"
 
 [tool.poetry.group.dev.dependencies]
-coverage = "7.9.1"
+coverage = "7.9.2"
 Faker = "37.4.0"
 factory-boy = "3.3.3"
 pytest = "8.4.1"
@@ -40,7 +40,7 @@ pytest-cov = "6.2.1"
 pytest-repeat = "0.9.4"
 mypy = "1.16.1"
 types-pytz = "2025.2.0.20250516"
-ruff = "0.12.1"  # also update the version in github workflows and .pre-commit-config.yaml
+ruff = "0.12.2"  # also update the version in github workflows and .pre-commit-config.yaml
 
 [build-system]
 requires = ["poetry-core"]
@@ -74,26 +74,27 @@ exclude = [
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "D",        # pydocstyle
+    "AIR",      # Airflow
     "ANN",      # flake8-annotations
     "CPY",      # flake8-copyright
-    "TD",       # flake8-todos
-    "FIX",      # flake8-fixme
-    "PD",       # pandas-vet
-    "NPY",      # NumPy-specific rules
-    "FAST",     # FastAPI
-    "AIR",      # Airflow
+    "D",        # pydocstyle
     "DOC",      # pydoclint
+    "FAST",     # FastAPI
+    "FIX",      # flake8-fixme
+    "NPY",      # NumPy-specific rules
+    "PD",       # pandas-vet
+    "TD",       # flake8-todos
 
-    "COM812",   # Trailing comma missing
-    "TRY003",   # Avoid specifying long messages outside the exception class
-    "TRY400",   # Use `logging.exception` instead of `logging.error`
-    "S311",     # Standard pseudo-random generators are not suitable for cryptographic purposes
-    "ISC001",   # The following rules may cause conflicts when used with the formatter: `ISC001`
     "B904" ,    # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None`
+    "COM812",   # Trailing comma missing
+    "DJ001",    # Avoid using `null=True` on string-based fields such as CharField
     "EM101",    # Exception must not use a string literal, assign to variable first
     "EM102",    # Exception must not use an f-string literal, assign to variable first
-    "DJ001",    # Avoid using `null=True` on string-based fields such as CharField
+    "ISC001",   # The following rules may cause conflicts when used with the formatter: `ISC001`
+    "PLC0415",  # `import` should be at the top-level of a file
+    "S311",     # Standard pseudo-random generators are not suitable for cryptographic purposes
+    "TRY003",   # Avoid specifying long messages outside the exception class
+    "TRY400",   # Use `logging.exception` instead of `logging.error`
 ]
 fixable = ["ALL"]
 unfixable = []

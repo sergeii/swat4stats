@@ -1,4 +1,3 @@
-# ruff: noqa: A005
 from typing import Any, ClassVar
 
 from django.contrib import admin

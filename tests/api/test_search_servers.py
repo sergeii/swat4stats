@@ -122,7 +122,6 @@ def test_search_servers_no_filters(api_client, django_assert_max_num_queries):
 
 @pytest.mark.parametrize(
     "query_params, expected_names",
-    # fmt: off
     [
         # default ordering
         (
@@ -253,7 +252,6 @@ def test_search_servers_no_filters(api_client, django_assert_max_num_queries):
             ],
         ),
     ],
-    # fmt: on
     ids=str,
 )
 @pytest.mark.django_db(databases=["default", "replica"])
@@ -320,7 +318,6 @@ def test_search_servers_pagination_no_filters(api_client):
 
 @pytest.mark.parametrize(
     "country, names",
-    # fmt: off
     [
         ("GB", ["Sog-team.co.uk Pro!"]),
         ("gb", ["Sog-team.co.uk Pro!"]),
@@ -352,7 +349,6 @@ def test_search_servers_pagination_no_filters(api_client):
         ("cy", []),
         ("zz", []),
     ],
-    # fmt: on
 )
 @pytest.mark.django_db(databases=["default", "replica"])
 def test_search_servers_by_country(api_client, country, names):
@@ -363,7 +359,6 @@ def test_search_servers_by_country(api_client, country, names):
 
 @pytest.mark.parametrize(
     "search_q, names",
-    # fmt: off
     [
         (
             "myt",
@@ -434,7 +429,6 @@ def test_search_servers_by_country(api_client, country, names):
         ),
         ("wm", []),
     ],
-    # fmt: on
     ids=str,
 )
 @pytest.mark.django_db(databases=["default", "replica"])
@@ -447,7 +441,6 @@ def test_search_servers_by_name(api_client, django_assert_max_num_queries, searc
 
 @pytest.mark.parametrize(
     "search_q, country, names",
-    # fmt: off
     [
         ("myt", "us", []),
         (
@@ -471,7 +464,6 @@ def test_search_servers_by_name(api_client, django_assert_max_num_queries, searc
             ],
         ),
     ],
-    # fmt: on
 )
 @pytest.mark.django_db(databases=["default", "replica"])
 def test_search_servers_by_name_and_country(
@@ -485,7 +477,6 @@ def test_search_servers_by_name_and_country(
 
 @pytest.mark.parametrize(
     "search_q, names",
-    # fmt: off
     [
         ("myt team", ["-==MYT Team Svr==-"]),
         (
@@ -511,7 +502,6 @@ def test_search_servers_by_name_and_country(
             ],
         ),
     ],
-    # fmt: on
 )
 @pytest.mark.django_db(databases=["default", "replica"])
 def test_search_servers_relevance(api_client, search_q, names):
