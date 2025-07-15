@@ -25,7 +25,7 @@ django-countries = "7.6.1"
 django-filter = "25.1"
 djangorestframework = "3.16.0"
 voluptuous = "0.15.2"
-aiohttp = "3.12.13"
+aiohttp = "3.12.14"
 django-redis = "6.0.0"
 sentry-sdk = "2.32.0"
 
