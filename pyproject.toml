@@ -25,9 +25,9 @@ django-countries = "7.6.1"
 django-filter = "25.1"
 djangorestframework = "3.16.0"
 voluptuous = "0.15.2"
-aiohttp = "3.12.14"
+aiohttp = "3.12.15"
 django-redis = "6.0.0"
-sentry-sdk = "2.32.0"
+sentry-sdk = "2.34.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "7.10.1"
