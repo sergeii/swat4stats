@@ -49,7 +49,7 @@ jobs:
         run: "poetry version ${{ needs.prepare.outputs.new_version }}"
 
       - name: Bump version in Chart.yaml
-        uses: mikefarah/yq@v4.45.4
+        uses: mikefarah/yq@v4.47.1
         with:
           cmd: >-
             yq -i
