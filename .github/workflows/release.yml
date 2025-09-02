@@ -23,7 +23,7 @@ jobs:
       changelog: ${{ steps.version.outputs.changelog }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Bump release version and push tag
         id: version
@@ -40,7 +40,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install poetry
         run: pipx install poetry
@@ -83,7 +83,7 @@ jobs:
     if: needs.prepare.outputs.new_tag != ''
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -162,7 +162,7 @@ jobs:
     if: needs.prepare.outputs.new_tag != ''
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Helm
         uses: azure/setup-helm@v4
