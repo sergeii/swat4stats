@@ -9,7 +9,7 @@ def freeze_timezone_now(dt: datetime) -> mock.patch:
     return mock.patch.object(timezone, "now", return_value=dt)
 
 
-class FuzzyFloat(float):  # noqa: PLW1641
+class FuzzyFloat(float):
     precision: int
 
     def __new__(cls, number: float, precision: int) -> Self:
