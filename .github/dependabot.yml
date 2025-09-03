@@ -4,7 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    reviewers:
+    assignees:
       - sergeii
     commit-message:
       prefix: "chore"
@@ -18,7 +18,7 @@ updates:
       - "dockerfile/prod"
     schedule:
       interval: "monthly"
-    reviewers:
+    assignees:
       - sergeii
     commit-message:
       prefix: "feat"
@@ -38,7 +38,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
+    assignees:
       - sergeii
     commit-message:
       prefix: "feat"
