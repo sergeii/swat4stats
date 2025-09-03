@@ -9,63 +9,62 @@ on:
     branches: [main]
     types: [completed]
 
+permissions:
+  contents: read
+
 concurrency:
   group: release
   cancel-in-progress: true
 
 jobs:
-  prepare:
+  plan-release-tag:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
-      new_version: ${{ steps.version.outputs.new_version }}
-      new_tag: ${{ steps.version.outputs.new_tag }}
-      changelog: ${{ steps.version.outputs.changelog }}
+      tag: ${{ steps.preview.outputs.new_tag }}
+      version: ${{ steps.preview.outputs.new_version }}
+      changelog: ${{ steps.preview.outputs.changelog }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Bump release version and push tag
-        id: version
+      - name: Preview release tag
         uses: mathieudutour/github-tag-action@v6.2
+        id: preview
         with:
+          dry_run: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: false
 
-  poetry:
+  bump-version:
     runs-on: ubuntu-latest
-    needs: prepare
-    if: needs.prepare.outputs.new_version != ''
     permissions:
       contents: write
+    needs: plan-release-tag
+    if: needs.plan-release-tag.outputs.version != ''
+    outputs:
+      commit_sha: ${{ steps.commit.outputs.commit_hash }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install poetry
         run: pipx install poetry
 
-      - name: Bump version in pyproject.toml
-        run: "poetry version ${{ needs.prepare.outputs.new_version }}"
+      - name: Bump pyproject.toml version
+        run: "poetry version ${{ needs.plan-release-tag.outputs.version }}"
 
-      - name: Bump version in Chart.yaml
-        uses: mikefarah/yq@v4.47.1
-        with:
-          cmd: >-
-            yq -i
-            '.appVersion = "${{ needs.prepare.outputs.new_version }}"'
-            deployments/charts/swat4stats/Chart.yaml
-
-      - name: Commit changes to pyproject.toml and Chart.yaml
+      - name: Commit version changes
         uses: stefanzweifel/git-auto-commit-action@v6
+        id: commit
         with:
-          commit_message: "chore(poetry): bump version to ${{ needs.prepare.outputs.new_version }}"
+          commit_message: "chore(poetry): bump version to ${{ needs.plan-release-tag.outputs.version }}"
           commit_options: "--no-verify --signoff"
-          file_pattern: "pyproject.toml deployments/**/Chart.yaml"
+          file_pattern: pyproject.toml
 
   # https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
-  build:
+  build-arch-image:
     runs-on: ${{ matrix.platform.runner }}
+    needs: [plan-release-tag, bump-version]
+    if: needs.plan-release-tag.outputs.tag != ''
     outputs:
       digest_amd64: ${{ steps.digest.outputs.amd64 }}
       digest_arm64: ${{ steps.digest.outputs.arm64 }}
@@ -78,32 +77,31 @@ jobs:
           - id: arm64
             name: linux/arm64
             runner: ubuntu-24.04-arm
-    needs:
-      - prepare
-    if: needs.prepare.outputs.new_tag != ''
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout at version commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.bump-version.outputs.commit_sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Github Packages
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare docker meta for platform image
-        id: meta
+      - name: Prepare image metadata
         uses: docker/metadata-action@v5
+        id: meta
         with:
           images: ${{ env.IMAGE }}
 
-      - name: Build and push by digest
-        id: build
+      - name: Build and push image by digest
         uses: docker/build-push-action@v6
+        id: build
         with:
           context: .
           file: dockerfile/prod/Dockerfile
@@ -111,7 +109,7 @@ jobs:
           platforms: ${{ matrix.platform.name }}
           outputs: type=image,"name=${{ env.IMAGE }}",push-by-digest=true,name-canonical=true,push=true
           build-args: |
-            git_release_ver=${{ needs.prepare.outputs.new_tag }}
+            git_release_ver=${{ needs.plan-release-tag.outputs.tag }}
             git_release_sha=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -120,66 +118,55 @@ jobs:
         id: digest
         run: echo "${{ matrix.platform.id }}=${{ steps.build.outputs.digest }}" >> $GITHUB_OUTPUT
 
-  publish:
+  push-image-manifest:
     runs-on: ubuntu-latest
-    needs:
-      - prepare
-      - build
+    needs: [plan-release-tag, bump-version, build-arch-image]
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Github Packages
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create image manifest and push
+      - name: Create and push multi-arch manifest
         run: >-
           docker buildx imagetools create
           -t ${{ env.IMAGE }}:latest
-          -t ${{ env.IMAGE }}:${{ needs.prepare.outputs.new_tag }}
-          ${{ env.IMAGE }}@${{ needs.build.outputs.digest_amd64 }}
-          ${{ env.IMAGE }}@${{ needs.build.outputs.digest_arm64 }}
+          -t ${{ env.IMAGE }}:${{ needs.plan-release-tag.outputs.tag }}
+          ${{ env.IMAGE }}@${{ needs.build-arch-image.outputs.digest_amd64 }}
+          ${{ env.IMAGE }}@${{ needs.build-arch-image.outputs.digest_arm64 }}
 
-      - name: Inspect manifest
+      - name: Inspect pushed manifest
         run: docker buildx imagetools inspect ${{ env.IMAGE }}:latest
 
-      - name: Create a GitHub release
+  create-release-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: [plan-release-tag, bump-version, push-image-manifest]
+    if: needs.bump-version.outputs.commit_sha != ''
+    steps:
+      - name: Checkout at version commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.bump-version.outputs.commit_sha }}
+
+      - name: Create git tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          commit_sha: ${{ needs.bump-version.outputs.commit_sha }}
+          custom_tag: ${{ needs.plan-release-tag.outputs.tag }}
+          tag_prefix: ""
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: false
+
+      - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ needs.prepare.outputs.new_tag }}
-          name: Release ${{ needs.prepare.outputs.new_tag }}
-          body: ${{ needs.prepare.outputs.changelog }}
-
-  deploy:
-    runs-on: swat4stats-core-runner
-    needs:
-      - prepare
-      - publish
-    if: needs.prepare.outputs.new_tag != ''
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-
-      - name: Install release
-        run: >-
-          helm upgrade
-          --install
-          --debug
-          --atomic
-          --namespace=swat4stats
-          --set image.tag=${{ needs.prepare.outputs.new_tag }}
-          --set image.pullSecrets[0].name=swat4stats-registry-creds
-          --set envFromSecrets[0].name=swat4stats-secrets
-          swat4stats-core
-          deployments/charts/swat4stats
-        env:
-          HELM_KUBEAPISERVER: ${{ secrets.HELM_KUBEAPISERVER }}
-          HELM_KUBEINSECURE_SKIP_TLS_VERIFY: 1
-          HELM_KUBETOKEN: ${{ secrets.HELM_KUBETOKEN }}
+          tag: ${{ needs.plan-release-tag.outputs.tag }}
+          name: Release ${{ needs.plan-release-tag.outputs.tag }}
+          body: ${{ needs.plan-release-tag.outputs.changelog }}
