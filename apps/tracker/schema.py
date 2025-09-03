@@ -1,5 +1,5 @@
 # ruff: noqa: E501, RUF001, SLF001
-from typing import Any, TypeVar
+from typing import Any
 
 from voluptuous import REMOVE_EXTRA, All, Boolean, Coerce, In, Maybe, Optional, Range, Schema
 
@@ -15,9 +15,6 @@ from apps.tracker.entities import (
     Team,
 )
 from apps.utils.schema import DefaultMapping, FallbackMapping, Mapping, OptionalMapping
-
-T = TypeVar("T")
-
 
 teams_encoded: dict[int, str] = {
     0: Team.swat.value,
