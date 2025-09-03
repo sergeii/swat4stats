@@ -9,6 +9,9 @@ on:
     branches: [main]
     types: [completed]
 
+permissions:
+  contents: read
+
 concurrency:
   group: release
   cancel-in-progress: true
@@ -34,6 +37,8 @@ jobs:
 
   bump-version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: plan-release-tag
     if: needs.plan-release-tag.outputs.version != ''
     outputs:
@@ -104,7 +109,7 @@ jobs:
           platforms: ${{ matrix.platform.name }}
           outputs: type=image,"name=${{ env.IMAGE }}",push-by-digest=true,name-canonical=true,push=true
           build-args: |
-            git_release_ver${{ needs.plan-release-tag.outputs.tag }}
+            git_release_ver=${{ needs.plan-release-tag.outputs.tag }}
             git_release_sha=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -140,6 +145,8 @@ jobs:
 
   create-release-tag:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: [plan-release-tag, bump-version, push-image-manifest]
     if: needs.bump-version.outputs.commit_sha != ''
     steps:
