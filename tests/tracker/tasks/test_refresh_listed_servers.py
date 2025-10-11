@@ -96,7 +96,7 @@ def test_server_status_signals_are_invoked(db, create_udpservers):
             refresh_listed_servers.delay()
 
             assert live_mock.called
-            args, kwargs = live_mock.call_args
+            _, kwargs = live_mock.call_args
             assert {obj.pk for obj in kwargs["servers"]} == {
                 servers[0].pk,
                 servers[1].pk,
@@ -104,7 +104,7 @@ def test_server_status_signals_are_invoked(db, create_udpservers):
             }
 
             assert failed_mock.called
-            args, kwargs = failed_mock.call_args
+            _, kwargs = failed_mock.call_args
             assert {obj.pk for obj in kwargs["servers"]} == {servers[2].pk, servers[4].pk}
 
         assert Server.objects.filter(pk__in=[servers[2].pk], failures=1).count() == 1

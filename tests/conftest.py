@@ -176,7 +176,7 @@ class UDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
 
     def finish_request(self, request, client_address):
         responses = self.responses or [b""]
-        packet, self.socket = request
+        self.socket = request[1]
         while responses:
             try:
                 response = responses.pop()

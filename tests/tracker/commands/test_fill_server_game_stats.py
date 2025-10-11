@@ -9,8 +9,8 @@ from tests.factories.tracker import GameFactory, ServerFactory
 def test_fill_server_game_stats(django_assert_num_queries):
     server1, server2, server3, server4 = ServerFactory.create_batch(4)
 
-    game1, game2, game3 = GameFactory.create_batch(3, server=server1)
-    game4, game5 = GameFactory.create_batch(2, server=server2)
+    game1, _, game3 = GameFactory.create_batch(3, server=server1)
+    game4, _ = GameFactory.create_batch(2, server=server2)
     game6 = GameFactory(server=server4)
 
     # server2 has some stats already

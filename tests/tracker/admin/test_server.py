@@ -195,7 +195,7 @@ def test_cant_merge_already_merged_servers(task_mock, db, admin_client, merge_fo
 
 @mock.patch.object(merge_servers, "apply_async")
 def test_merge_form_handle_empty_choices(task_mock, db, admin_client, merge_form_url):
-    server1, server2, server3 = ServerFactory.create_batch(3)
+    server1, *_ = ServerFactory.create_batch(3)
     resp = admin_client.post(
         f"{merge_form_url}?ids={server1.pk}",
         {"main_server": "", "merged_servers": [], "confirm": "yes"},

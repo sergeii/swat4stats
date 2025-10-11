@@ -99,7 +99,7 @@ def test_match_smart_does_not_query_whois_if_isp_is_present(db, whois_mock):
 
 
 def test_match_smart_will_not_perform_whois_lookup_no_isp_provided(db, whois_mock):
-    profile, created = Profile.objects.match_smart_or_create(name="Serge", ip_address="1.2.3.4")
+    _, created = Profile.objects.match_smart_or_create(name="Serge", ip_address="1.2.3.4")
 
     assert not whois_mock.called
     assert created
@@ -240,7 +240,7 @@ class TestProfileMatch:
     def test_match_smart_or_create(self, match_kwargs, is_matched):
         if isp_alias := match_kwargs.pop("isp_alias", None):
             match_kwargs["isp"] = self.isp_map[isp_alias]
-        obj, created = Profile.objects.match_smart_or_create(**match_kwargs)
+        _, created = Profile.objects.match_smart_or_create(**match_kwargs)
         assert created == (not is_matched)
 
     def test_match_smart_name_country(self):
