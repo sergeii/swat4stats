@@ -17,7 +17,7 @@ from tests.factories.tracker import GameFactory, ServerFactory
 def test_denorm_game_stats_for_servers() -> None:
     server1, server2, server3, server4, server5 = ServerFactory.create_batch(5)
 
-    game1, game2, game3 = GameFactory.create_batch(3, server=server1)
+    game1, _, game3 = GameFactory.create_batch(3, server=server1)
     game4, game5 = GameFactory.create_batch(2, server=server2)
     game6 = GameFactory(server=server4)
     GameFactory.create_batch(2, server=server5)

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
+import typing as t
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum, auto
-from typing import TYPE_CHECKING, Optional
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from apps.tracker.models import Game, Player
 
 
@@ -23,11 +25,11 @@ class GameType(StrEnum):
         return self in GameType.coop_modes()
 
     @classmethod
-    def versus_modes(cls) -> tuple["GameType", ...]:
+    def versus_modes(cls) -> tuple[GameType, ...]:
         return cls.barricaded_suspects, cls.rapid_deployment, cls.vip_escort, cls.smash_and_grab
 
     @classmethod
-    def coop_modes(cls) -> tuple["GameType", ...]:
+    def coop_modes(cls) -> tuple[GameType, ...]:
         return cls.co_op, cls.co_op_qmm
 
 
@@ -102,11 +104,11 @@ class GameOutcome(StrEnum):
     sus_sg = auto()  # Suspects victory in Smash and Grab
 
     @classmethod
-    def swat_victories(cls) -> tuple["GameOutcome", ...]:
+    def swat_victories(cls) -> tuple[GameOutcome, ...]:
         return cls.swat_bs, cls.swat_rd, cls.swat_vip_escape, cls.swat_vip_bad_kill, cls.swat_sg
 
     @classmethod
-    def sus_victories(cls) -> tuple["GameOutcome", ...]:
+    def sus_victories(cls) -> tuple[GameOutcome, ...]:
         return cls.sus_bs, cls.sus_rd, cls.sus_vip_good_kill, cls.sus_vip_bad_kill, cls.sus_sg
 
 
@@ -161,7 +163,7 @@ class Equipment(StrEnum):
     baton_grenade = "Baton Grenade"
 
     @classmethod
-    def primary_weapons(cls) -> tuple["Equipment", ...]:
+    def primary_weapons(cls) -> tuple[Equipment, ...]:
         return (
             cls.m4_super90,
             cls.nova_pump,
@@ -182,7 +184,7 @@ class Equipment(StrEnum):
         )
 
     @classmethod
-    def secondary_weapons(cls) -> tuple["Equipment", ...]:
+    def secondary_weapons(cls) -> tuple[Equipment, ...]:
         return (
             cls.taser_stun_gun,
             cls.cobra_stun_gun,
@@ -194,7 +196,7 @@ class Equipment(StrEnum):
         )
 
     @classmethod
-    def grenades(cls) -> tuple["Equipment", ...]:
+    def grenades(cls) -> tuple[Equipment, ...]:
         return cls.stinger, cls.cs_gas, cls.flashbang
 
 
@@ -330,19 +332,19 @@ class LegacyStatCategory(IntEnum):
 
 @dataclass
 class GameTopFieldPlayer:
-    player: "Player"
+    player: Player
     field: str
     points: int
 
 
 @dataclass
 class GamePlayerHighlight:
-    player: "Player"
+    player: Player
     title: str
     description: str
 
 
 @dataclass
 class GameNeighbors:
-    prev: Optional["Game"] = None
-    next: Optional["Game"] = None
+    prev: Game | None = None
+    next: Game | None = None

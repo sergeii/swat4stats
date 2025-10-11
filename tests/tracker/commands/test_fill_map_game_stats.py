@@ -12,8 +12,8 @@ def test_fill_map_game_stats(django_assert_num_queries):
     map3 = MapFactory(name="Northside Vending")
     map4 = MapFactory(name="Fairfax Residence")
 
-    game1, game2, game3 = GameFactory.create_batch(3, map=map1)
-    game4, game5 = GameFactory.create_batch(2, map=map2)
+    game1, _, game3 = GameFactory.create_batch(3, map=map1)
+    game4, _ = GameFactory.create_batch(2, map=map2)
     game6 = GameFactory(map=map4)
 
     # map2 has some stats already

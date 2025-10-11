@@ -439,7 +439,7 @@ def test_no_servers_were_merged(now, django_assert_num_queries):
 
     profile1, profile2, profile3 = ProfileFactory.create_batch(3)
 
-    server1, server2, server3 = ServerFactory.create_batch(3)
+    server1, server2, _ = ServerFactory.create_batch(3)
 
     PlayerFactory(
         alias__profile=profile1,

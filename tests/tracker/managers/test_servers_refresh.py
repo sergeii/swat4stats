@@ -79,7 +79,7 @@ def test_negative_timers_are_supported(db, udp_server):
     assert len(status) == 1
     assert len(errors) == 0
 
-    obj, result = status[0]
+    result = status[0][1]
     assert result["hostname"] == "-==MYT Team Svr==-"
     assert result["gametype"] == "VIP Escort"
     assert result["timeleft"] is None

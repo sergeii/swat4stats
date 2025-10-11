@@ -52,7 +52,7 @@ services:
       - POSTGRES_DB=swat4stats
       - LANG=en_US.UTF-8
       - LC_ALL=en_US.UTF-8
-    image: postgres:16.4
+    image: postgres:16.10-alpine
     ports:
       - "5432:5432"
     tmpfs:
@@ -62,7 +62,7 @@ services:
       - /var/lib/postgresql/data
 
   redis:
-    image: redis:7.0.10-alpine
+    image: redis:8.2-alpine
     command: redis-server --save '' --databases 100 --loglevel warning
     logging:
         driver: none
