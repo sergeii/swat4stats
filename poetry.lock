@@ -550,14 +550,14 @@ rq = ["django-rq (>=2)"]
 
 [[package]]
 name = "django-countries"
-version = "7.6.1"
+version = "8.0.0"
 description = "Provides a country field for Django models."
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "django-countries-7.6.1.tar.gz", hash = "sha256:c772d4e3e54afcc5f97a018544e96f246c6d9f1db51898ab0c15cd57e19437cf"},
-    {file = "django_countries-7.6.1-py3-none-any.whl", hash = "sha256:1ed20842fe0f6194f91faca21076649513846a8787c9eb5aeec3cbe1656b8acc"},
+    {file = "django_countries-8.0.0-py3-none-any.whl", hash = "sha256:21e94bfee755eaeb052c2ae655fb64ea94546dac42fab015cfba6eb1490fd215"},
+    {file = "django_countries-8.0.0.tar.gz", hash = "sha256:c4e3bd0b3c2faa4213abaefb7330e8f8d276f0a5c3d91c5011bd5dc156c4eb00"},
 ]
 
 [package.dependencies]
@@ -565,10 +565,7 @@ asgiref = "*"
 typing-extensions = "*"
 
 [package.extras]
-dev = ["black", "django", "djangorestframework", "graphene-django", "pytest", "pytest-django", "tox (==4.*)"]
-maintainer = ["django", "zest.releaser[recommended]"]
 pyuca = ["pyuca"]
-test = ["djangorestframework", "graphene-django", "pytest", "pytest-cov", "pytest-django"]
 
 [[package]]
 name = "django-debug-toolbar"
@@ -2091,4 +2088,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14,<3.15"
-content-hash = "86014306124d9b07cef3f85c3dbeafbadd54dd12b9a28fb6be95f70fe88eb552"
+content-hash = "e8695d95df294584c4031f7ce83abec9c61c9bd4e131fccbf43a9d1d5d11bee1"
