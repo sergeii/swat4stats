@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    needs: [plan-release-tag, build-arch-image]
+    needs: [plan-release-tag, build-arch-image, prepare-release]
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
