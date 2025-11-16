@@ -20,28 +20,26 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
-      tag: ${{ steps.preview.outputs.new_tag }}
-      version: ${{ steps.preview.outputs.new_version }}
-      changelog: ${{ steps.preview.outputs.changelog }}
+      tag: ${{ steps.plan.outputs.new_tag }}
+      version: ${{ steps.plan.outputs.new_version }}
+      changelog: ${{ steps.plan.outputs.changelog }}
     steps:
       - uses: actions/checkout@v5
-
-      - name: Preview release tag
-        uses: mathieudutour/github-tag-action@v6.2
-        id: preview
+      - uses: mathieudutour/github-tag-action@v6.2
+        id: plan
         with:
           dry_run: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: false
 
-  bump-version:
+  prepare-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     needs: plan-release-tag
     if: needs.plan-release-tag.outputs.version != ''
     outputs:
-      commit_sha: ${{ steps.commit.outputs.commit_hash }}
+      release_sha: ${{ steps.select-commit.outputs.release_sha }}
     steps:
       - uses: actions/checkout@v5
 
@@ -53,18 +51,22 @@ jobs:
 
       - name: Commit version changes
         uses: stefanzweifel/git-auto-commit-action@v6
-        id: commit
+        id: commit-version
         with:
           commit_message: "chore(poetry): bump version to ${{ needs.plan-release-tag.outputs.version }}"
           commit_options: "--no-verify --signoff"
           file_pattern: pyproject.toml
+
+      - name: Select release commit
+        id: select-commit
+        run: echo "release_sha=${{ steps.commit-version.outputs.commit_hash || github.sha }}" >> $GITHUB_OUTPUT
 
   # https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
   build-arch-image:
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       packages: write
-    needs: [plan-release-tag, bump-version]
+    needs: [plan-release-tag, prepare-release]
     if: needs.plan-release-tag.outputs.tag != ''
     outputs:
       digest_amd64: ${{ steps.digest.outputs.amd64 }}
@@ -82,7 +84,7 @@ jobs:
       - name: Checkout at version commit
         uses: actions/checkout@v5
         with:
-          ref: ${{ needs.bump-version.outputs.commit_sha }}
+          ref: ${{ needs.prepare-release.outputs.release_sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -123,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    needs: [plan-release-tag, bump-version, build-arch-image]
+    needs: [plan-release-tag, build-arch-image, prepare-release]
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -150,18 +152,18 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: [plan-release-tag, bump-version, push-image-manifest]
-    if: needs.bump-version.outputs.commit_sha != ''
+    needs: [plan-release-tag, prepare-release, push-image-manifest]
+    if: needs.plan-release-tag.outputs.tag != ''
     steps:
       - name: Checkout at version commit
         uses: actions/checkout@v5
         with:
-          ref: ${{ needs.bump-version.outputs.commit_sha }}
+          ref: ${{ needs.prepare-release.outputs.release_sha }}
 
       - name: Create git tag
         uses: mathieudutour/github-tag-action@v6.2
         with:
-          commit_sha: ${{ needs.bump-version.outputs.commit_sha }}
+          commit_sha: ${{ needs.prepare-release.outputs.release_sha }}
           custom_tag: ${{ needs.plan-release-tag.outputs.tag }}
           tag_prefix: ""
           github_token: ${{ secrets.GITHUB_TOKEN }}
