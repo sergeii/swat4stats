@@ -50,7 +50,7 @@ jobs:
         run: "poetry version ${{ needs.plan-release-tag.outputs.version }}"
 
       - name: Commit version changes
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         id: commit-version
         with:
           commit_message: "chore(poetry): bump version to ${{ needs.plan-release-tag.outputs.version }}"
