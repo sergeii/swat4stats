@@ -1,4 +1,36 @@
 User-agent: *
-Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /search/
+Disallow: /games/
+Disallow: /player/*/history/
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
 Crawl-delay: 5
 Sitemap: https://swat4stats.com/sitemap.xml
