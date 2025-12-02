@@ -24,7 +24,7 @@ jobs:
       version: ${{ steps.plan.outputs.new_version }}
       changelog: ${{ steps.plan.outputs.changelog }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: mathieudutour/github-tag-action@v6.2
         id: plan
         with:
@@ -41,7 +41,7 @@ jobs:
     outputs:
       release_sha: ${{ steps.select-commit.outputs.release_sha }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install poetry
         run: pipx install poetry
@@ -82,7 +82,7 @@ jobs:
             runner: ubuntu-24.04-arm
     steps:
       - name: Checkout at version commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare-release.outputs.release_sha }}
 
@@ -156,7 +156,7 @@ jobs:
     if: needs.plan-release-tag.outputs.tag != ''
     steps:
       - name: Checkout at version commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare-release.outputs.release_sha }}
 
