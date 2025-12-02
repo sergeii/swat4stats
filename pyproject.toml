@@ -38,9 +38,9 @@ pytest-django = "4.11.1"
 pytest-localserver = "0.10.0"
 pytest-cov = "7.0.0"
 pytest-repeat = "0.9.4"
-mypy = "1.18.2"
+mypy = "1.19.0"
 types-pytz = "2025.2.0.20251108"
-ruff = "0.14.6"  # also update the version in github workflows and .pre-commit-config.yaml
+ruff = "0.14.7"  # also update the version in github workflows and .pre-commit-config.yaml
 
 [build-system]
 requires = ["poetry-core"]
