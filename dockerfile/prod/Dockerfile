@@ -4,7 +4,7 @@ ARG git_release_sha="-"
 ARG _build_user_id=10000
 ARG _work_user_id=10001
 
-FROM python:3.14.0-slim
+FROM python:3.14.2-slim
 
 ENV \
   PYTHONUNBUFFERED=1 \
