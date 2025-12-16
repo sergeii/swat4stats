@@ -81,7 +81,7 @@ class Server(models.Model):
         ]
         constraints: ClassVar[list[models.BaseConstraint]] = [
             models.CheckConstraint(
-                check=(
+                condition=(
                     Q(hostname__isnull=True, hostname_clean__isnull=True)
                     | Q(hostname__isnull=False, hostname_clean__isnull=False)
                 ),
