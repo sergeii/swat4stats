@@ -1,32 +1,34 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "monthly"
+      interval: quarterly
+    cooldown:
+      default-days: 30
     assignees:
       - sergeii
     commit-message:
-      prefix: "chore"
+      prefix: chore
     groups:
       actions:
         applies-to: version-updates
-        dependency-type: "production"
-  - package-ecosystem: "docker"
+        dependency-type: production
+  - package-ecosystem: docker
     directories:
-      - "dockerfile/dev"
-      - "dockerfile/prod"
+      - dockerfile/dev
+      - dockerfile/prod
     schedule:
-      interval: "monthly"
+      interval: weekly
+    cooldown:
+      default-days: 7
     assignees:
       - sergeii
     commit-message:
-      prefix: "feat"
+      prefix: feat
     groups:
-      dockerfile:
+      dockerfile-python:
         applies-to: version-updates
-        update-types:
-          - "patch"
         patterns:
           - python
     ignore:
@@ -35,20 +37,22 @@ updates:
           - "version-update:semver-major"
           - "version-update:semver-minor"
   - package-ecosystem: pip
-    directory: "/"
+    directory: /
     schedule:
-      interval: "weekly"
+      interval: weekly
+    cooldown:
+      default-days: 7
     assignees:
       - sergeii
     commit-message:
-      prefix: "feat"
+      prefix: feat
     groups:
       dependencies:
         applies-to: version-updates
-        dependency-type: "production"
+        dependency-type: production
         update-types:
-          - "minor"
-          - "patch"
+          - minor
+          - patch
       dev-dependencies:
         applies-to: version-updates
-        dependency-type: "development"
+        dependency-type: development
