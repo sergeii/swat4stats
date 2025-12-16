@@ -95,6 +95,7 @@ INSTALLED_APPS: tuple[str, ...] = (
     "django.contrib.humanize",
     "django.contrib.sites",
     "django.contrib.sitemaps",
+    "django.contrib.postgres",
     "cacheback",
     "django_countries",
     "django_filters",
