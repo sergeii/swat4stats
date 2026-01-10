@@ -532,23 +532,23 @@ bcrypt = ["bcrypt (>=4.1.1)"]
 
 [[package]]
 name = "django-cacheback"
-version = "3.0.0"
+version = "4.0.0"
 description = "Caching library for Django that uses Celery or RQ to refresh cache items asynchronously"
 optional = false
-python-versions = ">=3.6,<4"
+python-versions = "<4,>=3.10.0"
 groups = ["main"]
 files = [
-    {file = "django-cacheback-3.0.0.tar.gz", hash = "sha256:fdc5bf18457333d11bbad0b5f809e5e3969bdf6b24ff36d0c291600c47ac608f"},
-    {file = "django_cacheback-3.0.0-py3-none-any.whl", hash = "sha256:8fcce22adfd4d3eb78d6bce68f894f712dc9bf15da9a67f3618d250917e8b712"},
+    {file = "django_cacheback-4.0.0-py3-none-any.whl", hash = "sha256:00379dca66871bc74a75344d1237c267e78f2f9f35cbbfb0a8644e02e2a6da79"},
+    {file = "django_cacheback-4.0.0.tar.gz", hash = "sha256:595f276c162ca97cb1bb7c19dda44ddb3b9a7eeb34295b25b940ef4b205a0771"},
 ]
 
 [package.dependencies]
-django = ">=2"
+django = ">=5.2"
 
 [package.extras]
-celery = ["celery (>=4)"]
+celery = ["celery (>=5.0)"]
 docs = ["Sphinx (>=3.3.0,<4)"]
-rq = ["django-rq (>=2)"]
+rq = ["django-rq (>=3)"]
 
 [[package]]
 name = "django-countries"
@@ -2205,4 +2205,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14,<3.15"
-content-hash = "f0bae9ec199dd4f3beae814d87d51fd8ce56f8e59b2c2eadc53bb8f4a9397d07"
+content-hash = "b377db3f6d8f69ceeaecb8d926f53d7bd9ef042dc067c0a128347ee51c403505"
