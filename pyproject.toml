@@ -10,7 +10,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.14,<3.15"
 Django = "6.0"
-celery = "5.6.0"
+celery = "5.6.1"
 bleach = "6.3.0"
 pytz = "2025.2"
 Markdown = "3.10"
