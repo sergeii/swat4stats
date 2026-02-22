@@ -243,7 +243,7 @@ class WeaponGameDataFactory(factory.Factory):
 
 
 class SimplePlayerGameDataFactory(factory.Factory):
-    id = factory.Sequence(lambda n: str(n))
+    id = factory.Sequence(str)
     name = factory.Faker("first_name")
     dropped = 0
     vip = 0

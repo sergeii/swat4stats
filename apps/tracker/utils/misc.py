@@ -29,7 +29,7 @@ def ratio(
 
     try:
         return dividend / divisor
-    except (ValueError, TypeError, ZeroDivisionError):
+    except ValueError, TypeError, ZeroDivisionError:
         return 0.0
 
 

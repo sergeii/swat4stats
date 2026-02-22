@@ -258,7 +258,7 @@ class ProfileManager(models.Manager):
             .for_profile(profile)
             .filter(game_id__gte=least_game_id)
             .values(field)
-            .annotate(num=Count(count_field if count_field else field))
+            .annotate(num=Count(count_field or field))
             .order_by("-num")
         )[:1]
 

@@ -2,7 +2,7 @@ import functools
 import json
 import logging
 from collections.abc import Callable
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from django.core.exceptions import BadRequest
@@ -16,7 +16,7 @@ from apps.tracker.utils.parser import JuliaQueryString
 logger = logging.getLogger(__name__)
 
 
-class APIResponseStatus(str, Enum):
+class APIResponseStatus(StrEnum):
     OK = "0"
     ERROR = "1"
 
@@ -88,7 +88,7 @@ def require_julia_schema(schema: Callable, schema_error_message: str | None = No
                 case "application/json":
                     try:
                         decoded_body = json.loads(request_body)
-                    except (TypeError, ValueError):
+                    except TypeError, ValueError:
                         logger.exception(
                             "failed to parse json request",
                             extra={"data": {"request": request, "body": request_body}},

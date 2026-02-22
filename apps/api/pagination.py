@@ -12,7 +12,7 @@ class CursorPagination(pagination.CursorPagination):
         default_page_size = super().get_page_size(request)
         try:
             return int(request.GET["limit"])
-        except (KeyError, TypeError, ValueError):
+        except KeyError, TypeError, ValueError:
             return default_page_size
 
 
