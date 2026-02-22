@@ -270,7 +270,7 @@ class GameManager(models.Manager):
                             distance=weapon["distance"] / 100,
                         )
                         for weapon in player_item["weapons"]
-                        if weapon["name"] not in (-1,)
+                        if weapon["name"] != -1
                     ]
                 )
 

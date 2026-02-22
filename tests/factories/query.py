@@ -34,7 +34,7 @@ class ServerQueryResponse(dict):
 
 
 class PlayerQueryFactory(factory.Factory):
-    id = factory.Sequence(lambda n: str(n))
+    id = factory.Sequence(str)
     player = factory.Faker("first_name")
     ping = fuzzy.FuzzyInteger(25, 9999)
     score = fuzzy.FuzzyInteger(10, 30)

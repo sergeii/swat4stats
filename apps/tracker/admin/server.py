@@ -201,7 +201,7 @@ class ServerAdmin(admin.ModelAdmin):
 
         try:
             maybe_valid_port = int(maybe_port)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
 
         if not (0 < maybe_valid_port <= 65535):  # noqa: PLR2004
