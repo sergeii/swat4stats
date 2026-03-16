@@ -12,7 +12,7 @@ python = "^3.14,<3.15"
 Django = "6.0.3"
 celery = "5.6.2"
 bleach = "6.3.0"
-pytz = "2025.2"
+pytz = "2026.1.post1"
 Markdown = "3.10.2"
 psycopg = {extras = ["binary"], version = "3.3.3"}
 redis = "7.2.1"
