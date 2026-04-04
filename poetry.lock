@@ -243,14 +243,14 @@ css = ["tinycss2 (>=1.1.0,<1.5)"]
 
 [[package]]
 name = "celery"
-version = "5.6.2"
+version = "5.6.3"
 description = "Distributed Task Queue."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "celery-5.6.2-py3-none-any.whl", hash = "sha256:3ffafacbe056951b629c7abcf9064c4a2366de0bdfc9fdba421b97ebb68619a5"},
-    {file = "celery-5.6.2.tar.gz", hash = "sha256:4a8921c3fcf2ad76317d3b29020772103581ed2454c4c042cc55dcc43585009b"},
+    {file = "celery-5.6.3-py3-none-any.whl", hash = "sha256:0808f42f80909c4d5833202360ffafb2a4f83f4d8e23e1285d926610e9a7afa6"},
+    {file = "celery-5.6.3.tar.gz", hash = "sha256:177006bd2054b882e9f01be59abd8529e88879ef50d7918a7050c5a9f4e12912"},
 ]
 
 [package.dependencies]
@@ -266,7 +266,7 @@ vine = ">=5.1.0,<6.0"
 
 [package.extras]
 arangodb = ["pyArango (>=2.0.2)"]
-auth = ["cryptography (==46.0.3)"]
+auth = ["cryptography (==46.0.5)"]
 azureblockblob = ["azure-identity (>=1.19.0)", "azure-storage-blob (>=12.15.0)"]
 brotli = ["brotli (>=1.0.0) ; platform_python_implementation == \"CPython\"", "brotlipy (>=0.7.0) ; platform_python_implementation == \"PyPy\""]
 cassandra = ["cassandra-driver (>=3.25.0,<4)"]
@@ -276,9 +276,9 @@ couchbase = ["couchbase (>=3.0.0) ; platform_python_implementation != \"PyPy\" a
 couchdb = ["pycouchdb (==1.16.0)"]
 django = ["Django (>=2.2.28)"]
 dynamodb = ["boto3 (>=1.26.143)"]
-elasticsearch = ["elastic-transport (<=9.1.0)", "elasticsearch (<=9.1.2)"]
+elasticsearch = ["elastic-transport (<=9.2.1)", "elasticsearch (<=9.3.0)"]
 eventlet = ["eventlet (>=0.32.0) ; python_version < \"3.10\""]
-gcs = ["google-cloud-firestore (==2.22.0)", "google-cloud-storage (>=2.10.0)", "grpcio (==1.75.1)"]
+gcs = ["google-cloud-firestore (==2.23.0)", "google-cloud-storage (>=2.10.0)", "grpcio (==1.76.0)"]
 gevent = ["gevent (>=1.5.0)"]
 librabbitmq = ["librabbitmq (>=2.0.0) ; python_version < \"3.11\""]
 memcache = ["pylibmc (==1.6.3) ; platform_system != \"Windows\""]
@@ -287,7 +287,7 @@ msgpack = ["kombu[msgpack]"]
 pydantic = ["pydantic (>=2.12.0a1) ; python_version >= \"3.14\"", "pydantic (>=2.4) ; python_version < \"3.14\""]
 pymemcache = ["python-memcached (>=1.61)"]
 pyro = ["pyro4 (==4.82) ; python_version < \"3.11\""]
-pytest = ["pytest-celery[all] (>=1.2.0,<1.3.0)"]
+pytest = ["pytest-celery[all] (>=1.3.0)"]
 redis = ["kombu[redis]"]
 s3 = ["boto3 (>=1.26.143)"]
 slmq = ["softlayer_messaging (>=1.0.3)"]
@@ -637,14 +637,14 @@ hiredis = ["redis[hiredis] (>=4.0.2)"]
 
 [[package]]
 name = "djangorestframework"
-version = "3.17.0"
+version = "3.17.1"
 description = "Web APIs for Django, made easy."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "djangorestframework-3.17.0-py3-none-any.whl", hash = "sha256:d84fe85f30b7ac6e8c0076ce9ff635e4eaedca5912f8d7d2926ce448c08533ba"},
-    {file = "djangorestframework-3.17.0.tar.gz", hash = "sha256:456fd992a33f9e64c9d0f47e85d9787db0efb44f894c1e513315b5e74765bd4c"},
+    {file = "djangorestframework-3.17.1-py3-none-any.whl", hash = "sha256:c3c74dd3e83a5a3efc37b3c18d92bd6f86a6791c7b7d4dff62bb068500e76457"},
+    {file = "djangorestframework-3.17.1.tar.gz", hash = "sha256:a6def5f447fe78ff853bff1d47a3c59bf38f5434b031780b351b0c73a62db1a5"},
 ]
 
 [package.dependencies]
@@ -1775,14 +1775,14 @@ files = [
 
 [[package]]
 name = "redis"
-version = "7.3.0"
+version = "7.4.0"
 description = "Python client for Redis database and key-value store"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "redis-7.3.0-py3-none-any.whl", hash = "sha256:9d4fcb002a12a5e3c3fbe005d59c48a2cc231f87fbb2f6b70c2d89bb64fec364"},
-    {file = "redis-7.3.0.tar.gz", hash = "sha256:4d1b768aafcf41b01022410b3cc4f15a07d9b3d6fe0c66fc967da2c88e551034"},
+    {file = "redis-7.4.0-py3-none-any.whl", hash = "sha256:a9c74a5c893a5ef8455a5adb793a31bb70feb821c86eccb62eebef5a19c429ec"},
+    {file = "redis-7.4.0.tar.gz", hash = "sha256:64a6ea7bf567ad43c964d2c30d82853f8df927c5c9017766c55a1d1ed95d18ad"},
 ]
 
 [package.extras]
@@ -1823,14 +1823,14 @@ files = [
 
 [[package]]
 name = "sentry-sdk"
-version = "2.55.0"
+version = "2.56.0"
 description = "Python client for Sentry (https://sentry.io)"
 optional = false
 python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "sentry_sdk-2.55.0-py2.py3-none-any.whl", hash = "sha256:97026981cb15699394474a196b88503a393cbc58d182ece0d3abe12b9bd978d4"},
-    {file = "sentry_sdk-2.55.0.tar.gz", hash = "sha256:3774c4d8820720ca4101548131b9c162f4c9426eb7f4d24aca453012a7470f69"},
+    {file = "sentry_sdk-2.56.0-py2.py3-none-any.whl", hash = "sha256:5afafb744ceb91d22f4cc650c6bd048ac6af5f7412dcc6c59305a2e36f4dbc02"},
+    {file = "sentry_sdk-2.56.0.tar.gz", hash = "sha256:fdab72030b69625665b2eeb9738bdde748ad254e8073085a0ce95382678e8168"},
 ]
 
 [package.dependencies]
@@ -2210,4 +2210,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14,<3.15"
-content-hash = "0c56acf4ee76c8d4b5b4ba4bdfb81009a857e940282df9f7ce3d1a94d0637374"
+content-hash = "da3a0289fdaef3b9086035ea553dec54941bc9b783461fa4ee9e121b1eaa4d42"
