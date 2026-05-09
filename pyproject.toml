@@ -14,7 +14,7 @@ celery = "5.6.3"
 bleach = "6.3.0"
 pytz = "2026.1.post1"
 Markdown = "3.10.2"
-psycopg = {extras = ["binary"], version = "3.3.3"}
+psycopg = {extras = ["binary"], version = "3.3.4"}
 redis = "7.4.0"
 uwsgi = "2.0.31"
 python-dateutil = "2.9.0.post0"
