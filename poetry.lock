@@ -585,14 +585,14 @@ bcrypt = ["bcrypt (>=4.1.1)"]
 
 [[package]]
 name = "django-cacheback"
-version = "4.0.0"
+version = "4.1.0"
 description = "Caching library for Django that uses Celery or RQ to refresh cache items asynchronously"
 optional = false
 python-versions = "<4,>=3.10.0"
 groups = ["main"]
 files = [
-    {file = "django_cacheback-4.0.0-py3-none-any.whl", hash = "sha256:00379dca66871bc74a75344d1237c267e78f2f9f35cbbfb0a8644e02e2a6da79"},
-    {file = "django_cacheback-4.0.0.tar.gz", hash = "sha256:595f276c162ca97cb1bb7c19dda44ddb3b9a7eeb34295b25b940ef4b205a0771"},
+    {file = "django_cacheback-4.1.0-py3-none-any.whl", hash = "sha256:f78cc078b4b6ff1cdb1a8b7746dac7128635efa13812919ed89f97334018aa8c"},
+    {file = "django_cacheback-4.1.0.tar.gz", hash = "sha256:47b4997fe5ffe0e86fa550b5b20f11b4451bd21315f575966fc974913711e21a"},
 ]
 
 [package.dependencies]
@@ -1884,14 +1884,14 @@ files = [
 
 [[package]]
 name = "sentry-sdk"
-version = "2.60.0"
+version = "2.61.0"
 description = "Python client for Sentry (https://sentry.io)"
 optional = false
 python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "sentry_sdk-2.60.0-py3-none-any.whl", hash = "sha256:28a536c03291c8bcb363cf35c611b32738ec118ff64d8d6383b096448ac4c803"},
-    {file = "sentry_sdk-2.60.0.tar.gz", hash = "sha256:0bd25e54e78ca02d0be512529fa644bbbf9e8470d7b26371294012d4ca93c978"},
+    {file = "sentry_sdk-2.61.0-py3-none-any.whl", hash = "sha256:ec4d30273909cb1d198e03208b16ee70e2bc5d90a16fd9f1fb2fc6a72e1f03dc"},
+    {file = "sentry_sdk-2.61.0.tar.gz", hash = "sha256:1ca9b4bb777eb5be67004edab7eb894f21c6301f1d05ed64966719ad5d1764ce"},
 ]
 
 [package.dependencies]
@@ -2272,4 +2272,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14,<3.15"
-content-hash = "04c0474cce0fa7348d811a2421aa55b1552ac4aed8d219b263c2103b7c910931"
+content-hash = "d56dbe7b5036777f20f3c1c0d7f018c9609b4e23d81fb992afcfc974049ec6a8"
