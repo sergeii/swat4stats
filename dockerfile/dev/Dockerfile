@@ -1,4 +1,4 @@
-FROM python:3.14.5-slim
+FROM python:3.14.6-slim
 
 ENV \
   PIP_NO_CACHE_DIR=on \
