@@ -16,8 +16,7 @@ updates:
         dependency-type: production
   - package-ecosystem: docker
     directories:
-      - dockerfile/dev
-      - dockerfile/prod
+      - /
     schedule:
       interval: weekly
     cooldown:

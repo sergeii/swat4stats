@@ -85,7 +85,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: dockerfile/prod/Dockerfile
+          file: Dockerfile
+          target: prod
           load: true
           tags: testing
           platforms: ${{ matrix.platform.name }}

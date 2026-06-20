@@ -1,10 +1,9 @@
-version: "3.2"
-
 services:
   runserver:
     build:
       context: .
-      dockerfile: dockerfile/dev/Dockerfile
+      dockerfile: Dockerfile
+      target: dev
     command: python manage.py runserver 0.0.0.0:8000
     environment:
       - SETTINGS_DB_HOST=${SETTINGS_DB_HOST:-postgresql}
