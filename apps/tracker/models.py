@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 class Server(models.Model):
     ip = models.GenericIPAddressField(protocol="IPv4")
     port = models.PositiveIntegerField()
-    status_port = models.PositiveIntegerField(null=True, blank=True)
+    status_port = models.PositiveIntegerField(null=False, blank=True)
     enabled = models.BooleanField(default=True)
     listed = models.BooleanField(default=False)
     pinned = models.BooleanField(default=False)
@@ -128,7 +128,7 @@ class Server(models.Model):
 
 class Map(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    slug = models.CharField(max_length=255, null=True)
+    slug = models.CharField(max_length=255)
 
     game_count = models.PositiveIntegerField(default=0)
     first_game = models.ForeignKey("Game", related_name="+", null=True, on_delete=models.PROTECT)

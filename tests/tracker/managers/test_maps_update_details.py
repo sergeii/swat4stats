@@ -52,8 +52,6 @@ def test_update_map_details(
         details_updated_at=datetime(2024, 8, 7, 11, 22, 55, tzinfo=UTC),
         details_updated_for_version="1.0.0",
     )
-    # has no pictures and no slug and no briefing
-    fairfax = MapFactory(name="Fairfax Residence", slug=None)
     # has neither pictures nor briefing, but the pictures and briefing are available
     warehouse = MapFactory(name="-EXP- Stetchkov Warehouse", slug="exp-stetchkov-warehouse")
     # has no pictures and no briefing, none are available
@@ -72,7 +70,7 @@ def test_update_map_details(
     ):
         Map.objects.update_details(version="1.0.0", chunk_size=chunk_size)
 
-    for obj in [abomb, brewer, northside, fairfax, warehouse, new_library, delta]:
+    for obj in [abomb, brewer, northside, warehouse, new_library, delta]:
         obj.refresh_from_db()
 
     assert abomb.preview_picture == "/static/images/maps/preview/a-bomb-nightclub.jpg"
@@ -94,12 +92,6 @@ def test_update_map_details(
     assert northside.briefing is None
     assert northside.details_updated_at == datetime(2024, 8, 7, 11, 22, 55, tzinfo=UTC)
     assert northside.details_updated_for_version == "1.0.0"
-
-    assert fairfax.preview_picture == "/static/images/maps/preview/intro.jpg"
-    assert fairfax.background_picture == "/static/images/maps/background/intro.jpg"
-    assert fairfax.briefing is None
-    assert fairfax.details_updated_at == datetime(2024, 8, 17, 14, 1, 39, tzinfo=UTC)
-    assert fairfax.details_updated_for_version == "1.0.0"
 
     assert warehouse.preview_picture == "/static/images/maps/preview/exp-stetchkov-warehouse.jpg"
     assert (
