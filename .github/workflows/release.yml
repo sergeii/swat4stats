@@ -107,7 +107,8 @@ jobs:
         id: build
         with:
           context: .
-          file: dockerfile/prod/Dockerfile
+          file: Dockerfile
+          target: prod
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.platform.name }}
           outputs: type=image,"name=${{ env.IMAGE }}",push-by-digest=true,name-canonical=true,push=true
