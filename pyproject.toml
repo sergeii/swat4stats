@@ -30,8 +30,8 @@ django-redis = "7.0.0"
 sentry-sdk = "2.64.0"
 
 [tool.poetry.group.dev.dependencies]
-coverage = "7.14.3"
-Faker = "40.23.0"
+coverage = "7.15.0"
+Faker = "40.28.1"
 factory-boy = "3.3.3"
 pytest = "9.1.1"
 pytest-django = "4.12.0"
