@@ -30,7 +30,7 @@ django-redis = "7.0.0"
 sentry-sdk = "2.65.0"
 
 [tool.poetry.group.dev.dependencies]
-coverage = "7.15.0"
+coverage = "7.15.1"
 Faker = "40.28.1"
 factory-boy = "3.3.3"
 pytest = "9.1.1"
@@ -38,9 +38,9 @@ pytest-django = "4.12.0"
 pytest-localserver = "0.10.0"
 pytest-cov = "7.1.0"
 pytest-repeat = "0.9.4"
-mypy = "2.1.0"
+mypy = "2.3.0"
 types-pytz = "2026.2.0.20260518"
-ruff = "0.15.20"  # also update the version in .pre-commit-config.yaml
+ruff = "0.15.21"  # also update the version in .pre-commit-config.yaml
 
 [build-system]
 requires = ["poetry-core"]
