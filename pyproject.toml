@@ -92,6 +92,7 @@ ignore = [
     "EM102",    # Exception must not use an f-string literal, assign to variable first
     "ISC001",   # The following rules may cause conflicts when used with the formatter: `ISC001`
     "PLC0415",  # `import` should be at the top-level of a file
+    "PLR0917",  # Too many positional arguments (X > 5)
     "S311",     # Standard pseudo-random generators are not suitable for cryptographic purposes
     "TC001",    # Move application import X into a type-checking block
     "TC002",    # Move third-party import X into a type-checking block

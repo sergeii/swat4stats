@@ -37,8 +37,10 @@ def test_game_unknown_game_400(api_client: APIClient) -> None:
     "briefing",
     [
         None,
-        "We're being called up for a rapid deployment at "
-        "an ongoing shots fired situation at the A-Bomb nightclub.",
+        (
+            "We're being called up for a rapid deployment at "
+            "an ongoing shots fired situation at the A-Bomb nightclub."
+        ),
     ],
 )
 def test_get_game_detail_versus(
@@ -109,8 +111,10 @@ def test_get_game_detail_versus(
     "briefing",
     [
         None,
-        "We're being called up for a rapid deployment at "
-        "an ongoing shots fired situation at the A-Bomb nightclub.",
+        (
+            "We're being called up for a rapid deployment at "
+            "an ongoing shots fired situation at the A-Bomb nightclub."
+        ),
     ],
 )
 def test_get_game_detail_coop(

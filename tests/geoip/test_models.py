@@ -253,13 +253,15 @@ def test_matching_range_from_known_ip_range_skips_whois_lookup_even_null_isp_nam
         ("\r foo\rbar", "foo"),
         ("\r \nfoo\r\rbar", "foo"),
         (
-            "Mobile Services\n"
-            "Infra-aw\n"
-            "********************************************\n"
-            "In case of improper use originating from our\n"
-            "network, please mail Tele2 Security at\n"
-            "<abuse@tele2.com>\n"
-            "********************************************",
+            (
+                "Mobile Services\n"
+                "Infra-aw\n"
+                "********************************************\n"
+                "In case of improper use originating from our\n"
+                "network, please mail Tele2 Security at\n"
+                "<abuse@tele2.com>\n"
+                "********************************************"
+            ),
             "Mobile Services",
         ),
     ],
