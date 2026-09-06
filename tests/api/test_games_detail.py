@@ -2,7 +2,7 @@ from collections.abc import Callable
 from datetime import datetime
 
 import pytest
-from pytest_django.fixtures import DjangoAssertNumQueries, SettingsWrapper
+from pytest_django.fixtures import DjangoAssertNumQueries, Settings
 from pytz import UTC
 from rest_framework.test import APIClient
 
@@ -44,7 +44,7 @@ def test_game_unknown_game_400(api_client: APIClient) -> None:
     ],
 )
 def test_get_game_detail_versus(
-    settings: SettingsWrapper,
+    settings: Settings,
     django_assert_num_queries: DjangoAssertNumQueries,
     api_client: APIClient,
     server: Server,
@@ -171,7 +171,7 @@ def test_get_game_detail_coop(
 )
 def test_get_game_detail_player_portrait(
     api_client: APIClient,
-    settings: SettingsWrapper,
+    settings: Settings,
     team: str,
     loadout_factory: Callable[[], Loadout],
     image_fmt: str,
@@ -200,7 +200,7 @@ def test_get_game_detail_player_portrait(
 )
 def test_get_game_detail_player_vip_portrait(
     api_client: APIClient,
-    settings: SettingsWrapper,
+    settings: Settings,
     team: str,
     loadout_factory: Callable[[], Loadout],
 ) -> None:
