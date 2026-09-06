@@ -90,7 +90,7 @@ class ISPManager(models.Manager):
         # if unable to obtain acceptable IP range for this address, then do a whois lookup
         try:
             network_data = self._query_ip_address(ip_address)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "unable to query whois for %s due to %s(%s)",
                 ip_address,

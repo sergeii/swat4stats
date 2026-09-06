@@ -51,17 +51,17 @@ services:
       - POSTGRES_DB=swat4stats
       - LANG=en_US.UTF-8
       - LC_ALL=en_US.UTF-8
-    image: postgres:16.10-alpine
+    image: postgres:18.4-alpine
     ports:
       - "5432:5432"
     tmpfs:
       - /run
       - /var/run
       - /tmp
-      - /var/lib/postgresql/data
+      - /var/lib/postgresql
 
   redis:
-    image: redis:8.2-alpine
+    image: redis:8.8-alpine
     command: redis-server --save '' --databases 100 --loglevel warning
     logging:
         driver: none

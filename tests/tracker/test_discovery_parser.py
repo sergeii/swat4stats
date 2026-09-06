@@ -74,9 +74,11 @@ def test_plain_ip_port(content, expected):
         (b"<span>1.2.3.4</span>:<span>1234</span>", [("1.2.3.4", "1234")]),
         (b"Random text <span>1.2.3.4</span>:<span>10480</span> and after", [("1.2.3.4", "10480")]),
         (
-            b"<span>1.1.1.1</span>:<span>10480</span><br>"
-            b"<span>2.2.1.2</span>:<span>10580</span><br>"
-            b"<span>3.3.3.3</span>:<span>14480</span>",
+            (
+                b"<span>1.1.1.1</span>:<span>10480</span><br>"
+                b"<span>2.2.1.2</span>:<span>10580</span><br>"
+                b"<span>3.3.3.3</span>:<span>14480</span>"
+            ),
             [
                 ("1.1.1.1", "10480"),
                 ("2.2.1.2", "10580"),
@@ -84,11 +86,13 @@ def test_plain_ip_port(content, expected):
             ],
         ),
         (
-            b"<ul>"
-            b"<li><span>1.1.1.1</span>:<span>10480</span></li>"
-            b"<li><span>2.2.1.2</span>:<span>10580</span></li>"
-            b"<li><span>3.3.3.3</span>:<span>14480</span></li>"
-            b"</ul>",
+            (
+                b"<ul>"
+                b"<li><span>1.1.1.1</span>:<span>10480</span></li>"
+                b"<li><span>2.2.1.2</span>:<span>10580</span></li>"
+                b"<li><span>3.3.3.3</span>:<span>14480</span></li>"
+                b"</ul>"
+            ),
             [("1.1.1.1", "10480"), ("2.2.1.2", "10580"), ("3.3.3.3", "14480")],
         ),
         (b"<span>256.1.1.1</span>:<span>10480</span>", []),

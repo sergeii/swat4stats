@@ -1,10 +1,10 @@
 import pytest
 from django.test import Client
-from pytest_django.fixtures import SettingsWrapper
+from pytest_django.fixtures import Settings
 
 
 @pytest.mark.django_db
-def test_info_ok(client: Client, settings: SettingsWrapper) -> None:
+def test_info_ok(client: Client, settings: Settings) -> None:
     settings.GIT_RELEASE_SHA = "8de00b9"
     settings.GIT_RELEASE_VER = "v1.0.0"
 

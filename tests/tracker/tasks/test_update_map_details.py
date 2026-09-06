@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 import pytest
-from pytest_django.fixtures import DjangoAssertNumQueries, SettingsWrapper
+from pytest_django.fixtures import DjangoAssertNumQueries, Settings
 
 from apps.tracker.tasks import update_map_details
 from tests.factories.tracker import MapFactory
@@ -16,7 +16,7 @@ from tests.factories.tracker import MapFactory
     ],
 )
 def test_update_map_details(
-    settings: SettingsWrapper,
+    settings: Settings,
     django_assert_num_queries: DjangoAssertNumQueries,
     current_sha: str | None,
 ):
@@ -51,7 +51,7 @@ def test_update_map_details(
 
 @pytest.mark.django_db(databases=["default", "replica"])
 def test_update_map_details_no_sha(
-    settings: SettingsWrapper,
+    settings: Settings,
     django_assert_num_queries: DjangoAssertNumQueries,
 ):
     settings.GIT_RELEASE_SHA = None
