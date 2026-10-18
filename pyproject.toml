@@ -31,16 +31,16 @@ sentry-sdk = "2.71.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "7.16.2"
-Faker = "40.39.0"
+Faker = "40.43.0"
 factory-boy = "3.3.3"
 pytest = "9.1.1"
 pytest-django = "4.14.0"
 pytest-localserver = "0.10.0"
 pytest-cov = "7.1.0"
 pytest-repeat = "0.9.4"
-mypy = "2.3.1"
-types-pytz = "2026.4.0.20260926"
-ruff = "0.16.9"  # also update the version in .pre-commit-config.yaml
+mypy = "2.4.0"
+types-pytz = "2026.5.0.20261006"
+ruff = "0.17.1"  # also update the version in .pre-commit-config.yaml
 
 [build-system]
 requires = ["poetry-core"]
@@ -90,7 +90,7 @@ ignore = [
     "DJ001",    # Avoid using `null=True` on string-based fields such as CharField
     "EM101",    # Exception must not use a string literal, assign to variable first
     "EM102",    # Exception must not use an f-string literal, assign to variable first
-    "ISC001",   # The following rules may cause conflicts when used with the formatter: `ISC001`
+    "ICN001",   # `X` should be imported as `Y`
     "PLC0415",  # `import` should be at the top-level of a file
     "PLR0917",  # Too many positional arguments (X > 5)
     "S311",     # Standard pseudo-random generators are not suitable for cryptographic purposes
@@ -99,7 +99,6 @@ ignore = [
     "TC003",    # Move standard library import X into a type-checking block
     "TRY003",   # Avoid specifying long messages outside the exception class
     "TRY400",   # Use `logging.exception` instead of `logging.error`
-    "UP037",    # Remove quotes from type annotation
 ]
 fixable = ["ALL"]
 unfixable = []

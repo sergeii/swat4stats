@@ -49,25 +49,25 @@ def is_name_popular(name: str) -> bool:
 
 
 class ProfileQuerySet(models.QuerySet):
-    def for_display_card(self) -> models.QuerySet["Profile"]:
+    def for_display_card(self) -> models.QuerySet[Profile]:
         return self.select_related("loadout").only("loadout", "name", "team", "country")
 
-    def played(self) -> models.QuerySet["Profile"]:
+    def played(self) -> models.QuerySet[Profile]:
         return self.filter(first_seen_at__isnull=False, last_seen_at__isnull=False)
 
-    def require_denorm_names(self) -> models.QuerySet["Profile"]:
+    def require_denorm_names(self) -> models.QuerySet[Profile]:
         return self.filter(
             Q(alias_updated_at__isnull=False),
             Q(names_updated_at__isnull=True) | Q(alias_updated_at__gt=F("names_updated_at")),
         )
 
-    def require_search_update(self) -> models.QuerySet["Profile"]:
+    def require_search_update(self) -> models.QuerySet[Profile]:
         return self.filter(
             Q(names_updated_at__isnull=False),
             Q(search_updated_at__isnull=True) | Q(names_updated_at__gt=F("search_updated_at")),
         )
 
-    def require_preference_update(self) -> models.QuerySet["Profile"]:
+    def require_preference_update(self) -> models.QuerySet[Profile]:
         """
         Fetch the profiles that require updating preferences.
         Those are profiles of the players that played past the last update.
@@ -76,7 +76,7 @@ class ProfileQuerySet(models.QuerySet):
             Q(preferences_updated_at__isnull=True) | Q(last_seen_at__gt=F("preferences_updated_at"))
         )
 
-    def require_stats_update(self) -> models.QuerySet["Profile"]:
+    def require_stats_update(self) -> models.QuerySet[Profile]:
         """
         Fetch profiles of the players for periodic stats update.
         """
@@ -92,7 +92,7 @@ class ProfileManager(models.Manager):
         *,
         recent: bool = False,
         **match_kwargs: dict[str, Any],
-    ) -> "Profile":
+    ) -> Profile:
         from apps.tracker.models import Alias
 
         # filter players by recentness
@@ -163,7 +163,7 @@ class ProfileManager(models.Manager):
         name: str,
         ip_address: str | IPv4Address,
         isp: ISP | None,
-    ) -> "Profile":
+    ) -> Profile:
         """
         Attempt to find a profile property of a player in a sequence of steps:
 
@@ -199,14 +199,14 @@ class ProfileManager(models.Manager):
         name: str,
         ip_address: str | IPv4Address,
         isp: ISP | None = None,
-    ) -> tuple["Profile", bool]:
+    ) -> tuple[Profile, bool]:
         try:
             return self.match_smart(name=name, ip_address=ip_address, isp=isp), False
         except NoProfileMatchError:
             return self.create(name=name), True
 
     @classmethod
-    def fetch_first_preferred_game_id_for_profile(cls, profile: "Profile") -> int | None:
+    def fetch_first_preferred_game_id_for_profile(cls, profile: Profile) -> int | None:
         from apps.tracker.models import Game, Player
 
         # prepare a subquery to get the most recent game ids for the player
@@ -237,7 +237,7 @@ class ProfileManager(models.Manager):
     @classmethod
     def fetch_preferred_field_for_profile(
         cls,
-        profile: "Profile",
+        profile: Profile,
         field: str,
         count_field: str | Expression | None = None,
         least_game_id: int | None = None,
@@ -270,7 +270,7 @@ class ProfileManager(models.Manager):
 
     @classmethod
     def fetch_preferred_name_for_profile(
-        cls, profile: "Profile", least_game_id: int | None = None
+        cls, profile: Profile, least_game_id: int | None = None
     ) -> str | None:
         """Get the most popular name"""
         return cls.fetch_preferred_field_for_profile(
@@ -279,7 +279,7 @@ class ProfileManager(models.Manager):
 
     @classmethod
     def fetch_preferred_country_for_profile(
-        cls, profile: "Profile", least_game_id: int | None = None
+        cls, profile: Profile, least_game_id: int | None = None
     ) -> str | None:
         """Get the most recent country"""
         return cls.fetch_preferred_field_for_profile(
@@ -288,14 +288,14 @@ class ProfileManager(models.Manager):
 
     @classmethod
     def fetch_preferred_team_for_profile(
-        cls, profile: "Profile", least_game_id: int | None = None
+        cls, profile: Profile, least_game_id: int | None = None
     ) -> str | None:
         """Get the most preferred team"""
         return cls.fetch_preferred_field_for_profile(profile, "team", least_game_id=least_game_id)
 
     @classmethod
     def fetch_preferred_loadout_for_profile(
-        cls, profile: "Profile", least_game_id: int | None = None
+        cls, profile: Profile, least_game_id: int | None = None
     ) -> int | None:
         """Fetch the most preferred non VIP loadout"""
         return cls.fetch_preferred_field_for_profile(
@@ -306,7 +306,7 @@ class ProfileManager(models.Manager):
         )
 
     @classmethod
-    def update_preferences_for_profile(cls, profile: "Profile") -> None:
+    def update_preferences_for_profile(cls, profile: Profile) -> None:
         """
         Update the player's recent preferences
         such as name, team, loadout and country.
@@ -357,13 +357,13 @@ class ProfileManager(models.Manager):
         )
 
     @classmethod
-    def update_stats_for_profile(cls, profile: "Profile") -> None:
+    def update_stats_for_profile(cls, profile: Profile) -> None:
         if profile.last_seen_at:
             cls.update_annual_stats_for_profile(profile=profile, year=profile.last_seen_at.year)
         profile.stats_updated_at = timezone.now()
         profile.save(update_fields=["stats_updated_at"])
 
-    def update_with_game(self, game: "Game") -> None:
+    def update_with_game(self, game: Game) -> None:
         update_qs = self.filter(alias__player__game=game)
 
         first_game_update_qs = update_qs.filter(game_first__isnull=True)
@@ -374,7 +374,7 @@ class ProfileManager(models.Manager):
             last_game_update_qs.update(game_last=game, last_seen_at=game.date_finished)
 
     @classmethod
-    def update_annual_stats_for_profile(cls, *, profile: "Profile", year: int) -> None:
+    def update_annual_stats_for_profile(cls, *, profile: Profile, year: int) -> None:
         from apps.tracker.models import (
             GametypeStats,
             MapStats,
@@ -420,8 +420,8 @@ class ProfileManager(models.Manager):
     def update_annual_server_stats_for_profile(
         cls,
         *,
-        profile: "Profile",
-        server: "Server",
+        profile: Profile,
+        server: Server,
         year: int,
         no_savepoint: bool = False,
     ) -> None:
@@ -457,11 +457,11 @@ class ProfileManager(models.Manager):
     def _get_qualified_player_queryset_for_profile(
         cls,
         *,
-        profile: "Profile",
+        profile: Profile,
         period_from: datetime,
         period_till: datetime,
         using: str = "replica",
-    ) -> "PlayerQuerySet":
+    ) -> PlayerQuerySet:
         from apps.tracker.models import Player
 
         return (
@@ -473,7 +473,7 @@ class ProfileManager(models.Manager):
 
     @classmethod
     def _get_annual_period_for_profile(
-        cls, *, profile: "Profile", year: int
+        cls, *, profile: Profile, year: int
     ) -> tuple[datetime, datetime] | None:
         period_from, period_till = get_stats_period_for_year(year)
 

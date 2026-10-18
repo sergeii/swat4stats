@@ -78,10 +78,10 @@ class GameManager(models.Manager):
     @transaction.atomic
     def create_game(
         self,
-        server: "Server",
+        server: Server,
         data: dict[str, Any],
         date_finished: datetime,
-    ) -> "Game":
+    ) -> Game:
         """
         Attempt to create using data that was received from a game server.
 
@@ -152,7 +152,7 @@ class GameManager(models.Manager):
                 return rank
         return None
 
-    def _create_game_procedures(self, game: "Game", procedures: list[dict[str, str]]) -> None:
+    def _create_game_procedures(self, game: Game, procedures: list[dict[str, str]]) -> None:
         """Process COOP mission procedures"""
         from apps.tracker.models import Procedure
 
@@ -169,7 +169,7 @@ class GameManager(models.Manager):
             ]
         )
 
-    def _create_game_objectives(self, game: "Game", objectives: list[dict[str, str]]) -> None:
+    def _create_game_objectives(self, game: Game, objectives: list[dict[str, str]]) -> None:
         """Process COOP mission objectives"""
         from apps.tracker.models import Objective
 
@@ -186,7 +186,7 @@ class GameManager(models.Manager):
             ]
         )
 
-    def _create_game_players(self, game: "Game", players: list[dict[str, Any]]) -> None:
+    def _create_game_players(self, game: Game, players: list[dict[str, Any]]) -> None:
         """Process round players"""
         from apps.tracker.models import Alias, Loadout, Player, Weapon
 
@@ -275,7 +275,7 @@ class GameManager(models.Manager):
                 )
 
     @classmethod
-    def get_player_with_max_points(cls, game: "Game", field: str) -> GameTopFieldPlayer | None:
+    def get_player_with_max_points(cls, game: Game, field: str) -> GameTopFieldPlayer | None:
         """
         Return the player with the highest value of given field
         """
@@ -290,7 +290,7 @@ class GameManager(models.Manager):
         return GameTopFieldPlayer(player=top_player, field=field, points=top_points)
 
     @classmethod
-    def get_highlights_for_game(cls, game: "Game") -> list[GamePlayerHighlight]:
+    def get_highlights_for_game(cls, game: Game) -> list[GamePlayerHighlight]:
         """
         Return a list of notable game achievements credited to specific players.
         """
@@ -314,7 +314,7 @@ class GameManager(models.Manager):
         return items + cls._get_player_weapon_highlights(game)
 
     @classmethod
-    def _get_player_weapon_highlights(cls, game: "Game") -> list[GamePlayerHighlight]:
+    def _get_player_weapon_highlights(cls, game: Game) -> list[GamePlayerHighlight]:
         all_player_weapons = {}
         for player in game.player_set.all():
             for wpn in player.gun_weapons:
@@ -343,7 +343,7 @@ class GameManager(models.Manager):
 
         return highlights
 
-    def get_neighbors_for_game(self, game: "Game") -> GameNeighbors:
+    def get_neighbors_for_game(self, game: Game) -> GameNeighbors:
         qs = self.get_queryset().select_related("map", "server").filter(server=game.server)
         return GameNeighbors(
             prev=qs.filter(pk__lt=game.pk).order_by("-pk").first(),

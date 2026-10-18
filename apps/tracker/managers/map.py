@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 class MapManager(models.Manager):
-    def obtain_for(self, name: str) -> "Map":
+    def obtain_for(self, name: str) -> Map:
         obj, _ = self.get_or_create(name=name, defaults={"slug": slugify(name)})
         return obj
 
-    def update_game_stats_with_game(self, game: "Game") -> None:
+    def update_game_stats_with_game(self, game: Game) -> None:
         update_qs = self.filter(pk=game.map_id)
 
         first_game_update_qs = update_qs.filter(first_game__isnull=True)
@@ -138,7 +138,7 @@ class MapManager(models.Manager):
         return {m.pk: idx for idx, m in enumerate(maps_sorted_by_rating, start=1)}
 
     @transaction.atomic
-    def denorm_game_stats(self, *maps: "Map") -> None:
+    def denorm_game_stats(self, *maps: Map) -> None:
         from apps.tracker.models import Game
 
         map_ids = [m.pk for m in maps]

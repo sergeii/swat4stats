@@ -49,7 +49,7 @@ class IPManager(models.Manager):
 
 
 class ISPManager(models.Manager):
-    def match(self, ip_address: str | IPv4Address) -> tuple["ISP", int]:
+    def match(self, ip_address: str | IPv4Address) -> tuple[ISP, int]:
         """
         Attempt to find an ISP entry matching the provided IP address.
 
@@ -68,7 +68,7 @@ class ISPManager(models.Manager):
         )
         return obj.isp, obj.length
 
-    def match_or_create(self, ip_address: str | IPv4Address) -> tuple["ISP", bool]:
+    def match_or_create(self, ip_address: str | IPv4Address) -> tuple[ISP, bool]:
         from apps.geoip.models import IP
 
         ip_address = IPv4Address(ip_address)

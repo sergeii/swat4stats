@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class AliasQuerySet(models.QuerySet):
-    def require_search_update(self) -> models.QuerySet["Alias"]:
+    def require_search_update(self) -> models.QuerySet[Alias]:
         return self.filter(
             Q(updated_at__isnull=False),
             Q(search_updated_at__isnull=True) | Q(updated_at__gt=F("search_updated_at")),
@@ -31,7 +31,7 @@ class AliasManager(models.Manager):
         *,
         name: str,
         ip_address: str | IPv4Address,
-    ) -> tuple["Alias", bool]:
+    ) -> tuple[Alias, bool]:
         # guard against empty name
         if not name:
             raise ValueError("Empty name")
@@ -68,7 +68,7 @@ class AliasManager(models.Manager):
         name: str,
         ip_address: str | IPv4Address,
         isp: ISP | None,
-    ) -> "Alias":
+    ) -> Alias:
         from apps.tracker.models import Profile
 
         # get a profile by name and optionally by ip and isp.

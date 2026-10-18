@@ -21,7 +21,7 @@ RUN apt update \
     build-essential \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-warn-script-location poetry==2.4.3
+RUN pip install --no-warn-script-location poetry==2.5.1
 
 
 FROM base AS dev

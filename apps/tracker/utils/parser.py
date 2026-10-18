@@ -4,7 +4,7 @@ from urllib.parse import unquote_plus
 
 
 class JuliaQueryString(dict):
-    def parse(self, query_string: str) -> "JuliaQueryString":
+    def parse(self, query_string: str) -> JuliaQueryString:
         """
         Parse a raw querystring and set the parsed items as members of the instance.
         Do not let duplicate keys to shadow the same keys that have been set previously.
@@ -38,7 +38,7 @@ class JuliaQueryString(dict):
                     self[param_name] = [self[param_name], param_value]
         return self
 
-    def expand_dots(self) -> "JuliaQueryString":
+    def expand_dots(self) -> JuliaQueryString:
         """
         Turn a dot separated key into an n-dimensinal structure.
 
@@ -66,7 +66,7 @@ class JuliaQueryString(dict):
                 self.set_complex_key_item(self, key_components, dict_value)
         return self
 
-    def expand_array(self) -> "JuliaQueryString":
+    def expand_array(self) -> JuliaQueryString:
         pattern = re.compile(r"^(?P<key>[^\[\]]+)(?P<dictkeys>(?:\[[^\[]+\])+)?(?P<listkey>\[\])?$")
         # iterate a copy of the keys
         dict_keys = list(self.keys())
