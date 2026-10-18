@@ -382,7 +382,7 @@ class Player(models.Model):
         return f"{self.name}, {self.ip}"
 
     @cached_property
-    def profile(self) -> "Profile":
+    def profile(self) -> Profile:
         return self.alias.profile
 
     @cached_property

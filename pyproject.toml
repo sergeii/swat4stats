@@ -99,7 +99,6 @@ ignore = [
     "TC003",    # Move standard library import X into a type-checking block
     "TRY003",   # Avoid specifying long messages outside the exception class
     "TRY400",   # Use `logging.exception` instead of `logging.error`
-    "UP037",    # Remove quotes from type annotation
 ]
 fixable = ["ALL"]
 unfixable = []

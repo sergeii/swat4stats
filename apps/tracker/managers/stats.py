@@ -34,7 +34,7 @@ class StatsManager(models.Manager):
         self,
         items: dict[str, int | float],
         *,
-        profile: "Profile",
+        profile: Profile,
         year: int,
         **save_kwargs: Any,
     ) -> None:
@@ -72,7 +72,7 @@ class StatsManager(models.Manager):
         grouped_items: dict[str, dict[str, int | float]],
         *,
         grouping_key: str,
-        profile: "Profile",
+        profile: Profile,
         year: int,
     ) -> None:
         for grouping_value, items in grouped_items.items():

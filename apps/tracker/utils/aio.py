@@ -39,7 +39,7 @@ async def run(coro: Coroutine, semaphore: asyncio.Semaphore | None) -> None:
             await coro
 
 
-def run_many(tasks: list["Task"], concurrency: int | None = None) -> None:
+def run_many(tasks: list[Task], concurrency: int | None = None) -> None:
     async def runner():
         semaphore = asyncio.Semaphore(concurrency) if concurrency else None
         runnables = (run(task.execute(), semaphore=semaphore) for task in tasks)

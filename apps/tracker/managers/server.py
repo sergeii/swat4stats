@@ -35,13 +35,13 @@ logger = logging.getLogger(__name__)
 
 
 class ServerQuerySet(models.QuerySet):
-    def require_search_update(self) -> models.QuerySet["Server"]:
+    def require_search_update(self) -> models.QuerySet[Server]:
         return self.filter(
             Q(hostname_updated_at__isnull=False),
             Q(search_updated_at__isnull=True) | Q(hostname_updated_at__gt=F("search_updated_at")),
         )
 
-    def with_status(self, *, with_empty: bool = False) -> list["Server"]:
+    def with_status(self, *, with_empty: bool = False) -> list[Server]:
         """
         Obtain cached status for all eligible servers in the queryset.
 
@@ -111,7 +111,7 @@ class ServerManager(models.Manager):
 
         return self.filter(pk__in=server_pks)
 
-    def update_game_stats_with_game(self, game: "Game") -> None:
+    def update_game_stats_with_game(self, game: Game) -> None:
         update_qs = self.filter(pk=game.server_id)
 
         first_game_update_qs = update_qs.filter(first_game__isnull=True)
@@ -240,7 +240,7 @@ class ServerManager(models.Manager):
         self.filter(pk__in=server_ids).update(search=vector)
         self.filter(pk__in=server_ids).update(search_updated_at=timezone.now())
 
-    def update_hostnames(self, *hostname_updates: list[tuple["Server", str]]) -> int:
+    def update_hostnames(self, *hostname_updates: list[tuple[Server, str]]) -> int:
         from apps.tracker.models import Server
 
         servers_to_update = []
@@ -266,7 +266,7 @@ class ServerManager(models.Manager):
     def increment_query_failures(self, *server_ids: int) -> int:
         return self.filter(pk__in=server_ids, listed=True).update(failures=F("failures") + 1)
 
-    def get_listed_servers_with_exceeded_failures(self) -> QuerySet["Server"]:
+    def get_listed_servers_with_exceeded_failures(self) -> QuerySet[Server]:
         return self.filter(listed=True, failures__gte=settings.TRACKER_STATUS_TOLERATED_FAILURES)
 
     def reset_query_failures(self, *server_ids: int, **when: Any) -> int:
@@ -279,7 +279,7 @@ class ServerManager(models.Manager):
         return self.filter(pk__in=server_ids, listed=True).update(listed=False)
 
     def merge_servers(
-        self, *, main: "Server", merged: list["Server"], no_savepoint: bool = False
+        self, *, main: Server, merged: list[Server], no_savepoint: bool = False
     ) -> None:
         main_id = main.pk
         merged_ids = [server.pk for server in merged]
@@ -350,7 +350,7 @@ class ServerManager(models.Manager):
             )
             # fmt: on
 
-    def fetch_status(self, *servers: "Server") -> dict["Server", OrderedDict | Exception | None]:
+    def fetch_status(self, *servers: Server) -> dict[Server, OrderedDict | Exception | None]:
         """
         Attempt to fetch info for every server in the queryset.
         Query result may also yield an exception.
@@ -377,10 +377,10 @@ class ServerManager(models.Manager):
 
     def refresh_status(
         self,
-        *servers: "Server",
+        *servers: Server,
     ) -> tuple[
-        list[tuple["Server", dict[str, Any]]],
-        list[tuple["Server", Exception] | tuple["Server", Invalid]],
+        list[tuple[Server, dict[str, Any]]],
+        list[tuple[Server, Exception] | tuple[Server, Invalid]],
     ]:
         """
         Fetch data for the servers in the queryset,
@@ -437,14 +437,14 @@ class ServerManager(models.Manager):
 
     def update_server_with_status(
         self,
-        server: "Server",
+        server: Server,
         status: dict[str, str | list[dict[str, str]]],
     ) -> None:
         redis = cache.client.get_client()
         logger.info("storing status for server %s:%s (%s)", server.ip, server.port, server.pk)
         redis.hset(settings.TRACKER_STATUS_REDIS_KEY, server.address, dumps(status).encode())
 
-    def delete_status(self, *servers: "Server") -> int:
+    def delete_status(self, *servers: Server) -> int:
         redis = cache.client.get_client()
         keys_to_delete = (server.address for server in servers)
         return redis.hdel(settings.TRACKER_STATUS_REDIS_KEY, *keys_to_delete)

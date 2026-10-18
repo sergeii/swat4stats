@@ -257,13 +257,13 @@ class PlayerQuerySet(models.QuerySet):
         },
     ]
 
-    def with_qualified_games(self) -> QuerySet["Player"]:
+    def with_qualified_games(self) -> QuerySet[Player]:
         """
         Include game rounds that have enough players to be qualified (except for CO-OP games)
         """
         return self.filter(Q(game__player_num__gte=settings.TRACKER_MIN_PLAYERS) | Q(q_coop_modes))
 
-    def for_period(self, start_date: datetime, end_date: datetime) -> QuerySet["Player"]:
+    def for_period(self, start_date: datetime, end_date: datetime) -> QuerySet[Player]:
         """
         Filter games by period tuple.
         """
@@ -271,10 +271,10 @@ class PlayerQuerySet(models.QuerySet):
             Q(game__date_finished__gte=start_date, game__date_finished__lte=end_date)
         )
 
-    def for_server(self, server: "Server") -> QuerySet["Player"]:
+    def for_server(self, server: Server) -> QuerySet[Player]:
         return self.filter(game__server=server)
 
-    def for_profile(self, profile: "Profile") -> QuerySet["Player"]:
+    def for_profile(self, profile: Profile) -> QuerySet[Player]:
         return self.filter(alias__profile=profile)
 
     def aggregate_player_stats(self) -> dict[str, int | float]:
@@ -353,7 +353,7 @@ class PlayerQuerySet(models.QuerySet):
 
 
 class PlayerManager(models.Manager):
-    def get_queryset(self) -> QuerySet["Player"]:
+    def get_queryset(self) -> QuerySet[Player]:
         return (
             super()
             .get_queryset()
