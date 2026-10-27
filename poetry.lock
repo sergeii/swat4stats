@@ -2030,14 +2030,14 @@ docs = ["sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "pytest-localserver"
-version = "0.10.0"
+version = "0.10.0.post0"
 description = "pytest plugin to test server connections locally."
 optional = false
 python-versions = ">=3.7"
 groups = ["dev"]
 files = [
-    {file = "pytest_localserver-0.10.0-py3-none-any.whl", hash = "sha256:de526dc5fb26395fb7bbf26bfc14dde5ac3390ba8d8c7de42dfa492d65e0c448"},
-    {file = "pytest_localserver-0.10.0.tar.gz", hash = "sha256:2607197f390912ab25525d129ac43c3c875049257368b3fe09b5cd03dcc526af"},
+    {file = "pytest_localserver-0.10.0.post0-py3-none-any.whl", hash = "sha256:0ab79cd3128ae451d258e80de449f543076cdf409955b6219e3a0839c0f2c2d8"},
+    {file = "pytest_localserver-0.10.0.post0.tar.gz", hash = "sha256:06c21a66609d862b42bd9cb816334820e696ea8f77cacddfe159127d48649851"},
 ]
 
 [package.dependencies]
@@ -2566,4 +2566,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14,<3.15"
-content-hash = "f0dfd56b7a2fba5ad39c22caa6be55eab6beff57d276f232e6eb0b111b1ce535"
+content-hash = "5b6dcf53e52728dec98be4b6491af3dcb3ec68cc252d4e599d809376af7e21d5"
