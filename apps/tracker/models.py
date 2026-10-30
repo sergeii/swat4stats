@@ -1,7 +1,6 @@
 import logging
 from typing import Any, ClassVar
 
-from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
@@ -12,7 +11,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from apps.tracker.entities import Equipment, GameNeighbors, GameType
+from apps.tracker.entities import GameType
 from apps.tracker.managers import (
     AliasManager,
     GameManager,
@@ -28,7 +27,7 @@ from apps.tracker.managers import (
     StatsManager,
 )
 from apps.tracker.managers.alias import AliasQuerySet
-from apps.tracker.utils.misc import force_clean_name, ratio
+from apps.tracker.utils.misc import force_clean_name
 from apps.utils.db.fields import EnumField
 
 logger = logging.getLogger(__name__)
@@ -191,9 +190,6 @@ class Game(models.Model):
     def is_coop_game(self) -> bool:
         return self.gametype in (GameType.co_op, GameType.co_op_qmm)
 
-    def get_neighboring_games(self) -> GameNeighbors:
-        return Game.objects.get_neighbors_for_game(self)
-
 
 class Loadout(models.Model):
     primary = EnumField(db_column="primary_enum", enum_type="equipment_enum")
@@ -271,23 +267,8 @@ class Weapon(models.Model):
     teamkills = models.SmallIntegerField(default=0)
     distance = models.FloatField(_("Distance, meters"), default=0)
 
-    _grenade_weapons: ClassVar[set[str]] = set(Equipment.grenades())
-
     def __str__(self) -> str:
         return f"id={self.pk} name={self.name} player={self.player_id}"
-
-    @cached_property
-    def is_grenade_weapon(self) -> bool:
-        return self.name in self._grenade_weapons
-
-    @cached_property
-    def accuracy(self) -> int:
-        min_shots = (
-            settings.TRACKER_MIN_GAME_GRENADES
-            if self.is_grenade_weapon
-            else settings.TRACKER_MIN_GAME_AMMO
-        )
-        return int(ratio(self.hits, self.shots, min_divisor=min_shots) * 100)
 
 
 class Alias(models.Model):
@@ -359,11 +340,6 @@ class Player(models.Model):
 
     objects = PlayerManager.from_queryset(PlayerQuerySet)()
 
-    _gun_weapon_names: ClassVar[set[str]] = set(
-        Equipment.primary_weapons() + Equipment.secondary_weapons()
-    )
-    _grenade_weapon_names: ClassVar[set[str]] = set(Equipment.grenades())
-
     class Meta:
         indexes: ClassVar[list[models.Index]] = [
             models.Index(fields=["alias", "score"]),
@@ -382,76 +358,8 @@ class Player(models.Model):
         return f"{self.name}, {self.ip}"
 
     @cached_property
-    def profile(self) -> Profile:
-        return self.alias.profile
-
-    @cached_property
     def name(self) -> str:
         return self.alias.name
-
-    @cached_property
-    def country(self) -> str | None:
-        try:
-            return self.alias.isp.country
-        except AttributeError:
-            return None
-
-    @cached_property
-    def special(self) -> int:
-        return (
-            self.vip_escapes
-            + self.vip_captures
-            + self.vip_rescues
-            + self.rd_bombs_defused
-            + self.sg_escapes
-        )
-
-    @cached_property
-    def coop_enemy_incaps_and_kills(self) -> int:
-        return self.coop_enemy_incaps + self.coop_enemy_kills
-
-    @cached_property
-    def gun_weapons(self) -> list[Weapon]:
-        return [weapon for weapon in self.weapons.all() if weapon.name in self._gun_weapon_names]
-
-    @cached_property
-    def gun_weapon_shots(self) -> int:
-        """
-        Calculate the number of rounds fired for both primary and secondary weapons.
-        """
-        shots = 0
-        for weapon in self.weapons.all():
-            if weapon.name not in self._gun_weapon_names:
-                continue
-            shots += weapon.shots
-        return shots
-
-    @cached_property
-    def gun_weapon_accuracy(self) -> int:
-        """
-        Calculate the average accuracy for all fired weapons,
-        excluding some nonlegit weapons such as taser.
-        """
-        return self._calculate_accuracy(
-            weapon_names=self._gun_weapon_names, min_shots=settings.TRACKER_MIN_GAME_AMMO
-        )
-
-    @cached_property
-    def grenade_accuracy(self) -> int:
-        ratio = self._calculate_accuracy(
-            weapon_names=self._grenade_weapon_names, min_shots=settings.TRACKER_MIN_GAME_GRENADES
-        )
-        return min(ratio, 100)
-
-    def _calculate_accuracy(self, *, weapon_names: set, min_shots: int) -> int:
-        hits = 0
-        shots = 0
-        for weapon in self.weapons.all():
-            if weapon.name not in weapon_names:
-                continue
-            hits += weapon.hits
-            shots += weapon.shots
-        return int(ratio(hits, shots, min_divisor=min_shots) * 100)
 
 
 class Objective(models.Model):

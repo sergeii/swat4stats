@@ -4,15 +4,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.db import IntegrityError, models, transaction
-from django.utils.translation import gettext_lazy as _
 
-from apps.tracker.entities import (
-    CoopRank,
-    GameNeighbors,
-    GamePlayerHighlight,
-    GameTopFieldPlayer,
-    GameType,
-)
+from apps.tracker.entities import CoopRank, GameType
 from apps.tracker.exceptions import GameAlreadySavedError
 from apps.tracker.schema import (
     coop_status_reversed,
@@ -28,38 +21,13 @@ from apps.tracker.schema import (
 from apps.tracker.utils.misc import force_name
 
 if TYPE_CHECKING:
-    from apps.tracker.models import Game, Player, Server  # noqa: F401
+    from apps.tracker.models import Game, Server
 
 
 logger = logging.getLogger(__name__)
 
 
 class GameManager(models.Manager):
-    highlights: ClassVar[list[str, str]] = [
-        (_("Hostage Crisis"), _("%(points)s VIP rescues"), "vip_rescues", 2),
-        (_("No Exit"), _("%(points)s VIP captures"), "vip_captures", 2),
-        (_("Quick Cut"), _("%(points)s bombs defused"), "rd_bombs_defused", 2),
-        (_("Undying"), _("%(points)s enemies killed in a row"), "kill_streak", 5),
-        (_("Insane"), _("%(points)s enemies arrested in a row"), "arrest_streak", 5),
-        (_("Top Gun"), _("%(points)s points earned"), "score", 30),
-        (
-            _("Fire in the hole!"),
-            _("%(points)s%% of grenades hit their targets"),
-            "grenade_accuracy",
-            50,
-        ),
-        (_("Sharpshooter"), _("%(points)s%% of all shots hit targets"), "gun_weapon_accuracy", 25),
-        (_("Killing Machine"), _("%(points)s enemies eliminated"), "kills", 10),
-        (_("Resourceful"), _("%(points)s rounds of ammo fired"), "gun_weapon_shots", 300),
-        # COOP
-        (_("Entry team to TOC!"), _("%(points)s reports sent to TOC"), "coop_toc_reports", 10),
-        (_("Hostage Crisis"), _("%(points)s civilians rescued"), "coop_hostage_arrests", 5),
-        (_("The pacifist"), _("%(points)s suspects secured"), "coop_enemy_arrests", 5),
-        (_("No Mercy"), _("%(points)s suspects neutralized"), "coop_enemy_incaps_and_kills", 5),
-    ]
-    highlights_weapon_min_kills = 5
-    highlights_weapon_min_accuracy = 20
-
     coop_min_score_for_rank: ClassVar[list[tuple[int, CoopRank]]] = [
         (100, CoopRank.chief_inspector),
         (95, CoopRank.inspector),
@@ -273,79 +241,3 @@ class GameManager(models.Manager):
                         if weapon["name"] != -1
                     ]
                 )
-
-    @classmethod
-    def get_player_with_max_points(cls, game: Game, field: str) -> GameTopFieldPlayer | None:
-        """
-        Return the player with the highest value of given field
-        """
-        players_with_field = [
-            (player, getattr(player, field) or 0) for player in game.player_set.all()
-        ]
-
-        if not players_with_field:
-            return None
-
-        top_player, top_points = max(players_with_field, key=lambda item: item[1])
-        return GameTopFieldPlayer(player=top_player, field=field, points=top_points)
-
-    @classmethod
-    def get_highlights_for_game(cls, game: Game) -> list[GamePlayerHighlight]:
-        """
-        Return a list of notable game achievements credited to specific players.
-        """
-        items = []
-
-        for title, description, field, min_points in cls.highlights:
-            if not (player_with_max_points := cls.get_player_with_max_points(game, field)):
-                continue
-
-            if player_with_max_points.points < min_points:
-                continue
-
-            items.append(
-                GamePlayerHighlight(
-                    player=player_with_max_points.player,
-                    title=title,
-                    description=description % {"points": player_with_max_points.points},
-                )
-            )
-
-        return items + cls._get_player_weapon_highlights(game)
-
-    @classmethod
-    def _get_player_weapon_highlights(cls, game: Game) -> list[GamePlayerHighlight]:
-        all_player_weapons = {}
-        for player in game.player_set.all():
-            for wpn in player.gun_weapons:
-                if (
-                    wpn.kills < cls.highlights_weapon_min_kills
-                    or wpn.accuracy < cls.highlights_weapon_min_accuracy
-                ):
-                    continue
-                all_player_weapons.setdefault(wpn.name, []).append((player, wpn))
-
-        highlights = []
-        # obtain the highest accuracy among all weapon users
-        for weapon_name, weapon_users in all_player_weapons.items():
-            top_user, top_user_weapon = max(weapon_users, key=lambda item: item[1].accuracy)
-            highlights.append(
-                GamePlayerHighlight(
-                    player=top_user,
-                    title=_("%(name)s Expert") % {"name": _(weapon_name)},
-                    description=_("%(kills)s kills with average accuracy of %(accuracy)s%%")
-                    % {
-                        "kills": top_user_weapon.kills,
-                        "accuracy": top_user_weapon.accuracy,
-                    },
-                )
-            )
-
-        return highlights
-
-    def get_neighbors_for_game(self, game: Game) -> GameNeighbors:
-        qs = self.get_queryset().select_related("map", "server").filter(server=game.server)
-        return GameNeighbors(
-            prev=qs.filter(pk__lt=game.pk).order_by("-pk").first(),
-            next=qs.filter(pk__gt=game.pk).order_by("pk").first(),
-        )

@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-import typing as t
-from dataclasses import dataclass
 from enum import IntEnum, StrEnum, auto
-
-if t.TYPE_CHECKING:
-    from apps.tracker.models import Game, Player
 
 
 class Team(StrEnum):
@@ -163,39 +158,6 @@ class Equipment(StrEnum):
     baton_grenade = "Baton Grenade"
 
     @classmethod
-    def primary_weapons(cls) -> tuple[Equipment, ...]:
-        return (
-            cls.m4_super90,
-            cls.nova_pump,
-            cls.pepper_ball,
-            cls.less_lethal_shotgun,
-            cls.colt_m4a1_carbine,
-            cls.ak_47_machinegun,
-            cls.gb36s_assault_rifle,
-            cls.gal_sub_machinegun,
-            cls._9mm_smg,
-            cls.suppressed_9mm_smg,
-            cls._45_smg,
-            cls.colt_accurized_rifle,
-            cls._40mm_grenade_launcher,
-            cls._5_56mm_light_machine_gun,
-            cls._5_7x28mm_submachine_gun,
-            cls._9mm_machine_pistol,
-        )
-
-    @classmethod
-    def secondary_weapons(cls) -> tuple[Equipment, ...]:
-        return (
-            cls.taser_stun_gun,
-            cls.cobra_stun_gun,
-            cls.m1911_handgun,
-            cls._9mm_handgun,
-            cls.colt_python,
-            cls.vip_colt_m1911_handgun,
-            cls.mark_19_semi_automatic_pistol,
-        )
-
-    @classmethod
     def grenades(cls) -> tuple[Equipment, ...]:
         return cls.stinger, cls.cs_gas, cls.flashbang
 
@@ -328,23 +290,3 @@ class LegacyStatCategory(IntEnum):
     weapon_kills = 82
     weapon_teamhit_ratio = 83
     weapon_teamhits = 84
-
-
-@dataclass
-class GameTopFieldPlayer:
-    player: Player
-    field: str
-    points: int
-
-
-@dataclass
-class GamePlayerHighlight:
-    player: Player
-    title: str
-    description: str
-
-
-@dataclass
-class GameNeighbors:
-    prev: Game | None = None
-    next: Game | None = None

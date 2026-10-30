@@ -480,10 +480,6 @@ TRACKER_MAP_RATINGS_FOR_PERIOD = 180 * 24 * 60 * 60
 # same as above, but for server ratings
 TRACKER_SERVER_RATINGS_FOR_PERIOD = 90 * 24 * 60 * 60
 
-# min ammo required for accuracy calculation in a single game round
-TRACKER_MIN_GAME_AMMO = 60
-TRACKER_MIN_GAME_GRENADES = 10
-
 # min day to make new appear in leaderboards
 TRACKER_MIN_YEAR_DAY = 15
 
