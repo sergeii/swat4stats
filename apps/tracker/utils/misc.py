@@ -15,24 +15,6 @@ from apps.utils.misc import force_date
 logger = logging.getLogger(__name__)
 
 
-def ratio(
-    dividend: float,
-    divisor: float,
-    min_dividend: float | None = None,
-    min_divisor: float | None = None,
-) -> float:
-    if min_dividend is not None and dividend is not None and dividend < min_dividend:
-        return 0.0
-
-    if min_divisor is not None and divisor is not None and divisor < min_divisor:
-        return 0.0
-
-    try:
-        return dividend / divisor
-    except ValueError, TypeError, ZeroDivisionError:
-        return 0.0
-
-
 def force_clean_name(name: str) -> str:
     """Return a name free of SWAT text tags and leading/trailing whitespace."""
     pattern = re.compile(r"(\[[\\/]?[cub]\]|\[c[^\w][^\[\]]*?\])", flags=re.IGNORECASE)

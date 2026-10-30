@@ -6,43 +6,6 @@ from django.template.loader import render_to_string
 from django.templatetags.static import static
 from django.utils.text import slugify
 
-from apps.tracker.entities import Equipment, Team
-
-
-def is_proper_armor(
-    head: Equipment | None,
-    body: Equipment | None,
-) -> bool:
-    match (head, body):
-        case (
-            Equipment.helmet | Equipment.gas_mask | Equipment.night_vision_goggles,
-            Equipment.light_armor | Equipment.heavy_armor | Equipment.no_armor,
-        ):
-            return True
-        case _:
-            return False
-
-
-def get_player_portrait_image(
-    team: Team | None,
-    head: Equipment | None,
-    body: Equipment | None,
-    *,
-    is_vip: bool = False,
-) -> str:
-    path_format = "images/portraits/{name}.jpg"
-    if is_vip:
-        static_path = path_format.format(name="vip")
-    elif team and is_proper_armor(head, body):
-        head_slug = slugify(head.lower())
-        body_slug = slugify(body.lower())
-        static_path = path_format.format(name=f"{team}-{body_slug}-{head_slug}")
-    elif team:
-        static_path = path_format.format(name=f"{team}")
-    else:
-        static_path = path_format.format(name="swat")
-    return static(static_path)
-
 
 def gametype_rules_text(gametype: str) -> str | None:
     return _gametype_rules_text(gametype)
