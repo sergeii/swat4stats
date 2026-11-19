@@ -213,48 +213,27 @@ DEFAULT_FROM_EMAIL = env("SETTINGS_DEFAULT_FROM_EMAIL", "noreply@swat4stats.com"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-if syslog_address := env("SETTINGS_LOGGING_SYSLOG_ADDRESS", None):
-    syslog_host, syslog_port = syslog_address.split(":")
-    default_logging_handler = {
-        "level": "DEBUG",
-        "formatter": "syslog",
-        "class": "logging.handlers.SysLogHandler",
-        "address": (syslog_host, int(syslog_port)),
-    }
-else:
-    default_logging_handler = {
-        "level": "DEBUG",
-        "class": "logging.StreamHandler",
-        "formatter": "simple",
-    }
-
-if enable_stderr_logging := env_bool("SETTINGS_LOGGING_STDERR_ENABLED", default=False):
-    stderr_logging_handler = {
-        "level": "DEBUG",
-        "class": "logging.StreamHandler",
-        "formatter": "simple",
-    }
-else:
-    stderr_logging_handler = {
-        "level": "DEBUG",
-        "class": "logging.NullHandler",
-    }
-
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "syslog": {
-            "format": "app.swat4stats.%(name)s: [%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(message)s"  # noqa: E501
-        },
         "simple": {
-            "format": "[%(levelname)s] %(asctime)s - %(filename)s:%(lineno)s - %(funcName)s() - %(message)s"  # noqa: E501
+            "format": "[%(levelname)s] %(asctime)s - %(name)s - %(filename)s:%(lineno)s - %(funcName)s() - %(message)s"  # noqa: E501
         },
     },
     "handlers": {
-        "default": default_logging_handler,
-        "stderr": stderr_logging_handler,
+        "stdout": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+            "formatter": "simple",
+        },
+        "stderr": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stderr",
+            "formatter": "simple",
+        },
         "mail_admins": {
             "level": "ERROR",
             "class": "logging.NullHandler",
@@ -263,26 +242,26 @@ LOGGING = {
     "loggers": {
         "": {
             "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO"),
-            "handlers": ["default"],
+            "handlers": ["stdout"],
         },
         "celery": {
             "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO"),
             "handlers": ["stderr"],
-            "propagate": True,
+            "propagate": False,
         },
         "django.request": {
             "level": env_log_level("SETTINGS_LOG_LEVEL", "INFO"),
             "handlers": ["stderr"],
-            "propagate": True,
+            "propagate": False,
         },
         "django.db.backends": {
             "level": env_log_level("SETTINGS_LOG_LEVEL", "WARNING", logging.WARNING),
-            "handlers": ["default"],
+            "handlers": ["stdout"],
             "propagate": False,
         },
         "factory": {
             "level": env_log_level("SETTINGS_LOG_LEVEL", "ERROR", logging.ERROR),
-            "handlers": ["default"],
+            "handlers": ["stdout"],
             "propagate": False,
         },
     },
